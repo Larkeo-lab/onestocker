@@ -1,0 +1,19 @@
+{
+  // ทางสำรองตอน Cloudflare Pages มีปัญหา — deploy ไฟล์นิ่งเป็น Worker แทน
+  //
+  //   pnpm dlx wrangler deploy
+  //
+  // ใช้คนละ endpoint กับ Pages (/pages/assets/upload) จึงไม่พังตามกัน
+  // ผลลัพธ์ที่ผู้ใช้เห็นเหมือนกันทุกอย่าง — ไฟล์นิ่งเสิร์ฟผ่าน CDN ของ Cloudflare
+  "name": "one-stock",
+  "compatibility_date": "2026-09-10",
+
+  "assets": {
+    "directory": "./dist",
+
+    // เส้นทางทั้งหมดถูกจัดการโดย react-router ในเบราว์เซอร์
+    // ไม่ได้มีไฟล์จริงชื่อ /settings อยู่ ถ้าไม่ตั้งค่านี้การเปิด URL ตรง ๆ
+    // หรือกดรีเฟรชจะได้ 404 — ตัวเลือกนี้ทำหน้าที่เดียวกับ public/_redirects
+    "not_found_handling": "single-page-application"
+  }
+}
