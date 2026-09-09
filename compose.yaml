@@ -1,0 +1,30 @@
+# รันอิมเมจที่ build แล้ว — ใช้ได้ทั้งบนเครื่องและบน EC2
+#
+# บนเครื่อง:  docker compose up -d
+# บน EC2:     docker compose up -d   (หลัง docker load อิมเมจเข้าไปแล้ว)
+
+services:
+  api:
+    image: one-stocks-api:${TAG:-latest}
+    container_name: one-stocks-api
+
+    # ความลับอ่านจาก .env ที่อยู่ข้าง ๆ ไฟล์นี้
+    # ไม่ได้ฝังเข้าอิมเมจ อิมเมจตัวเดียวจึงใช้ได้ทุกสภาพแวดล้อม
+    env_file: .env
+
+    ports:
+      - "${PORT:-8080}:8080"
+
+    # ล้มแล้วขึ้นเองใหม่ รวมถึงตอนเครื่องรีบูต
+    restart: unless-stopped
+
+    # กันไม่ให้กินหน่วยความจำทั้งเครื่องถ้าเกิดรั่ว
+    # วัดจริงแล้วใช้ราว 15 MB ตอนทำงานหนัก 256 MB จึงเหลือเฟือมาก
+    mem_limit: 256m
+
+    # log ไม่จำกัดขนาดจะกินดิสก์ของ EC2 จนเต็มในไม่กี่เดือน
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

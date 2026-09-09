@@ -5,6 +5,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 )
 
@@ -72,7 +73,7 @@ func Load() (Config, error) {
 	}
 
 	if cfg.IsDev() {
-		return cfg, nil
+		return cfg, cfg.warnOnMismatchedClerkKey()
 	}
 
 	// ถึงตรงนี้แปลว่า APP_ENV=production — ห้ามข้ามการตรวจสิทธิ์เด็ดขาด
@@ -103,4 +104,26 @@ func Load() (Config, error) {
 	}
 
 	return cfg, nil
+}
+
+/*
+warnOnMismatchedClerkKey เตือนเมื่อรันบนเครื่องด้วยคีย์ Clerk ของ production
+
+Clerk แยก instance ระหว่าง development กับ production เป็นคนละฐานผู้ใช้
+และคนละกุญแจเซ็น token — คีย์ต้องเข้าคู่กันทั้งสองฝั่ง
+
+instance production ยังปฏิเสธคำขอที่มาจาก localhost ด้วย (400 Invalid HTTP Origin)
+หน้าเว็บบนเครื่องจึงขอ token ไม่ได้เลย และต่อให้ขอได้จาก instance dev
+เซิร์ฟเวอร์ก็จะตรวจลายเซ็นไม่ผ่านเพราะใช้กุญแจคนละดอก
+
+อาการที่เห็นคือทุกคำขอได้ 401 โดยไม่มีอะไรบอกว่าเพราะอะไร
+เตือนอย่างเดียวไม่ขัดจังหวะ เผื่อมีเหตุให้ตั้งแบบนี้จริง ๆ
+*/
+func (c Config) warnOnMismatchedClerkKey() error {
+	if strings.HasPrefix(c.ClerkSecretKey, "sk_live_") && !c.AuthDevBypass {
+		slog.Warn("APP_ENV เป็น development แต่ CLERK_SECRET_KEY เป็นคีย์ production " +
+			"— หน้าเว็บบน localhost จะขอ token ไม่ได้ ทุกคำขอจะได้ 401 " +
+			"ให้ใช้คีย์ sk_test_ ของ instance development แทน")
+	}
+	return nil
 }
