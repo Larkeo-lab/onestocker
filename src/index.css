@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+/* ─── Design tokens ───────────────────────────────────────────────
+   Light เป็นค่าเริ่มต้น, dark override ผ่าน prefers-color-scheme
+   ปรับสีทั้งแอปได้จากบล็อกนี้ที่เดียว
+   ชุดสีเดียวกับ my-app เพื่อให้สองแอปหน้าตาเหมือนกัน
+   ──────────────────────────────────────────────────────────────── */
+:root {
+  --background: #ffffff;
+  --foreground: #18181b;
+
+  --card: #ffffff;
+  --sidebar: #fafafa;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --subtle-foreground: #a1a1aa;
+
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+
+  --primary: #278bf5;
+  --primary-foreground: #ffffff;
+  --primary-hover: #1479ea;
+  --primary-soft: rgba(39, 139, 245, 0.1);
+
+  --success: #16a34a;
+  --success-soft: rgba(22, 163, 74, 0.1);
+  --warning: #b45309;
+  --warning-soft: rgba(180, 83, 9, 0.1);
+  --danger: #dc2626;
+  --danger-soft: rgba(220, 38, 38, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0b;
+    --foreground: #fafafa;
+
+    --card: #121215;
+    --sidebar: #0f0f11;
+    --muted: #1a1a1e;
+    --muted-foreground: #a1a1aa;
+    --subtle-foreground: #71717a;
+
+    --border: #26262b;
+    --border-strong: #35353c;
+
+    --primary: #278bf5;
+    --primary-foreground: #ffffff;
+    --primary-hover: #4a9ff7;
+    --primary-soft: rgba(39, 139, 245, 0.16);
+
+    --success: #22c55e;
+    --success-soft: rgba(34, 197, 94, 0.14);
+    --warning: #f59e0b;
+    --warning-soft: rgba(245, 158, 11, 0.14);
+    --danger: #ef4444;
+    --danger-soft: rgba(239, 68, 68, 0.14);
+  }
+}
+
+/* เปิดให้ใช้เป็น utility ได้ เช่น bg-card, text-muted-foreground */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-sidebar: var(--sidebar);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* โฟกัสแบบเดียวกันทั้งแอป */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* scrollbar บางแบบ tool */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border: 3px solid var(--background);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
