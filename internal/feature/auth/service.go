@@ -3,11 +3,11 @@ package auth
 import (
 	"context"
 	"log/slog"
+	"strings"
 
 	clerkuser "github.com/clerk/clerk-sdk-go/v2/user"
 
 	"github.com/eezy-tech/one-stocks/server/internal/shared/apperr"
-	"github.com/eezy-tech/one-stocks/server/internal/shared/middleware"
 	"github.com/eezy-tech/one-stocks/server/internal/shared/util"
 )
 
@@ -29,12 +29,13 @@ func NewService(repo Repository) Service {
 
 func (s *service) Me(ctx context.Context, userID string) (Profile, error) {
 	if userID == "" {
-		return Profile{}, apperr.Unauthorized("ต้องเข้าสู่ระบบก่อน")
+		return Profile{}, apperr.Unauthorized("authentication required")
 	}
 
 	// ผู้ใช้สมมติตอน AUTH_DEV_BYPASS ไม่มีตัวตนอยู่บน Clerk
 	// ถ้าไปถามจะได้ 404 กลับมา จึงตอบโปรไฟล์เปล่าไปเลย
-	if userID == middleware.DevUserID {
+	// (id จริงของ Clerk ขึ้นต้นด้วย user_ เสมอ จึงไม่ชนกัน)
+	if !strings.HasPrefix(userID, "user_") {
 		return Profile{
 			UserID:    userID,
 			FirstName: util.Ptr("Dev"),
@@ -44,8 +45,8 @@ func (s *service) Me(ctx context.Context, userID string) (Profile, error) {
 
 	found, err := clerkuser.Get(ctx, userID)
 	if err != nil {
-		slog.Error("ดึงโปรไฟล์จาก Clerk ไม่สำเร็จ", "userID", userID, "error", err)
-		return Profile{}, apperr.Internal("ดึงข้อมูลผู้ใช้ไม่สำเร็จ", err)
+		slog.Error("failed to fetch Clerk profile", "userID", userID, "error", err)
+		return Profile{}, apperr.Internal("failed to fetch user profile", err)
 	}
 
 	email := primaryEmail(found)

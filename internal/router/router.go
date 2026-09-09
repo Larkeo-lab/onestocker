@@ -26,10 +26,11 @@ import (
 	"github.com/eezy-tech/one-stocks/server/internal/shared/config"
 	"github.com/eezy-tech/one-stocks/server/internal/shared/middleware"
 	"github.com/eezy-tech/one-stocks/server/internal/shared/response"
+	"github.com/eezy-tech/one-stocks/server/internal/shared/storage"
 	"github.com/eezy-tech/one-stocks/server/internal/shared/validation"
 )
 
-func New(cfg config.Config, pool *pgxpool.Pool) *fiber.App {
+func New(cfg config.Config, pool *pgxpool.Pool, store storage.Storage) *fiber.App {
 	app := fiber.New(fiber.Config{
 		AppName: "one-stocks api",
 		// ทุก error ที่ handler คืนออกมาจบที่นี่ที่เดียว
@@ -72,12 +73,17 @@ func New(cfg config.Config, pool *pgxpool.Pool) *fiber.App {
 	// verifier ตัวเดียวใช้ร่วมกันทุกคำขอ เพราะข้างในมี cache ของกุญแจอยู่
 	api := app.Group("/api", middleware.RequireAuth(cfg, clerkauth.NewVerifier()))
 
+	// feature generate ต้องใช้ค่าตั้งต้นของผู้ใช้และเขียนประวัติ
+	// จึงประกอบไว้ก่อนแล้วส่งต่อ ไม่ให้แต่ละ feature สร้าง repository ซ้ำ
+	settingsService := settings.NewService(settings.NewRepository(pool))
+	generationRepo := generation.NewRepository(pool)
+
 	auth.Register(api, auth.NewService(auth.NewRepository(pool)))
-	generate.Register(api, generate.NewService(cfg))
-	generation.Register(api, generation.NewService(generation.NewRepository(pool)))
+	generate.Register(api, generate.NewService(cfg, store, settingsService, generationRepo))
+	generation.Register(api, generation.NewService(generationRepo, store))
 	meta.Register(api, meta.NewService(cfg))
-	settings.Register(api, settings.NewService(settings.NewRepository(pool)))
-	upload.Register(api, upload.NewService(cfg.R2))
+	settings.Register(api, settingsService)
+	upload.Register(api, upload.NewService(store))
 
 	return app
 }

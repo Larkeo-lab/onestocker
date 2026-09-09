@@ -24,7 +24,7 @@ func NewService(repo Repository) Service {
 func (s *service) Get(ctx context.Context, userID string) (Settings, error) {
 	current, found, err := s.repo.Get(ctx, userID)
 	if err != nil {
-		return Settings{}, apperr.Internal("อ่านค่าตั้งต้นไม่สำเร็จ", err)
+		return Settings{}, apperr.Internal("failed to read settings", err)
 	}
 	// ผู้ใช้ที่ยังไม่เคยบันทึก ให้ค่าเริ่มต้นไปใช้ก่อน
 	if !found {
@@ -38,7 +38,7 @@ func (s *service) Save(ctx context.Context, userID string, in Settings) (Setting
 	// หน้าเว็บจะได้แสดงตรงกับสิ่งที่อยู่ในฐานข้อมูล ไม่ใช่สิ่งที่ผู้ใช้พิมพ์
 	saved, err := s.repo.Upsert(ctx, userID, in.normalize())
 	if err != nil {
-		return Settings{}, apperr.Internal("บันทึกค่าตั้งต้นไม่สำเร็จ", err)
+		return Settings{}, apperr.Internal("failed to save settings", err)
 	}
 	return saved, nil
 }

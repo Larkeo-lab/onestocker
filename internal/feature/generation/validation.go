@@ -15,10 +15,10 @@ const MaxLimit = 100
 // ทั้งสองฟิลด์ไม่บังคับ ค่า 0 แปลว่าไม่ได้ส่งมา แล้วค่อยเติมใน applyDefaults
 func (q ListQuery) Validate() error {
 	return ozzo.ValidateStruct(&q,
-		ozzo.Field(&q.Page, ozzo.Min(0).Error("ต้องไม่ติดลบ")),
+		ozzo.Field(&q.Page, ozzo.Min(0).Error("must not be negative")),
 		ozzo.Field(&q.Limit,
-			ozzo.Min(0).Error("ต้องไม่ติดลบ"),
-			ozzo.Max(MaxLimit).Error("ต้องไม่เกิน 100"),
+			ozzo.Min(0).Error("must not be negative"),
+			ozzo.Max(MaxLimit).Error("must not exceed 100"),
 		),
 	)
 }

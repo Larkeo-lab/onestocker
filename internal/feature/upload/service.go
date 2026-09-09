@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/eezy-tech/one-stocks/server/internal/shared/apperr"
-	"github.com/eezy-tech/one-stocks/server/internal/shared/config"
+	"github.com/eezy-tech/one-stocks/server/internal/shared/storage"
 )
 
 type Service interface {
@@ -12,18 +12,27 @@ type Service interface {
 }
 
 type service struct {
-	cfg config.R2
+	store storage.Storage
 }
 
-func NewService(cfg config.R2) Service {
-	return &service{cfg: cfg}
+func NewService(store storage.Storage) Service {
+	return &service{store: store}
 }
 
-func (s *service) Presign(_ context.Context, _ string, _ PresignRequest) (PresignResponse, error) {
-	// TODO: ใช้ aws-sdk-go-v2 (s3 + s3/presign) ชี้ endpoint ไปที่
-	// https://<AccountID>.r2.cloudflarestorage.com แล้วออก presigned PUT
-	// ตั้ง key เป็น "previews/<userID>/<uuid>.webp" เพื่อกันไฟล์ชนกันข้ามผู้ใช้
-	//
-	// ยังตอบ 501 อยู่เพราะออกลิงก์ปลอมไม่ได้ — ต้องมีคีย์ R2 จริงถึงจะเซ็นได้
-	return PresignResponse{}, apperr.NotImplemented("ยังไม่ได้ต่อ R2 สำหรับออกลิงก์อัปโหลด")
+func (s *service) Presign(ctx context.Context, userID string, req PresignRequest) (PresignResponse, error) {
+	// ลำดับของผลลัพธ์ต้องตรงกับลำดับที่ส่งมา ฝั่งหน้าเว็บจับคู่ด้วยตำแหน่ง
+	uploads := make([]Presigned, 0, len(req.Items))
+
+	for _, item := range req.Items {
+		key, url, err := s.store.UploadURL(ctx, userID, item.Filename)
+		if err != nil {
+			// ชื่อไฟล์ที่เหลือแต่อักขระที่ใช้ไม่ได้ ถือเป็นความผิดฝั่งผู้เรียก
+			return PresignResponse{}, apperr.BadRequest(
+				"failed to create upload link for " + item.Filename + ": " + err.Error(),
+			)
+		}
+		uploads = append(uploads, Presigned{Key: key, URL: url})
+	}
+
+	return PresignResponse{Uploads: uploads}, nil
 }

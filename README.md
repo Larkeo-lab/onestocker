@@ -35,6 +35,9 @@ air ตั้งค่าให้ส่ง SIGINT ตอนรีสตาร�
 `AUTH_DEV_BYPASS=true` ทำให้ทุกคำขอถูกนับเป็นผู้ใช้สมมติ `dev-user`
 โดยไม่ตรวจ token — ใช้ตอนยังไม่มีคีย์ Clerk สำหรับเครื่อง dev
 
+ตั้ง `AUTH_DEV_USER_ID` เป็น Clerk user id จริงเพื่อพัฒนากับข้อมูลของ
+บัญชีนั้นบนเครื่องได้ เช่น `AUTH_DEV_USER_ID=user_3Itf...`
+
 แฟล็กนี้ต้องเปิดเองแบบตั้งใจ ไม่ได้เดาจากการที่ `CLERK_SECRET_KEY` ยังว่าง
 เพราะกติกาแบบนั้นทำให้ลืมตั้งคีย์แล้ว auth ถูกปิดเงียบ ๆ โดยไม่มีใครรู้
 `config.Load` ไม่ยอมให้เซิร์ฟเวอร์สตาร์ทถ้าเปิดแฟล็กนี้ตอน `APP_ENV=production`
@@ -65,6 +68,7 @@ internal/
     validation/           ต่อ ozzo-validation เข้ากับ Fiber
     clerkauth/            ตรวจลายเซ็น token ของ Clerk + cache กุญแจ
     middleware/           auth (ตรวจ token)
+    storage/              R2 (S3-compatible) — presign + อ่านไฟล์
     database/             pool + migration ที่รันเองตอนสตาร์ท
       migrations/         ไฟล์ SQL เรียงตามเลขนำหน้า
       sqlc/               โค้ดที่ sqlc generate — ห้ามแก้มือ
@@ -114,8 +118,7 @@ handler ห้ามเรียก `c.JSON` เอง ให้เรียก�
 
 | เส้น | สถานะ |
 |---|---|
-| `POST /api/generate` | 501 — ต้องต่อ Gemini + ดึงรูปจาก R2 |
-| `POST /api/uploads/presign` | 501 — ต้องมีคีย์ R2 จริงถึงจะเซ็นลิงก์ได้ |
+| `POST /api/generate` | 501 — ต้องต่อ Gemini (ดึงรูปจาก R2 พร้อมแล้ว) |
 | `GET /api/generations` | อ่านจาก Neon ได้แล้ว แต่ `previewUrl` ยังเป็น null (รอ R2) |
 
 ชั้นที่ยังไม่มีคือ `repository/` — จะเพิ่มในแต่ละ feature ตอนต่อ Neon
@@ -195,3 +198,51 @@ sqlc ไม่แตะฐานข้อมูลเลย มันอ่า�
 
 ทุก query ที่แตะข้อมูลของผู้ใช้มี `user_id` อยู่ในเงื่อนไขเสมอ
 รวมถึงตอนลบ ไม่งั้นใครรู้ id ก็ลบของคนอื่นได้
+
+### ย้ายข้อมูลจาก Supabase
+
+ทำไปแล้วครั้งหนึ่ง (11 profiles / 2 settings / 213 generations)
+สคริปต์อยู่ที่ `scripts/migrate-from-supabase.sh` รันซ้ำได้ไม่พัง
+
+```bash
+SUPABASE_URL='postgresql://postgres.xxx:PASSWORD@aws-0-...pooler.supabase.com:5432/postgres' \
+  ./scripts/migrate-from-supabase.sh
+```
+
+ใช้พอร์ต 5432 (session mode) ไม่ใช่ 6543 (transaction pooler)
+
+## ที่เก็บรูป (R2)
+
+เก็บเฉพาะรูปย่อ (webp) ไฟล์ต้นฉบับอยู่ในเครื่องผู้ใช้เท่านั้น
+เบราว์เซอร์อัปตรงขึ้น R2 ด้วย presigned URL ไม่ผ่านเซิร์ฟเวอร์นี้เลย
+จึงไม่กินแบนด์วิดท์และหน่วยความจำของ EC2
+
+ชื่อไฟล์บน R2 เป็น `<user id>/<ชื่อรูป>.webp` — ต้องขึ้นต้นด้วย user id
+เพราะถ้าสองคนอัปไฟล์ชื่อเดียวกัน ของคนหลังจะทับของคนแรก
+และทุกครั้งที่รับ key จากหน้าเว็บต้องเช็คว่าเป็นของผู้ใช้คนนั้นจริง
+(`storage.OwnedBy`) ไม่งั้นเดา key ของคนอื่นแล้วเปิดดูได้
+
+### ต้องตั้ง CORS ของ bucket
+
+เบราว์เซอร์อัปตรงขึ้น R2 โดเมนที่ยิงเข้ามาจึงต้องอยู่ในรายการที่อนุญาต
+ตั้งที่ Cloudflare Dashboard → R2 → bucket → Settings → CORS Policy
+
+```json
+[
+  {
+    "AllowedOrigins": ["https://meta.eezypos.com", "http://localhost:5173"],
+    "AllowedMethods": ["PUT", "GET", "HEAD"],
+    "AllowedHeaders": ["content-type"],
+    "MaxAgeSeconds": 3000
+  }
+]
+```
+
+ถ้าไม่มี origin ของตัวเองอยู่ในรายการ เบราว์เซอร์จะได้ 403 ตั้งแต่ preflight
+ทั้งที่ presigned URL ถูกต้อง — อาการคืออัปไม่ขึ้นแต่เซิร์ฟเวอร์ไม่มี log อะไรเลย
+
+### ตัวเลือกที่ต้องตั้งเป็นพิเศษ
+
+`RequestChecksumCalculation: WhenRequired` — SDK รุ่นใหม่ใส่ checksum CRC32
+ให้อัตโนมัติ แต่ตอน presign ยังไม่มีเนื้อไฟล์ จึงได้ checksum ของไฟล์เปล่า
+ติดไปใน URL แล้วอัปไม่ผ่านเพราะไม่ตรงกับไฟล์จริง

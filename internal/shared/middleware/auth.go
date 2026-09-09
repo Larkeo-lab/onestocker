@@ -17,7 +17,8 @@ type contextKey string
 
 const userIDKey contextKey = "userID"
 
-// DevUserID คือผู้ใช้สมมติตอนเปิด AUTH_DEV_BYPASS
+// DevUserID คือค่าเริ่มต้นของผู้ใช้สมมติตอนเปิด AUTH_DEV_BYPASS
+// เปลี่ยนเป็น Clerk user id จริงได้ด้วย AUTH_DEV_USER_ID
 const DevUserID = "dev-user"
 
 // RequireAuth กันไม่ให้เรียกเส้นที่ต้องล็อกอินโดยไม่มี token ที่ถูกต้อง
@@ -28,24 +29,28 @@ const DevUserID = "dev-user"
 // (config.Load ไม่ยอมให้เปิดแฟล็กนี้ตอน APP_ENV=production)
 func RequireAuth(cfg config.Config, verifier *clerkauth.Verifier) fiber.Handler {
 	devBypass := cfg.IsDev() && cfg.AuthDevBypass
+	devUserID := cfg.AuthDevUserID
+	if devUserID == "" {
+		devUserID = DevUserID
+	}
 
 	return func(c fiber.Ctx) error {
 		if devBypass {
-			c.Locals(userIDKey, DevUserID)
+			c.Locals(userIDKey, devUserID)
 			return c.Next()
 		}
 
 		token := bearerToken(c)
 		if token == "" {
-			return apperr.Unauthorized("ต้องเข้าสู่ระบบก่อน")
+			return apperr.Unauthorized("authentication required")
 		}
 
 		userID, err := verifier.VerifyToken(c.Context(), token)
 		if err != nil {
 			// เหตุผลจริงเก็บไว้ใน log อย่างเดียว ไม่บอกผู้เรียก
 			// ไม่งั้นกลายเป็นบอกใบ้ให้คนเดา token ว่าพลาดตรงไหน
-			slog.Warn("ตรวจ token ไม่ผ่าน", "path", c.Path(), "error", err)
-			return apperr.Unauthorized("เซสชันหมดอายุหรือไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่")
+			slog.Warn("failed to verify token", "path", c.Path(), "error", err)
+			return apperr.Unauthorized("session expired or invalid, please log in again")
 		}
 
 		c.Locals(userIDKey, userID)

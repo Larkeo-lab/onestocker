@@ -6,11 +6,14 @@
 # ไม่ได้ลบแถวที่ปลายทางมีแต่ต้นทางไม่มี
 #
 # วิธีใช้:
-#   SUPABASE_URL='postgresql://postgres:...@db.xxx.supabase.co:5432/postgres' \
+#   SUPABASE_URL='postgresql://postgres.xxx:รหัสผ่าน@aws-0-...pooler.supabase.com:5432/postgres' \
 #     ./scripts/migrate-from-supabase.sh
 #
 # หา connection string ได้ที่ Supabase Dashboard
-#   → Project Settings → Database → Connection string → URI
+#   → Project Settings → Database → Connection string
+#
+# ใช้ตัว session mode (พอร์ต 5432) ไม่ใช่ transaction mode (6543)
+# ตัว 6543 เป็น pgbouncer แบบ transaction pooling ซึ่งไม่เหมาะกับงานดัมป์ข้อมูล
 
 set -euo pipefail
 
@@ -29,6 +32,13 @@ if [[ -z "$NEON_URL" ]]; then
   exit 1
 fi
 
+# พอร์ต 6543 คือ transaction pooler ของ Supabase ไม่เหมาะกับการดัมป์
+case "$SUPABASE_URL" in
+  *:6543*)
+    echo "เตือน: กำลังใช้พอร์ต 6543 (transaction pooler) แนะนำให้ใช้ 5432 แทน" >&2
+    ;;
+esac
+
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 
@@ -38,13 +48,27 @@ psql "$SUPABASE_URL" -qtAX -c "
   union all select 'user_settings : ' || count(*) from public.user_settings
   union all select 'generations   : ' || count(*) from public.generations;"
 
-# s3_key มีเฉพาะในสคีมาเดิม ปลายทางไม่มีคอลัมน์นี้
-# ไฟล์ต้นฉบับไม่เคยถูกอัปขึ้นคลาวด์ ค่านี้จึงควรว่างทั้งหมด
-ORPHAN=$(psql "$SUPABASE_URL" -qtAX -c \
-  "select count(*) from public.generations where s3_key is not null;")
-if [[ "$ORPHAN" != "0" ]]; then
-  echo "เตือน: มี $ORPHAN แถวที่มีค่า s3_key ซึ่งปลายทางไม่มีคอลัมน์นี้ ค่าจะหายไป" >&2
+# s3_key มีในไฟล์ schema.sql แต่อาจไม่มีอยู่จริงในฐานข้อมูล
+# ต้องเช็คก่อนถาม ไม่งั้น query จะพังทั้งสคริปต์
+HAS_S3KEY=$(psql "$SUPABASE_URL" -qtAX -c "
+  select count(*) from information_schema.columns
+  where table_schema='public' and table_name='generations' and column_name='s3_key';")
+
+if [[ "$HAS_S3KEY" != "0" ]]; then
+  ORPHAN=$(psql "$SUPABASE_URL" -qtAX -c \
+    "select count(*) from public.generations where s3_key is not null;")
+  if [[ "$ORPHAN" != "0" ]]; then
+    echo "เตือน: มี $ORPHAN แถวที่มีค่า s3_key ซึ่งปลายทางไม่มีคอลัมน์นี้ ค่าจะหายไป" >&2
+  fi
 fi
+
+# กันกรณีคัดลอกตัวอย่างมาทั้งบรรทัดโดยไม่ได้แทนรหัสผ่านจริง
+case "$SUPABASE_URL" in
+  *YOUR-PASSWORD*|*รหัสผ่านจริง*|*"[PASSWORD]"*)
+    echo "SUPABASE_URL ยังเป็นแม่แบบอยู่ ต้องแทนที่ด้วยรหัสผ่านจริงก่อน" >&2
+    exit 1
+    ;;
+esac
 
 echo
 echo "── ดึงข้อมูลออกมาเป็น CSV ──────────────────"

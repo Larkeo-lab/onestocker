@@ -13,12 +13,12 @@ var allowedContentTypes = []any{"image/webp", "image/jpeg", "image/png"}
 func (i Item) Validate() error {
 	return ozzo.ValidateStruct(&i,
 		ozzo.Field(&i.Filename,
-			ozzo.Required.Error("ต้องระบุ"),
-			ozzo.Length(1, 255).Error("ยาวเกิน 255 ตัวอักษร"),
+			ozzo.Required.Error("is required"),
+			ozzo.Length(1, 255).Error("must be between 1 and 255 characters"),
 		),
 		ozzo.Field(&i.ContentType,
-			ozzo.Required.Error("ต้องระบุ"),
-			ozzo.In(allowedContentTypes...).Error("รองรับเฉพาะ webp, jpeg และ png"),
+			ozzo.Required.Error("is required"),
+			ozzo.In(allowedContentTypes...).Error("only webp, jpeg, and png are supported"),
 		),
 	)
 }
@@ -28,8 +28,8 @@ func (i Item) Validate() error {
 func (r PresignRequest) Validate() error {
 	return ozzo.ValidateStruct(&r,
 		ozzo.Field(&r.Items,
-			ozzo.Required.Error("ต้องมีอย่างน้อยหนึ่งไฟล์"),
-			ozzo.Length(1, MaxItemsPerRequest).Error("ขอได้ครั้งละไม่เกิน 30 ไฟล์"),
+			ozzo.Required.Error("at least one file is required"),
+			ozzo.Length(1, MaxItemsPerRequest).Error("cannot request more than 30 files at once"),
 		),
 	)
 }

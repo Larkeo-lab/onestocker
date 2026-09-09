@@ -74,20 +74,41 @@ var TitleStyles = []any{"descriptive", "concise", "commercial"}
 func (s Settings) Validate() error {
 	return ozzo.ValidateStruct(&s,
 		ozzo.Field(&s.KeywordsPerImage,
-			ozzo.Required.Error("ต้องระบุ"),
-			ozzo.Min(10).Error("ต้องไม่น้อยกว่า 10"),
+			ozzo.Required.Error("is required"),
+			ozzo.Min(10).Error("must be at least 10"),
 			// เพดานจริงของ Adobe Stock คือ 50
-			ozzo.Max(50).Error("ต้องไม่เกิน 50"),
+			ozzo.Max(50).Error("must not exceed 50"),
 		),
 		ozzo.Field(&s.TitleStyle,
-			ozzo.Required.Error("ต้องระบุ"),
-			ozzo.In(TitleStyles...).Error("ต้องเป็น descriptive, concise หรือ commercial"),
+			ozzo.Required.Error("is required"),
+			ozzo.In(TitleStyles...).Error("must be descriptive, concise, or commercial"),
 		),
 		ozzo.Field(&s.BlockedTerms,
-			ozzo.Length(0, 2000).Error("ยาวเกิน 2000 ตัวอักษร"),
+			ozzo.Length(0, 2000).Error("must not exceed 2000 characters"),
 		),
 		ozzo.Field(&s.OutputLanguages,
-			ozzo.Required.Error("ต้องระบุอย่างน้อยหนึ่งภาษา"),
+			ozzo.Required.Error("at least one language is required"),
 		),
 	)
+}
+
+// ExtraLanguages คืนภาษารองที่ต้องแปลเพิ่ม (ตัดภาษาหลักออก)
+//
+// ใช้ตอนประกอบคำสั่งให้โมเดล ถ้าเลือกแต่อังกฤษจะได้รายการว่าง
+// แล้วคำสั่งเรื่องการแปลจะไม่ถูกใส่เข้าไปเลย
+func ExtraLanguages(value string) []Language {
+	picked := make([]Language, 0, len(SupportedLanguages))
+
+	for _, code := range strings.Split(normalizeLanguages(value), ",") {
+		if code == PrimaryLanguage {
+			continue
+		}
+		for _, language := range SupportedLanguages {
+			if language.Code == code {
+				picked = append(picked, language)
+				break
+			}
+		}
+	}
+	return picked
 }

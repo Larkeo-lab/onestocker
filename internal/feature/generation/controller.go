@@ -35,7 +35,7 @@ func (ctl *Controller) List(c fiber.Ctx) error {
 func (ctl *Controller) Delete(c fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
-		return apperr.BadRequest("ต้องระบุ id ของรายการที่จะลบ")
+		return apperr.BadRequest("deletion id is required")
 	}
 
 	if err := ctl.service.Delete(c.Context(), middleware.UserID(c), id); err != nil {

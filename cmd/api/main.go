@@ -16,6 +16,7 @@ import (
 	"github.com/eezy-tech/one-stocks/server/internal/shared/config"
 	"github.com/eezy-tech/one-stocks/server/internal/shared/database"
 	"github.com/eezy-tech/one-stocks/server/internal/shared/middleware"
+	"github.com/eezy-tech/one-stocks/server/internal/shared/storage"
 )
 
 func main() {
@@ -35,8 +36,14 @@ func main() {
 	}
 
 	if cfg.IsDev() && cfg.AuthDevBypass {
+		// ต้องพิมพ์ค่าที่ใช้จริง ไม่ใช่ค่าเริ่มต้น ไม่งั้นตอนตั้ง AUTH_DEV_USER_ID
+		// ไว้แล้ว log จะบอกผิดว่ากำลังสวมเป็น dev-user
+		impersonating := cfg.AuthDevUserID
+		if impersonating == "" {
+			impersonating = middleware.DevUserID
+		}
 		slog.Warn("เปิด AUTH_DEV_BYPASS อยู่ — ทุกคำขอถูกนับเป็นผู้ใช้สมมติโดยไม่ตรวจ token",
-			"userID", middleware.DevUserID)
+			"userID", impersonating)
 	}
 
 	// ต่อฐานข้อมูลตั้งแต่ตอนสตาร์ท ต่อไม่ได้ก็ไม่ต้องเปิดรับคำขอ
@@ -58,7 +65,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	app := router.New(cfg, pool)
+	// ต่อ R2 ตั้งแต่ตอนสตาร์ทเช่นกัน ตั้งค่าผิดจะได้รู้ทันที
+	store, err := storage.New(cfg.R2)
+	if err != nil {
+		slog.Error("ตั้งค่า R2 ไม่สำเร็จ", "error", err)
+		os.Exit(1)
+	}
+
+	app := router.New(cfg, pool, store)
 
 	// ปิดให้คำขอที่ค้างอยู่ทำงานจนจบก่อน ไม่ตัดกลางคัน
 	// สำคัญเพราะการเรียกโมเดลหนึ่งครั้งใช้เวลาหลายวินาที

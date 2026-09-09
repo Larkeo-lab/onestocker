@@ -28,6 +28,9 @@ type Config struct {
 	// ข้ามการตรวจ token แล้วนับทุกคำขอเป็นผู้ใช้สมมติ
 	// ต้องเปิดเองด้วย AUTH_DEV_BYPASS=true และเปิดบน production ไม่ได้
 	AuthDevBypass bool
+	// userID ที่จะใช้ตอนเปิด AuthDevBypass
+	// ใส่ Clerk user id จริงเพื่อพัฒนากับข้อมูลของบัญชีนั้นบนเครื่องได้
+	AuthDevUserID string
 
 	GeminiAPIKey string
 	GeminiModel  string
@@ -48,6 +51,7 @@ func Load() (Config, error) {
 		DatabaseURL:    env("DATABASE_URL", ""),
 		ClerkSecretKey: env("CLERK_SECRET_KEY", ""),
 		AuthDevBypass:  boolean("AUTH_DEV_BYPASS", false),
+		AuthDevUserID:  env("AUTH_DEV_USER_ID", "dev-user"),
 
 		GeminiAPIKey: env("GEMINI_API_KEY", ""),
 		GeminiModel:  env("GEMINI_MODEL", "gemini-3.5-flash-lite"),
