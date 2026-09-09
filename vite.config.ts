@@ -15,5 +15,10 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // ถ้าพอร์ตถูกใช้อยู่ ให้หยุดไปเลย อย่าเลื่อนไป 5174 เอง
+    //
+    // เพราะ ALLOWED_ORIGINS ฝั่ง Go และ CORS policy ของ R2 ระบุ 5173 ไว้
+    // พอ vite เลื่อนพอร์ตเงียบ ๆ ทุกคำขอจะโดน CORS บล็อกโดยไม่มีอะไรบอกว่าทำไม
+    strictPort: true,
   },
 })

@@ -3,6 +3,7 @@ import { RedirectToSignIn, SignedIn, SignedOut } from '@clerk/clerk-react'
 import { AuthBridge } from '@/components/auth/AuthBridge'
 import { GenerateProvider } from '@/components/generate/GenerateProvider'
 import { AppShell } from '@/components/layout/AppShell'
+import { env } from '@/lib/env'
 
 /**
  * layout ของทุกหน้าที่ต้องล็อกอิน
@@ -14,6 +15,16 @@ import { AppShell } from '@/components/layout/AppShell'
  * (internal/shared/middleware/auth.go) จะข้ามด่านนี้ไปก็ไม่ได้ข้อมูลอยู่ดี
  */
 export function RootLayout() {
+  // ตอน dev ที่ข้ามล็อกอิน ไม่มี ClerkProvider อยู่เลย จึงใช้
+  // <SignedIn> หรือ AuthBridge ไม่ได้ ต้องเข้าแอปตรง ๆ
+  if (env.authDevBypass) {
+    return (
+      <GenerateProvider>
+        <AppShell />
+      </GenerateProvider>
+    )
+  }
+
   return (
     <>
       <SignedIn>

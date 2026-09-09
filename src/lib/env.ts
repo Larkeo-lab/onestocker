@@ -22,4 +22,19 @@ export const env = {
   apiUrl: readApiUrl(),
   clerkPublishableKey: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? '',
   isDev: import.meta.env.DEV,
+
+  /**
+   * ข้ามหน้าล็อกอินตอนพัฒนา แล้วเข้าแอปตรง ๆ
+   *
+   * มีไว้เพราะคีย์ Clerk แบบ production ผูกกับโดเมนจริง เปิดจาก
+   * localhost แล้ว Clerk จะตอบ 400 (Invalid HTTP Origin header)
+   * ทำให้หน้าเว็บค้างอยู่ที่หน้าว่าง
+   *
+   * ผูกกับ import.meta.env.DEV ไว้ด้วย ไฟล์ที่ build ออกไปจึงข้าม
+   * การล็อกอินไม่ได้เลย ต่อให้ตั้งตัวแปรผิด
+   *
+   * ฝั่ง Go ต้องตั้ง AUTH_DEV_BYPASS=true คู่กัน ไม่งั้นจะโดน 401
+   */
+  authDevBypass:
+    import.meta.env.DEV && import.meta.env.VITE_AUTH_DEV_BYPASS === 'true',
 } as const

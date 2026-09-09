@@ -3,6 +3,7 @@ import { ArrowRight, LogOut, X } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 import { NAV_SECTIONS } from '@/config/nav'
+import { env } from '@/lib/env'
 import { siteConfig } from '@/config/site'
 import type { Meta } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -138,16 +139,29 @@ function SidebarPanel({ onNavigate, profile, meta, offline }: PanelProps) {
             </span>
           </span>
 
-          <SignOutButton>
-            <button
-              type="button"
-              aria-label="ออกจากระบบ"
-              title="ออกจากระบบ"
-              className="flex size-7 shrink-0 items-center justify-center rounded-md text-subtle-foreground transition-colors hover:bg-muted hover:text-foreground"
+          {/*
+            ตอนข้ามล็อกอินไม่มี session อยู่จริง จึงไม่มีอะไรให้ออก
+            แสดงป้ายไว้แทน ไม่งั้นจะงงว่าทำไมกดออกจากระบบไม่ได้
+          */}
+          {env.authDevBypass ? (
+            <span
+              title="ข้ามระบบล็อกอินอยู่ (VITE_AUTH_DEV_BYPASS=true) จึงไม่มีอะไรให้ออก"
+              className="shrink-0 rounded border border-warning/40 bg-warning-soft px-1.5 py-0.5 font-mono text-[9px] tracking-wide text-warning uppercase"
             >
-              <LogOut className="size-3.5" aria-hidden />
-            </button>
-          </SignOutButton>
+              dev
+            </span>
+          ) : (
+            <SignOutButton>
+              <button
+                type="button"
+                aria-label="ออกจากระบบ"
+                title="ออกจากระบบ"
+                className="flex size-7 shrink-0 items-center justify-center rounded-md text-subtle-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <LogOut className="size-3.5" aria-hidden />
+              </button>
+            </SignOutButton>
+          )}
         </div>
       </div>
     </div>

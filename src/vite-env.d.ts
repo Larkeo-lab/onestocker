@@ -11,6 +11,8 @@ interface ImportMetaEnv {
   readonly VITE_API_URL: string
   /** publishable key ของ Clerk (เป็น public โดยตั้งใจ) */
   readonly VITE_CLERK_PUBLISHABLE_KEY?: string
+  /** "true" = ข้ามหน้าล็อกอินตอน dev (ดู lib/env.ts) */
+  readonly VITE_AUTH_DEV_BYPASS?: string
 }
 
 interface ImportMeta {
