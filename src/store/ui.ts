@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from "zustand";
 
 /**
  * state ของ UI ที่หลายหน้าต้องใช้ร่วมกัน
@@ -7,13 +7,13 @@ import { create } from 'zustand'
  * ไม่งั้นจะต้องมาคอยไล่ล้าง cache เอง
  */
 type UiState = {
-  sidebarOpen: boolean
-  toggleSidebar: () => void
-  setSidebarOpen: (open: boolean) => void
-}
+  sidebarOpen: boolean;
+  toggleSidebar: () => void;
+  setSidebarOpen: (open: boolean) => void;
+}; //
 
 export const useUiStore = create<UiState>((set) => ({
   sidebarOpen: false,
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
-}))
+}));
