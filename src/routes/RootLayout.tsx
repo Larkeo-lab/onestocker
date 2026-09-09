@@ -1,6 +1,7 @@
 import { RedirectToSignIn, SignedIn, SignedOut } from '@clerk/clerk-react'
 
 import { AuthBridge } from '@/components/auth/AuthBridge'
+import { ClerkGate } from '@/components/auth/ClerkGate'
 import { GenerateProvider } from '@/components/generate/GenerateProvider'
 import { AppShell } from '@/components/layout/AppShell'
 import { env } from '@/lib/env'
@@ -25,8 +26,14 @@ export function RootLayout() {
     )
   }
 
+  /*
+    ClerkGate ต้องอยู่นอก SignedIn/SignedOut
+
+    ตอน Clerk โหลดไม่ได้ ทั้งสองตัวนั้นจะไม่ render อะไรเลยทั้งคู่
+    ผู้ใช้เห็นหน้าว่างเปล่าโดยไม่มีอะไรบอกว่าเกิดอะไรขึ้น
+  */
   return (
-    <>
+    <ClerkGate>
       <SignedIn>
         <AuthBridge>
           <GenerateProvider>
@@ -38,6 +45,6 @@ export function RootLayout() {
       <SignedOut>
         <RedirectToSignIn />
       </SignedOut>
-    </>
+    </ClerkGate>
   )
 }
