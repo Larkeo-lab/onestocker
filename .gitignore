@@ -1,0 +1,13 @@
+# ความลับ ห้ามขึ้น git เด็ดขาด
+.env
+.env.*
+!.env.example
+
+# ไบนารีที่ build ออกมา
+/bin/
+/tmp/
+
+.DS_Store
+
+# air (live reload)
+build-errors.log

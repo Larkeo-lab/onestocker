@@ -1,0 +1,35 @@
+#:schema https://json.schemastore.org/any.json
+# live reload ตอน dev — แก้ไฟล์ .go แล้ว build ใหม่ให้เอง
+# ดูคำสั่งได้ที่ Makefile (make dev)
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/api ./cmd/api"
+  bin = "./tmp/api"
+  # รอ 1 วิหลังไฟล์เปลี่ยน กัน editor ที่เซฟหลายครั้งรวดตอน format
+  delay = 1000
+  exclude_dir = ["bin", "tmp", "testdata", "vendor"]
+  exclude_regex = ["_test.go"]
+  include_ext = ["go"]
+  # แก้ .env แล้วให้รีสตาร์ทด้วย ไม่งั้นค่าเก่ายังค้างอยู่จนงง
+  include_file = [".env"]
+  # ส่ง SIGINT ก่อน เพื่อให้ผ่านเส้นทางปิดแบบ graceful เหมือนตอนใช้งานจริง
+  # จะได้เจอปัญหาเรื่องการปิดตั้งแต่ตอน dev ไม่ใช่ตอน deploy
+  send_interrupt = true
+  kill_delay = "2s"
+  log = "build-errors.log"
+  # build พังให้คงตัวเก่ารันต่อไว้ จะได้ไม่ต้องมานั่งสตาร์ทใหม่เอง
+  stop_on_error = false
+
+[log]
+  time = true
+
+[misc]
+  # ลบ tmp/ ทิ้งตอนออก จะได้ไม่มีไบนารีค้าง
+  clean_on_exit = true
+
+[screen]
+  clear_on_rebuild = true
+  keep_scroll = true

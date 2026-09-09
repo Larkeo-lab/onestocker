@@ -1,0 +1,27 @@
+version: "2"
+sql:
+  - engine: postgresql
+    # อ่านโครงตารางจากไฟล์ migration ชุดเดียวกับที่รันจริงตอนสตาร์ท
+    # จึงไม่มีทางที่โค้ดกับฐานข้อมูลจะไม่ตรงกัน
+    schema: internal/shared/database/migrations
+
+    # query อยู่ในโฟลเดอร์ของ feature ที่เป็นเจ้าของ
+    queries:
+      - internal/feature/auth/query.sql
+      - internal/feature/settings/query.sql
+      - internal/feature/generation/query.sql
+
+    gen:
+      go:
+        package: sqlc
+        out: internal/shared/database/sqlc
+        sql_package: pgx/v5
+        # คอลัมน์ที่เป็น null ได้ ให้ออกมาเป็น pointer
+        # ตรงกับรูปแบบ DTO ที่ใช้ *string อยู่แล้ว
+        emit_pointers_for_null_types: true
+        overrides:
+          # ไม่งั้นจะได้ pgtype.UUID / pgtype.Timestamptz ซึ่งต้องแปลงอีกชั้น
+          - db_type: "uuid"
+            go_type: "github.com/google/uuid.UUID"
+          - db_type: "timestamptz"
+            go_type: "time.Time"
