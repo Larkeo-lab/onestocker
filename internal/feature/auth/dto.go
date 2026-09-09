@@ -18,3 +18,5 @@ type Profile struct {
 	// รูปที่อัปไว้ใน Clerk ถ้ามี ไม่งั้นเป็น Gravatar ที่อิงอีเมล
 	ProfileURL *string `json:"profileUrl"`
 }
+
+//
