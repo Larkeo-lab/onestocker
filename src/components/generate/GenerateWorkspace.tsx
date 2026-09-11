@@ -30,7 +30,7 @@ export function GenerateWorkspace() {
   return (
     <>
       <GenerateHeader
-        assetCount={assets.length}
+        assets={assets}
         maxAssets={maxAssets}
         pendingCount={pendingCount}
         generatingCount={generatingCount}
