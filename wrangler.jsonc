@@ -15,7 +15,9 @@
   //
   // ตั้งไว้ที่นี่แล้วมันถูกใช้ซ้ำทุกครั้งที่ deploy ไม่ต้องกลับไปกดใหม่
   // และเห็นได้จากโค้ดว่าแอปนี้อยู่โดเมนไหน
-  "routes": [{ "pattern": "meta.eezypos.com", "custom_domain": true }],
+  "routes": [
+    { "pattern": "stockphoto-metadata.eezypos.com", "custom_domain": true }
+  ],
 
   // เก็บ URL .workers.dev ไว้ด้วย ใช้ทดสอบตอนโดเมนหลักมีปัญหา
   "workers_dev": true,
