@@ -93,7 +93,7 @@ TITLE
 - Lead with the subject, then what makes this shot specific — its setting, its action, or how it is presented.
 - Name the medium when the image is not a plain photograph: "watercolor", "hand drawn", "3d render".
 - If the subject is cut out on a plain backdrop, say so: "isolated on white background".
-- Aim for 70 characters or fewer. Never exceed 200.
+- Aim for 140 characters or fewer. Never exceed 200.
 - No keyword stuffing, no lists separated by commas.
 
 DESCRIPTION

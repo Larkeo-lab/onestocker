@@ -81,23 +81,23 @@ func main() {
 
 	go func() {
 		<-shutdown
-		slog.Info("ได้รับสัญญาณให้ปิด กำลังรอคำขอที่ค้างอยู่")
+		slog.Info("Receiving signal to stop, waiting for requests to finish")
 
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
 		if err := app.ShutdownWithContext(ctx); err != nil {
-			slog.Error("ปิดเซิร์ฟเวอร์ไม่เรียบร้อย", "error", err)
+			slog.Error("Server stopped working", "error", err)
 		}
 	}()
 
 	addr := ":" + cfg.Port
-	slog.Info("เซิร์ฟเวอร์พร้อมใช้งาน", "addr", addr, "env", cfg.AppEnv)
+	slog.Info("Server running on port:", "addr", addr, "env", cfg.AppEnv)
 
 	if err := app.Listen(addr, fiber.ListenConfig{DisableStartupMessage: true}); err != nil {
-		slog.Error("เซิร์ฟเวอร์หยุดทำงาน", "error", err)
+		slog.Error("Server stopped working", "error", err)
 		os.Exit(1)
 	}
 
-	slog.Info("ปิดเซิร์ฟเวอร์เรียบร้อย")
+	slog.Info("Server stopped successfully")
 }

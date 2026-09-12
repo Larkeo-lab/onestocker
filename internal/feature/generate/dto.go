@@ -7,8 +7,9 @@ package generate
 // request อีกครั้ง) แบบนี้ให้เซิร์ฟเวอร์ไปดึงจาก R2 เอง ผู้ใช้รอครึ่งเดียว
 // ปริมาณที่วิ่งผ่าน EC2 ลดครึ่ง และ R2 ไม่คิดค่า egress ขาออก
 type Request struct {
-	PreviewKey string `json:"previewKey"`
-	Filename   string `json:"filename"`
+	PreviewKey  string   `json:"previewKey"`
+	Filename    string   `json:"filename"`
+	PlatformIds []string `json:"platformIds"`
 }
 
 // Translation คือผลลัพธ์ฉบับแปลหนึ่งภาษา

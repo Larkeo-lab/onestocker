@@ -9,6 +9,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/eezy-tech/one-stocks/server/internal/shared/usertype"
 	"github.com/google/uuid"
 )
 
@@ -18,6 +19,22 @@ select count(*) from generations where user_id = $1
 
 func (q *Queries) CountGenerations(ctx context.Context, userID string) (int64, error) {
 	row := q.db.QueryRow(ctx, countGenerations, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countGenerationsByPlatform = `-- name: CountGenerationsByPlatform :one
+select count(*) from generations where user_id = $1 and platform_id = $2
+`
+
+type CountGenerationsByPlatformParams struct {
+	UserID     string
+	PlatformID *string
+}
+
+func (q *Queries) CountGenerationsByPlatform(ctx context.Context, arg CountGenerationsByPlatformParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countGenerationsByPlatform, arg.UserID, arg.PlatformID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -42,16 +59,17 @@ func (q *Queries) DeleteGeneration(ctx context.Context, arg DeleteGenerationPara
 }
 
 const getUserSettings = `-- name: GetUserSettings :one
-select keywords_per_image, title_style, blocked_terms, output_languages
+select keywords_per_image, title_style, blocked_terms, output_languages, selected_platforms
 from user_settings
 where user_id = $1
 `
 
 type GetUserSettingsRow struct {
-	KeywordsPerImage int32
-	TitleStyle       string
-	BlockedTerms     string
-	OutputLanguages  string
+	KeywordsPerImage  int32
+	TitleStyle        string
+	BlockedTerms      string
+	OutputLanguages   string
+	SelectedPlatforms string
 }
 
 func (q *Queries) GetUserSettings(ctx context.Context, userID string) (GetUserSettingsRow, error) {
@@ -62,6 +80,7 @@ func (q *Queries) GetUserSettings(ctx context.Context, userID string) (GetUserSe
 		&i.TitleStyle,
 		&i.BlockedTerms,
 		&i.OutputLanguages,
+		&i.SelectedPlatforms,
 	)
 	return i, err
 }
@@ -69,10 +88,10 @@ func (q *Queries) GetUserSettings(ctx context.Context, userID string) (GetUserSe
 const insertGeneration = `-- name: InsertGeneration :one
 insert into generations (
   user_id, filename, preview_key, title, description,
-  keywords, category, provider, model
-) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+  keywords, category, provider, model, platform_id
+) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 returning id, filename, preview_key, title, description,
-          keywords, category, provider, model, created_at
+          keywords, category, provider, model, platform_id, created_at
 `
 
 type InsertGenerationParams struct {
@@ -85,6 +104,7 @@ type InsertGenerationParams struct {
 	Category    *string
 	Provider    *string
 	Model       *string
+	PlatformID  *string
 }
 
 type InsertGenerationRow struct {
@@ -97,6 +117,7 @@ type InsertGenerationRow struct {
 	Category    *string
 	Provider    *string
 	Model       *string
+	PlatformID  *string
 	CreatedAt   time.Time
 }
 
@@ -111,6 +132,7 @@ func (q *Queries) InsertGeneration(ctx context.Context, arg InsertGenerationPara
 		arg.Category,
 		arg.Provider,
 		arg.Model,
+		arg.PlatformID,
 	)
 	var i InsertGenerationRow
 	err := row.Scan(
@@ -123,6 +145,7 @@ func (q *Queries) InsertGeneration(ctx context.Context, arg InsertGenerationPara
 		&i.Category,
 		&i.Provider,
 		&i.Model,
+		&i.PlatformID,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -130,7 +153,7 @@ func (q *Queries) InsertGeneration(ctx context.Context, arg InsertGenerationPara
 
 const listGenerations = `-- name: ListGenerations :many
 select id, filename, preview_key, title, description,
-       keywords, category, provider, model, created_at
+       keywords, category, provider, model, platform_id, created_at
 from generations
 where user_id = $1
 order by created_at desc
@@ -153,6 +176,7 @@ type ListGenerationsRow struct {
 	Category    *string
 	Provider    *string
 	Model       *string
+	PlatformID  *string
 	CreatedAt   time.Time
 }
 
@@ -176,11 +200,106 @@ func (q *Queries) ListGenerations(ctx context.Context, arg ListGenerationsParams
 			&i.Category,
 			&i.Provider,
 			&i.Model,
+			&i.PlatformID,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listGenerationsByPlatform = `-- name: ListGenerationsByPlatform :many
+select id, filename, preview_key, title, description,
+       keywords, category, provider, model, platform_id, created_at
+from generations
+where user_id = $1 and platform_id = $2
+order by created_at desc
+limit $3 offset $4
+`
+
+type ListGenerationsByPlatformParams struct {
+	UserID     string
+	PlatformID *string
+	Limit      int32
+	Offset     int32
+}
+
+type ListGenerationsByPlatformRow struct {
+	ID          uuid.UUID
+	Filename    string
+	PreviewKey  *string
+	Title       string
+	Description string
+	Keywords    []string
+	Category    *string
+	Provider    *string
+	Model       *string
+	PlatformID  *string
+	CreatedAt   time.Time
+}
+
+// filter ตาม platform ใช้ดัชนี generations_platform_idx
+func (q *Queries) ListGenerationsByPlatform(ctx context.Context, arg ListGenerationsByPlatformParams) ([]ListGenerationsByPlatformRow, error) {
+	rows, err := q.db.Query(ctx, listGenerationsByPlatform,
+		arg.UserID,
+		arg.PlatformID,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListGenerationsByPlatformRow
+	for rows.Next() {
+		var i ListGenerationsByPlatformRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Filename,
+			&i.PreviewKey,
+			&i.Title,
+			&i.Description,
+			&i.Keywords,
+			&i.Category,
+			&i.Provider,
+			&i.Model,
+			&i.PlatformID,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUserPlatforms = `-- name: ListUserPlatforms :many
+select distinct platform_id
+from generations
+where user_id = $1 and platform_id is not null
+`
+
+func (q *Queries) ListUserPlatforms(ctx context.Context, userID string) ([]*string, error) {
+	rows, err := q.db.Query(ctx, listUserPlatforms, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*string
+	for rows.Next() {
+		var platform_id *string
+		if err := rows.Scan(&platform_id); err != nil {
+			return nil, err
+		}
+		items = append(items, platform_id)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -197,7 +316,7 @@ on conflict (user_id) do update set
   email       = excluded.email,
   profile_url = excluded.profile_url,
   updated_at  = now()
-returning user_id, first_name, last_name, email, profile_url
+returning user_id, first_name, last_name, email, profile_url, user_type
 `
 
 type UpsertProfileParams struct {
@@ -214,10 +333,15 @@ type UpsertProfileRow struct {
 	LastName   *string
 	Email      *string
 	ProfileUrl *string
+	UserType   usertype.Type
 }
 
 // คัดลอกข้อมูลผู้ใช้จาก Clerk มาเก็บไว้ฝั่งเรา
 // เพื่อให้ join กับตารางอื่นได้โดยไม่ต้องยิงไปถาม Clerk ทุกครั้ง
+//
+// user_type ไม่อยู่ในทั้งชุดที่ insert และชุดที่ update โดยตั้งใจ
+// Clerk ไม่ใช่เจ้าของค่านี้ ตอนสร้างแถวใหม่จึงปล่อยให้เป็น default ของคอลัมน์
+// และตอน sync โปรไฟล์ก็อ่านค่าเดิมกลับมาเฉย ๆ ไม่เขียนทับระดับที่ซื้อไว้
 func (q *Queries) UpsertProfile(ctx context.Context, arg UpsertProfileParams) (UpsertProfileRow, error) {
 	row := q.db.QueryRow(ctx, upsertProfile,
 		arg.UserID,
@@ -233,36 +357,40 @@ func (q *Queries) UpsertProfile(ctx context.Context, arg UpsertProfileParams) (U
 		&i.LastName,
 		&i.Email,
 		&i.ProfileUrl,
+		&i.UserType,
 	)
 	return i, err
 }
 
 const upsertUserSettings = `-- name: UpsertUserSettings :one
 insert into user_settings (
-  user_id, keywords_per_image, title_style, blocked_terms, output_languages
-) values ($1, $2, $3, $4, $5)
+  user_id, keywords_per_image, title_style, blocked_terms, output_languages, selected_platforms
+) values ($1, $2, $3, $4, $5, $6)
 on conflict (user_id) do update set
   keywords_per_image = excluded.keywords_per_image,
   title_style        = excluded.title_style,
   blocked_terms      = excluded.blocked_terms,
   output_languages   = excluded.output_languages,
+  selected_platforms = excluded.selected_platforms,
   updated_at         = now()
-returning keywords_per_image, title_style, blocked_terms, output_languages
+returning keywords_per_image, title_style, blocked_terms, output_languages, selected_platforms
 `
 
 type UpsertUserSettingsParams struct {
-	UserID           string
-	KeywordsPerImage int32
-	TitleStyle       string
-	BlockedTerms     string
-	OutputLanguages  string
+	UserID            string
+	KeywordsPerImage  int32
+	TitleStyle        string
+	BlockedTerms      string
+	OutputLanguages   string
+	SelectedPlatforms string
 }
 
 type UpsertUserSettingsRow struct {
-	KeywordsPerImage int32
-	TitleStyle       string
-	BlockedTerms     string
-	OutputLanguages  string
+	KeywordsPerImage  int32
+	TitleStyle        string
+	BlockedTerms      string
+	OutputLanguages   string
+	SelectedPlatforms string
 }
 
 func (q *Queries) UpsertUserSettings(ctx context.Context, arg UpsertUserSettingsParams) (UpsertUserSettingsRow, error) {
@@ -272,6 +400,7 @@ func (q *Queries) UpsertUserSettings(ctx context.Context, arg UpsertUserSettings
 		arg.TitleStyle,
 		arg.BlockedTerms,
 		arg.OutputLanguages,
+		arg.SelectedPlatforms,
 	)
 	var i UpsertUserSettingsRow
 	err := row.Scan(
@@ -279,6 +408,7 @@ func (q *Queries) UpsertUserSettings(ctx context.Context, arg UpsertUserSettings
 		&i.TitleStyle,
 		&i.BlockedTerms,
 		&i.OutputLanguages,
+		&i.SelectedPlatforms,
 	)
 	return i, err
 }

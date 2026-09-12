@@ -24,6 +24,7 @@ export type Pagination = {
 
 export type ApiPaginated<T> = ApiEnvelope<T> & {
   pagination: Pagination
+  availablePlatforms?: string[]
 }
 
 /**
@@ -145,7 +146,11 @@ export async function apiDelete<T = null>(
 export async function apiGetPaginated<T>(
   url: string,
   config?: AxiosRequestConfig,
-): Promise<{ items: T; pagination: Pagination }> {
+): Promise<{ items: T; pagination: Pagination; availablePlatforms?: string[] }> {
   const response = await api.get<ApiPaginated<T>>(url, config)
-  return { items: response.data.data, pagination: response.data.pagination }
+  return {
+    items: response.data.data,
+    pagination: response.data.pagination,
+    availablePlatforms: response.data.availablePlatforms,
+  }
 }

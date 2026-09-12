@@ -4,12 +4,14 @@ package settings
 // Settings ต้องมีฟิลด์ตรงกับ UserSettings ใน client/one-stock/src/types/settings.ts
 // ถ้าแก้ที่นี่ ต้องไปแก้ฝั่งนั้นด้วย ไม่งั้นหน้าเว็บอ่านค่าไม่เจอ
 type Settings struct {
-	KeywordsPerImage int    `json:"keywordsPerImage"`
-	TitleStyle       string `json:"titleStyle"`
+	KeywordsPerImage  int    `json:"keywordsPerImage"`
+	TitleStyle        string `json:"titleStyle"`
 	// คำต้องห้ามเพิ่มเติมของผู้ใช้ คั่นด้วยจุลภาค
 	BlockedTerms string `json:"blockedTerms"`
 	// ภาษาของผลลัพธ์ คั่นด้วยจุลภาค เช่น "en,lo" — มี en เสมอ
 	OutputLanguages string `json:"outputLanguages"`
+	// แพลตฟอร์มที่เลือกสำหรับ export คั่นด้วยจุลภาค เช่น "adobe-stock,shutterstock"
+	SelectedPlatforms string `json:"selectedPlatforms"`
 }
 
 // Default คือค่าที่ผู้ใช้ใหม่ได้ไปตอนยังไม่เคยบันทึกอะไร
@@ -18,9 +20,10 @@ type Settings struct {
 // (เพดานจริงของ Adobe คือ 50)
 func Default() Settings {
 	return Settings{
-		KeywordsPerImage: 40,
-		TitleStyle:       "descriptive",
-		BlockedTerms:     "",
-		OutputLanguages:  PrimaryLanguage,
+		KeywordsPerImage:  40,
+		TitleStyle:        "descriptive",
+		BlockedTerms:      "",
+		OutputLanguages:   PrimaryLanguage,
+		SelectedPlatforms: "adobe-stock",
 	}
 }

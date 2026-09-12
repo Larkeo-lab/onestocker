@@ -94,6 +94,11 @@ save เก็บประวัติทุกครั้งที่สร้
 ถ้าเขียนประวัติไม่ลงแล้วโยน error ทิ้ง เท่ากับทิ้งผลลัพธ์ที่จ่ายเงินมา
 */
 func (s *service) save(ctx context.Context, userID string, req Request, result Response) {
+	var platformID *string
+	if len(req.PlatformIds) > 0 && req.PlatformIds[0] != "" {
+		platformID = &req.PlatformIds[0]
+	}
+
 	_, err := s.history.Insert(ctx, userID, generation.Generation{
 		Filename:    req.Filename,
 		PreviewKey:  util.NilIfEmpty(req.PreviewKey),
@@ -103,6 +108,7 @@ func (s *service) save(ctx context.Context, userID string, req Request, result R
 		Category:    util.NilIfEmpty(result.Category),
 		Provider:    util.Ptr("gemini"),
 		Model:       util.NilIfEmpty(s.model),
+		PlatformId:  platformID,
 	})
 	if err != nil {
 		slog.Warn("บันทึกประวัติไม่สำเร็จ", "userID", userID, "error", err)

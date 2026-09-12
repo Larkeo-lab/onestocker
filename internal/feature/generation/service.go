@@ -27,23 +27,30 @@ func (s *service) List(ctx context.Context, userID string, query ListQuery) (Lis
 	// (เช่น งาน export ในอนาคต) ได้พฤติกรรมเดียวกัน
 	query = query.applyDefaults()
 
-	items, err := s.repo.List(ctx, userID, query.Limit, query.offset())
+	items, err := s.repo.List(ctx, userID, query.Platform, query.Limit, query.offset())
 	if err != nil {
 		return ListResult{}, apperr.Internal("failed to read history", err)
 	}
 
-	total, err := s.repo.Count(ctx, userID)
+	total, err := s.repo.Count(ctx, userID, query.Platform)
 	if err != nil {
 		return ListResult{}, apperr.Internal("failed to count history", err)
+	}
+
+	platforms, err := s.repo.ListUserPlatforms(ctx, userID)
+	if err != nil {
+		slog.Warn("failed to fetch user platforms", "userID", userID, "error", err)
+		platforms = []string{}
 	}
 
 	s.attachPreviewURLs(ctx, items)
 
 	return ListResult{
-		Items: items,
-		Total: total,
-		Page:  query.Page,
-		Limit: query.Limit,
+		Items:              items,
+		Total:              total,
+		Page:               query.Page,
+		Limit:              query.Limit,
+		AvailablePlatforms: platforms,
 	}, nil
 }
 

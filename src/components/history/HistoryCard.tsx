@@ -1,23 +1,26 @@
-import { Image as ImageIcon } from 'lucide-react'
+import { Image as ImageIcon } from "lucide-react";
 
-import { Badge } from '@/components/ui/Badge'
-import type { GenerationWithPreview } from '@/types/generation'
+import { Badge } from "@/components/ui/Badge";
+import { PLATFORMS } from "@/config/platforms";
+import type { GenerationWithPreview } from "@/types/generation";
 
 /** วันเวลาแบบสั้น อ่านง่ายทั้งวันนี้และเดือนก่อน */
 function formatDate(value: string): string {
-  return new Date(value).toLocaleString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  return new Date(value).toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export function HistoryCard({
   generation,
 }: {
-  generation: GenerationWithPreview
+  generation: GenerationWithPreview;
 }) {
+  const platform = PLATFORMS.find((p) => p.id === generation.platformId);
+
   return (
     <article className="flex gap-4 rounded-xl border border-border bg-card p-4">
       <div className="hidden size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted sm:flex">
@@ -43,9 +46,6 @@ export function HistoryCard({
         </div>
 
         <p className="mt-2 text-[13px] leading-relaxed">{generation.title}</p>
-        <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-          {generation.description}
-        </p>
 
         {generation.keywords.length > 0 ? (
           <ul className="mt-2.5 flex flex-wrap gap-1.5">
@@ -61,15 +61,24 @@ export function HistoryCard({
         ) : null}
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
+          {platform ? (
+            <Badge tone="neutral" className="gap-1.5">
+              {platform.icon ? (
+                <img
+                  src={platform.icon}
+                  alt={platform.name}
+                  className="size-3.5 rounded-full object-cover"
+                />
+              ) : null}
+              {platform.name}
+            </Badge>
+          ) : null}
+
           {generation.category ? (
             <Badge tone="neutral">{generation.category}</Badge>
           ) : null}
-          <span className="font-mono text-[11px] text-subtle-foreground">
-            {generation.keywords.length} keywords
-            {generation.model ? ` · ${generation.model}` : ''}
-          </span>
         </div>
       </div>
     </article>
-  )
+  );
 }

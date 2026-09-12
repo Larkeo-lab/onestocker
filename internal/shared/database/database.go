@@ -4,6 +4,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -49,6 +50,8 @@ func New(ctx context.Context, url string) (*pgxpool.Pool, error) {
 		pool.Close()
 		return nil, fmt.Errorf("ต่อฐานข้อมูลไม่ได้: %w", err)
 	}
+
+	slog.Info("✅ connect DB Successfully")
 
 	return pool, nil
 }

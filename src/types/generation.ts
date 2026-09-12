@@ -4,11 +4,11 @@ export type Generation = {
   filename: string
   previewKey: string | null
   title: string
-  description: string
   keywords: string[]
   category: string | null
   provider: string | null
   model: string | null
+  platformId: string | null
   createdAt: string
 }
 

@@ -9,7 +9,6 @@ export type AssetStatus =
 export type AssetTranslation = {
   language: string
   title: string
-  description: string
   keywords: string[]
 }
 
@@ -36,7 +35,6 @@ export type Asset = {
   /** สิ่งที่ตัวกรองแก้ไขหลังโมเดลตอบ เช่น ตัดชื่อแบรนด์ออก */
   notes?: string[]
   title: string
-  description: string
   keywords: string[]
   category: string
   /** ฉบับแปลตามภาษาที่เลือกไว้ในหน้า Settings */

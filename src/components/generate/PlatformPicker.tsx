@@ -1,16 +1,40 @@
-import { Check } from 'lucide-react'
-import { useState } from 'react'
+import { Check } from "lucide-react";
+import { useState } from "react";
 
-import { DEFAULT_PLATFORM_IDS, PLATFORMS } from '@/config/platforms'
-import { cn } from '@/lib/utils'
+import { PLATFORMS, type Platform } from "@/config/platforms";
+import { cn } from "@/lib/utils";
+import { usePlatformsStore } from "@/store/platforms";
+
+function PlatformIcon({ platform }: { platform: Platform }) {
+  const [error, setError] = useState(false);
+
+  if (platform.icon && !error) {
+    return (
+      <div className="relative flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border/40 bg-white p-0.5 shadow-2xs">
+        <img
+          src={platform.icon}
+          alt={platform.name}
+          onError={() => setError(true)}
+          className="size-full rounded-xs object-contain"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <span
+      className="flex size-7 shrink-0 items-center justify-center rounded-md text-[11px] font-semibold text-white"
+      style={{ backgroundColor: platform.color }}
+      aria-hidden
+    >
+      {platform.monogram}
+    </span>
+  );
+}
 
 export function PlatformPicker() {
-  const [selected, setSelected] = useState<string[]>(DEFAULT_PLATFORM_IDS)
-
-  const toggle = (id: string) =>
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
-    )
+  const selected = usePlatformsStore((s) => s.selectedIds);
+  const toggle = usePlatformsStore((s) => s.togglePlatform);
 
   return (
     <section className="rounded-xl border border-border bg-card">
@@ -31,7 +55,7 @@ export function PlatformPicker() {
 
       <div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
         {PLATFORMS.map((platform) => {
-          const active = selected.includes(platform.id)
+          const active = selected.includes(platform.id);
           return (
             <button
               key={platform.id}
@@ -39,43 +63,32 @@ export function PlatformPicker() {
               onClick={() => toggle(platform.id)}
               aria-pressed={active}
               className={cn(
-                'group flex items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors',
+                "group flex items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left transition-colors",
                 active
-                  ? 'border-primary bg-primary-soft'
-                  : 'border-border hover:border-border-strong hover:bg-muted',
+                  ? "border-primary bg-primary-soft"
+                  : "border-border hover:border-border-strong hover:bg-muted",
               )}
             >
-              <span
-                className="flex size-7 shrink-0 items-center justify-center rounded-md text-[11px] font-semibold text-white"
-                style={{ backgroundColor: platform.color }}
-                aria-hidden
-              >
-                {platform.monogram}
-              </span>
+              <PlatformIcon platform={platform} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[12.5px] leading-tight font-medium">
                   {platform.name}
                 </span>
-                <span className="block truncate font-mono text-[10.5px] leading-tight text-subtle-foreground">
-                  {platform.limits.title}t ·{' '}
-                  {platform.limits.description ?? '—'}d ·{' '}
-                  {platform.limits.keywords}k
-                </span>
               </span>
               <span
                 className={cn(
-                  'flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors',
+                  "flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors",
                   active
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border-strong',
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border-strong",
                 )}
               >
                 {active ? <Check className="size-2.5" aria-hidden /> : null}
               </span>
             </button>
-          )
+          );
         })}
       </div>
     </section>
-  )
+  );
 }

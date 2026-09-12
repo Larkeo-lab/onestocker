@@ -76,6 +76,33 @@ func PaginationSuccess(c fiber.Ctx, data any, page, limit, total int, statusCode
 	})
 }
 
+// PaginationSuccessWithMeta ตอบรายการพร้อมข้อมูลการแบ่งหน้าและข้อมูลเพิ่มเติม (meta)
+func PaginationSuccessWithMeta(c fiber.Ctx, data any, page, limit, total int, meta fiber.Map, statusCode ...int) error {
+	status := statusOr(fiber.StatusOK, statusCode)
+
+	totalPages := 0
+	if limit > 0 {
+		totalPages = (total + limit - 1) / limit
+	}
+
+	body := fiber.Map{
+		"code":    Code(status),
+		"message": MessageSuccess,
+		"data":    data,
+		"pagination": fiber.Map{
+			"page":       page,
+			"limit":      limit,
+			"total":      total,
+			"totalPages": totalPages,
+		},
+	}
+	for k, v := range meta {
+		body[k] = v
+	}
+
+	return c.Status(status).JSON(body)
+}
+
 // Error ตอบข้อผิดพลาดด้วยรูปร่างเดียวกับตอนสำเร็จ
 //
 // data เป็น null เสมอ ฝั่งหน้าเว็บจึงอ่าน message ได้ที่เดียวกันทุกกรณี

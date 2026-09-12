@@ -7,6 +7,7 @@ package sqlc
 import (
 	"time"
 
+	"github.com/eezy-tech/one-stocks/server/internal/shared/usertype"
 	"github.com/google/uuid"
 )
 
@@ -22,6 +23,7 @@ type Generation struct {
 	Provider    *string
 	Model       *string
 	CreatedAt   time.Time
+	PlatformID  *string
 }
 
 type Profile struct {
@@ -32,14 +34,16 @@ type Profile struct {
 	ProfileUrl *string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
+	UserType   usertype.Type
 }
 
 type UserSetting struct {
-	UserID           string
-	KeywordsPerImage int32
-	TitleStyle       string
-	BlockedTerms     string
-	OutputLanguages  string
-	UpdatedAt        time.Time
-	CreatedAt        time.Time
+	UserID            string
+	KeywordsPerImage  int32
+	TitleStyle        string
+	BlockedTerms      string
+	OutputLanguages   string
+	UpdatedAt         time.Time
+	CreatedAt         time.Time
+	SelectedPlatforms string
 }

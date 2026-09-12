@@ -8,6 +8,7 @@ import (
 	clerkuser "github.com/clerk/clerk-sdk-go/v2/user"
 
 	"github.com/eezy-tech/one-stocks/server/internal/shared/apperr"
+	"github.com/eezy-tech/one-stocks/server/internal/shared/usertype"
 	"github.com/eezy-tech/one-stocks/server/internal/shared/util"
 )
 
@@ -40,6 +41,7 @@ func (s *service) Me(ctx context.Context, userID string) (Profile, error) {
 			UserID:    userID,
 			FirstName: util.Ptr("Dev"),
 			LastName:  util.Ptr("User"),
+			UserType:  usertype.Default,
 		}, nil
 	}
 
@@ -56,6 +58,10 @@ func (s *service) Me(ctx context.Context, userID string) (Profile, error) {
 		FirstName: found.FirstName,
 		LastName:  found.LastName,
 		Email:     email,
+		// Clerk ไม่รู้จักระดับแพ็กเกจ ค่าจริงมาจากแถวที่ Upsert คืนกลับมา
+		// ตั้ง Default ไว้เผื่อกรณีเขียนฐานข้อมูลไม่สำเร็จด้านล่าง
+		// จะได้ไม่ส่งค่าว่างให้หน้าเว็บ
+		UserType: usertype.Default,
 	}
 
 	// ถ้าผู้ใช้อัปรูปไว้ใน Clerk ใช้รูปนั้น ไม่งั้นดึงจากอีเมลผ่าน Gravatar

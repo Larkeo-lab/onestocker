@@ -6,11 +6,12 @@ export type GenerateRequest = {
   /** ตำแหน่งรูปย่อบน R2 ที่อัปเสร็จแล้ว */
   previewKey: string
   filename: string
+  /** ID ของแพลตฟอร์มที่เลือกไว้ ใช้ตัดคีย์เวิร์ดตาม limit ของแต่ละ platform */
+  platformIds: string[]
 }
 
 export type GenerateResponse = {
   title: string
-  description: string
   keywords: string[]
   category: string
   /** ฉบับแปลตามภาษาที่เลือกไว้ในหน้า Settings */

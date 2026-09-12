@@ -7,6 +7,7 @@ import {
 } from '@/config/site'
 import { useAsync } from '@/hooks/useAsync'
 import {
+  ApiError,
   fetchMeta,
   generateMetadata,
   requestUploadUrls,
@@ -17,6 +18,8 @@ import { processImage } from '@/lib/image'
 import type { Asset } from '@/types/asset'
 
 import { GenerateContext, isPending } from './context'
+import { usePlatformsStore } from '@/store/platforms'
+import { useUsageStore } from '@/store/usage'
 
 /**
  * เก็บรูปและผลลัพธ์ที่กำลังทำอยู่
@@ -63,6 +66,7 @@ function describeSkipped(skipped: Skipped[]): string | null {
 export function GenerateProvider({ children }: { children: ReactNode }) {
   const [assets, setAssets] = useState<Asset[]>([])
   const [notice, setNotice] = useState<string | null>(null)
+  const activePlatformId = usePlatformsStore((s) => s.activePlatformId)
 
   // เพดานจำนวนรูปเซิร์ฟเวอร์เป็นเจ้าของ ระหว่างรอคำตอบใช้ค่าสำรองไปก่อน
   const meta = useAsync(fetchMeta)
@@ -180,7 +184,6 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
           size: file.size,
           status: 'uploading' as const,
           title: '',
-          description: '',
           keywords: [],
           category: '',
         })),
@@ -275,21 +278,31 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
         const result = await generateMetadata({
           previewKey: asset.previewKey,
           filename: asset.filename,
+          platformIds: [activePlatformId],
         })
         patch(id, {
           status: 'generated',
           title: result.title,
-          description: result.description,
           keywords: result.keywords,
           category: result.category,
           translations: result.translations,
           notes: result.notes,
         })
+
+        // นับเฉพาะรูปที่สำเร็จ ให้ตรงกับฝั่งเซิร์ฟเวอร์ซึ่งคืนโควตาให้
+        // ทุกครั้งที่สร้างไม่สำเร็จ
+        useUsageStore.getState().markGenerated()
       } catch (error) {
         patch(id, { status: 'error', error: errorMessage(error) })
+
+        // 402 = โควตาเดือนนี้หมด รอแล้วลองใหม่ไม่ช่วย ต้องอัปเกรด
+        // เปิดป๊อปอัปช่องทางติดต่อให้เลย ไม่ปล่อยให้เห็นแค่ข้อความแดงในการ์ด
+        if (error instanceof ApiError && error.status === 402) {
+          useUsageStore.getState().reportLimitReached()
+        }
       }
     },
-    [patch],
+    [patch, activePlatformId],
   )
 
   const generate = useCallback(async () => {

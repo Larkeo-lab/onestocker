@@ -1,0 +1,97 @@
+import { create } from 'zustand'
+
+import { fetchUsage } from '@/lib/api/usage'
+import type { Usage } from '@/types/usage'
+
+/**
+ * หน่วงก่อนถามยอดจริงจากเซิร์ฟเวอร์ หน่วยเป็นมิลลิวินาที
+ *
+ * การสร้างทีละหลายรูปจะเรียก markGenerated หลายครั้งติดกัน ถ้าถามทุกครั้ง
+ * จะได้คำขอเท่าจำนวนรูปโดยที่คำตอบก่อนหน้ายังไม่ทันมีความหมาย
+ * รอให้เงียบก่อนแล้วค่อยถามครั้งเดียว
+ */
+const RECONCILE_DELAY = 1500
+
+let reconcileTimer: ReturnType<typeof setTimeout> | null = null
+
+type UsageState = {
+  usage: Usage | null
+  loading: boolean
+  /** true เมื่ออ่านยอดไม่สำเร็จ — sidebar จะแสดงขีดแทนตัวเลขที่อาจผิด */
+  failed: boolean
+  /** true เมื่อการสร้างถูกปฏิเสธเพราะโควตาหมด — ป๊อปอัปติดต่อจะถูกเปิด */
+  limitReached: boolean
+
+  refresh: () => Promise<void>
+  /** เรียกทุกครั้งที่สร้าง metadata สำเร็จหนึ่งรูป */
+  markGenerated: () => void
+  /** เรียกเมื่อเซิร์ฟเวอร์ตอบ 402 เพราะโควตาหมด */
+  reportLimitReached: () => void
+  dismissLimitReached: () => void
+}
+
+export const useUsageStore = create<UsageState>((set, get) => ({
+  usage: null,
+  loading: false,
+  failed: false,
+  limitReached: false,
+
+  refresh: async () => {
+    set({ loading: true })
+    try {
+      set({ usage: await fetchUsage(), loading: false, failed: false })
+    } catch {
+      /*
+        ไม่ล้างยอดเดิมทิ้งตอนอ่านไม่สำเร็จ
+
+        ตัวเลขเก่าที่อาจคลาดไปหนึ่งยังมีประโยชน์กว่าขีดว่าง ๆ
+        และเน็ตสะดุดชั่วครู่ไม่ควรทำให้ตัวเลขบน sidebar กระพริบหาย
+      */
+      set({ loading: false, failed: true })
+    }
+  },
+
+  markGenerated: () => {
+    /*
+      บวกให้เห็นทันทีโดยไม่รอเซิร์ฟเวอร์
+
+      การสร้างหนึ่งรูปใช้เวลาหลายวินาที ถ้ารอถามยอดจริงก่อนค่อยขยับเลข
+      ผู้ใช้จะเห็นตัวเลขค้างอยู่นานจนนึกว่าไม่ได้นับ
+
+      ค่านี้เป็นแค่ค่าประมาณระหว่างรอ — ตัวจริงมาจาก refresh ด้านล่าง
+      ซึ่งจะทับค่านี้เสมอ
+    */
+    const current = get().usage
+    if (current) {
+      set({
+        usage: {
+          ...current,
+          used: current.used + 1,
+          remaining:
+            current.remaining === null ? null : Math.max(current.remaining - 1, 0),
+        },
+      })
+    }
+
+    if (reconcileTimer) clearTimeout(reconcileTimer)
+    reconcileTimer = setTimeout(() => {
+      reconcileTimer = null
+      void get().refresh()
+    }, RECONCILE_DELAY)
+  },
+
+  /*
+    กันเปิดซ้ำ
+
+    การกด Generate หนึ่งครั้งยิงหลายรูปพร้อมกัน ทุกรูปจะได้ 402 เหมือนกันหมด
+    ถ้าไม่กันไว้จะยิงถามยอดใหม่เท่าจำนวนรูปที่ค้างอยู่
+  */
+  reportLimitReached: () => {
+    if (get().limitReached) return
+    set({ limitReached: true })
+    // ดึงยอดจริงมาแสดงในป๊อปอัป เผื่อแอดมินเพิ่งลดเพดานลงระหว่างทาง
+    void get().refresh()
+  },
+
+  dismissLimitReached: () => set({ limitReached: false }),
+}))

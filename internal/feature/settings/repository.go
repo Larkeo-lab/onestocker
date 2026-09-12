@@ -39,29 +39,32 @@ func (r *repository) Get(ctx context.Context, userID string) (Settings, bool, er
 	}
 
 	return Settings{
-		KeywordsPerImage: int(row.KeywordsPerImage),
-		TitleStyle:       row.TitleStyle,
-		BlockedTerms:     row.BlockedTerms,
-		OutputLanguages:  row.OutputLanguages,
+		KeywordsPerImage:  int(row.KeywordsPerImage),
+		TitleStyle:        row.TitleStyle,
+		BlockedTerms:      row.BlockedTerms,
+		OutputLanguages:   row.OutputLanguages,
+		SelectedPlatforms: row.SelectedPlatforms,
 	}, true, nil
 }
 
 func (r *repository) Upsert(ctx context.Context, userID string, in Settings) (Settings, error) {
 	row, err := r.queries.UpsertUserSettings(ctx, sqlc.UpsertUserSettingsParams{
-		UserID:           userID,
-		KeywordsPerImage: int32(in.KeywordsPerImage),
-		TitleStyle:       in.TitleStyle,
-		BlockedTerms:     in.BlockedTerms,
-		OutputLanguages:  in.OutputLanguages,
+		UserID:            userID,
+		KeywordsPerImage:  int32(in.KeywordsPerImage),
+		TitleStyle:        in.TitleStyle,
+		BlockedTerms:      in.BlockedTerms,
+		OutputLanguages:   in.OutputLanguages,
+		SelectedPlatforms: in.SelectedPlatforms,
 	})
 	if err != nil {
 		return Settings{}, fmt.Errorf("บันทึกค่าตั้งต้นไม่สำเร็จ: %w", err)
 	}
 
 	return Settings{
-		KeywordsPerImage: int(row.KeywordsPerImage),
-		TitleStyle:       row.TitleStyle,
-		BlockedTerms:     row.BlockedTerms,
-		OutputLanguages:  row.OutputLanguages,
+		KeywordsPerImage:  int(row.KeywordsPerImage),
+		TitleStyle:        row.TitleStyle,
+		BlockedTerms:      row.BlockedTerms,
+		OutputLanguages:   row.OutputLanguages,
+		SelectedPlatforms: row.SelectedPlatforms,
 	}, nil
 }

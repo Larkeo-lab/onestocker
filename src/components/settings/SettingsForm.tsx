@@ -69,6 +69,7 @@ export function SettingsForm({
       blockedTerms: String(form.get('blockedTerms') ?? ''),
       // checkbox หลายตัวใช้ name เดียวกัน ต้องอ่านด้วย getAll
       outputLanguages: form.getAll('languages').join(','),
+      selectedPlatforms: settings.selectedPlatforms || 'adobe-stock',
     }
 
     setState({ status: 'saving' })

@@ -1,10 +1,14 @@
+import { useEffect } from 'react'
 import { PanelLeft } from 'lucide-react'
 import { Outlet } from 'react-router-dom'
 
+import { QuotaDialog } from '@/components/quota/QuotaDialog'
 import { siteConfig } from '@/config/site'
 import { useAsync } from '@/hooks/useAsync'
 import { fetchMe, fetchMeta } from '@/lib/api'
+import { usePlatformsStore } from '@/store/platforms'
 import { useUiStore } from '@/store/ui'
+import { useUsageStore } from '@/store/usage'
 
 import { Sidebar } from './Sidebar'
 
@@ -19,9 +23,21 @@ import { Sidebar } from './Sidebar'
 export function AppShell() {
   const sidebarOpen = useUiStore((state) => state.sidebarOpen)
   const setSidebarOpen = useUiStore((state) => state.setSidebarOpen)
+  const loadPlatformsFromBackend = usePlatformsStore((s) => s.loadFromBackend)
+  const refreshUsage = useUsageStore((state) => state.refresh)
 
   const profile = useAsync(fetchMe)
   const meta = useAsync(fetchMeta)
+
+  useEffect(() => {
+    loadPlatformsFromBackend()
+  }, [loadPlatformsFromBackend])
+
+  // ยอดใช้งานโหลดที่นี่ที่เดียวเหมือนโปรไฟล์ ตัวเลขจะได้ขึ้นตั้งแต่เปิดแอป
+  // ไม่ใช่ตอนเข้าหน้า Generate ครั้งแรก
+  useEffect(() => {
+    void refreshUsage()
+  }, [refreshUsage])
 
   return (
     <div className="flex min-h-screen">
@@ -61,6 +77,9 @@ export function AppShell() {
           <Outlet />
         </main>
       </div>
+
+      {/* อยู่นอก main เพราะเป็นชั้นลอยทับทั้งหน้าจอ ไม่ใช่เนื้อหาของหน้าไหน */}
+      <QuotaDialog />
     </div>
   )
 }

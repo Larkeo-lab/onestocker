@@ -35,6 +35,8 @@ export type UserSettings = {
   blockedTerms: string
   /** ภาษาของผลลัพธ์ คั่นด้วยจุลภาค เช่น "en,lo" — มี en เสมอ */
   outputLanguages: string
+  /** แพลตฟอร์มที่เลือกสำหรับ export คั่นด้วยจุลภาค เช่น "adobe-stock,shutterstock" */
+  selectedPlatforms: string
 }
 
 export const DEFAULT_SETTINGS: UserSettings = {
@@ -44,6 +46,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   titleStyle: 'descriptive',
   blockedTerms: '',
   outputLanguages: PRIMARY_LANGUAGE,
+  selectedPlatforms: 'adobe-stock',
 }
 
 /** แปลงข้อความในช่องกรอกเป็นรายการคำ ตัดช่องว่างและคำซ้ำออก */

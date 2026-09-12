@@ -5,3 +5,5 @@
 export type { Asset, AssetStatus, AssetTranslation } from './asset'
 export type { Generation, GenerationWithPreview } from './generation'
 export type { LanguageCode, TitleStyle, UserSettings } from './settings'
+export type { Usage } from './usage'
+export type { ContactChannels, ContactChannelKey } from './contact'

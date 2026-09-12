@@ -64,6 +64,9 @@ func normalizeBlockedTerms(value string) string {
 func (s Settings) normalize() Settings {
 	s.OutputLanguages = normalizeLanguages(s.OutputLanguages)
 	s.BlockedTerms = normalizeBlockedTerms(s.BlockedTerms)
+	if strings.TrimSpace(s.SelectedPlatforms) == "" {
+		s.SelectedPlatforms = "adobe-stock"
+	}
 	return s
 }
 

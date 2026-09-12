@@ -28,7 +28,16 @@ func (ctl *Controller) List(c fiber.Ctx) error {
 		return err
 	}
 
-	return response.PaginationSuccess(c, result.Items, result.Page, result.Limit, result.Total)
+	return response.PaginationSuccessWithMeta(
+		c,
+		result.Items,
+		result.Page,
+		result.Limit,
+		result.Total,
+		fiber.Map{
+			"availablePlatforms": result.AvailablePlatforms,
+		},
+	)
 }
 
 // Delete ลบประวัติหนึ่งแถว

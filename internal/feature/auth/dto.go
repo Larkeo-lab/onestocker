@@ -7,6 +7,8 @@
 // จะเพิ่มตอนรับ webhook จาก Clerk ซึ่งต้องตรวจลายเซ็นของ payload
 package auth
 
+import "github.com/eezy-tech/one-stocks/server/internal/shared/usertype"
+
 // Profile ต้องมีฟิลด์ตรงกับ Profile ใน client/one-stock/src/types/profile.ts
 //
 // ไม่มีฟิลด์รหัสผ่านโดยตั้งใจ — Clerk เป็นผู้เก็บและ hash ให้
@@ -17,6 +19,6 @@ type Profile struct {
 	Email     *string `json:"email"`
 	// รูปที่อัปไว้ใน Clerk ถ้ามี ไม่งั้นเป็น Gravatar ที่อิงอีเมล
 	ProfileURL *string `json:"profileUrl"`
+	// ระดับแพ็กเกจ เจ้าของค่านี้คือฐานข้อมูลฝั่งเรา ไม่ใช่ Clerk
+	UserType usertype.Type `json:"userType"`
 }
-
-//

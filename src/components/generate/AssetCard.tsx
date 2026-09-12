@@ -20,9 +20,8 @@ import { formatFileSize, type Asset, type AssetTranslation } from '@/types/asset
 import { languageName } from '@/types/settings'
 
 /** ความยาว title ที่ Adobe Stock แนะนำ เกินกว่านี้เตือนแต่ยังส่งได้ */
-const TITLE_RECOMMENDED = 70
+const TITLE_RECOMMENDED = 140
 const TITLE_MAX = 200
-const DESCRIPTION_MAX = 200
 
 function FieldLabel({
   label,
@@ -65,7 +64,7 @@ function FieldLabel({
 
 /**
  * ปุ่มคัดลอกของแต่ละช่อง
- * รับค่าเป็นฟังก์ชันเพราะช่อง title กับ description แก้ไขได้
+ * รับค่าเป็นฟังก์ชันเพราะช่อง title แก้ไขได้
  * ต้องอ่านค่าตอนกด ไม่ใช่ค่าที่โมเดลส่งมาตอนแรก
  */
 function CopyButton({ text, label }: { text: () => string; label: string }) {
@@ -151,12 +150,9 @@ function TranslationBlock({
   assetId: string
   status: string
 }) {
-  const titleRef = useRef<HTMLInputElement>(null)
-  const descriptionRef = useRef<HTMLTextAreaElement>(null)
+  const titleRef = useRef<HTMLTextAreaElement>(null)
 
   const titleText = () => titleRef.current?.value ?? translation.title
-  const descriptionText = () =>
-    descriptionRef.current?.value ?? translation.description
   const keywordsText = () => translation.keywords.join(', ')
 
   const key = `${assetId}-${translation.language}-${status}`
@@ -176,29 +172,13 @@ function TranslationBlock({
             max={TITLE_MAX}
             action={<CopyButton text={titleText} label="title" />}
           />
-          <input
+          <textarea
             key={`${key}-title`}
             ref={titleRef}
-            className={inputClass}
+            rows={4}
+            className={cn(inputClass, 'resize-y')}
             defaultValue={translation.title}
             aria-label={`Title (${languageName(translation.language)})`}
-          />
-        </div>
-
-        <div>
-          <FieldLabel
-            label="Description"
-            count={translation.description.length}
-            max={DESCRIPTION_MAX}
-            action={<CopyButton text={descriptionText} label="description" />}
-          />
-          <textarea
-            key={`${key}-description`}
-            ref={descriptionRef}
-            rows={3}
-            className={cn(inputClass, 'resize-y')}
-            defaultValue={translation.description}
-            aria-label={`Description (${languageName(translation.language)})`}
           />
         </div>
 
@@ -248,16 +228,13 @@ export function AssetCard({
   const busy = uploading || generating
 
   /**
-   * สองช่องนี้เป็น uncontrolled input ผู้ใช้แก้ข้อความได้เอง
+   * ช่องนี้เป็น uncontrolled input ผู้ใช้แก้ข้อความได้เอง
    * ปุ่มคัดลอกจึงต้องอ่านจาก DOM เพื่อให้ได้ข้อความที่เห็นอยู่จริง
    * ถ้าช่องยังไม่ถูก render (กำลังทำงานหรือพลาด) ค่อยถอยไปใช้ค่าจาก asset
    */
-  const titleRef = useRef<HTMLInputElement>(null)
-  const descriptionRef = useRef<HTMLTextAreaElement>(null)
+  const titleRef = useRef<HTMLTextAreaElement>(null)
 
   const titleText = () => titleRef.current?.value ?? asset.title
-  const descriptionText = () =>
-    descriptionRef.current?.value ?? asset.description
   const keywordsText = () => asset.keywords.join(', ')
 
   const translations = asset.translations ?? []
@@ -265,11 +242,9 @@ export function AssetCard({
   /** รวมทุกภาษาไว้ก้อนเดียว ภาษาอังกฤษก่อน แล้วค่อยฉบับแปลตามลำดับที่เลือก */
   const everything = () =>
     [
-      [titleText(), descriptionText(), keywordsText()]
-        .filter(Boolean)
-        .join('\n\n'),
+      [titleText(), keywordsText()].filter(Boolean).join('\n\n'),
       ...translations.map((t) =>
-        [languageName(t.language), t.title, t.description, t.keywords.join(', ')]
+        [languageName(t.language), t.title, t.keywords.join(', ')]
           .filter(Boolean)
           .join('\n\n'),
       ),
@@ -359,33 +334,14 @@ export function AssetCard({
                   warn={asset.title.length > TITLE_RECOMMENDED}
                   action={<CopyButton text={titleText} label="title" />}
                 />
-                <input
+                <textarea
                   key={`${asset.id}-title-${asset.status}`}
                   ref={titleRef}
-                  className={inputClass}
+                  rows={4}
+                  className={cn(inputClass, 'resize-y')}
                   defaultValue={asset.title}
                   placeholder="Not generated yet — click Generate"
                   aria-label="Title"
-                />
-              </div>
-
-              <div>
-                <FieldLabel
-                  label="Description"
-                  count={asset.description.length}
-                  max={DESCRIPTION_MAX}
-                  action={
-                    <CopyButton text={descriptionText} label="description" />
-                  }
-                />
-                <textarea
-                  key={`${asset.id}-description-${asset.status}`}
-                  ref={descriptionRef}
-                  rows={3}
-                  className={cn(inputClass, 'resize-y')}
-                  defaultValue={asset.description}
-                  placeholder="Not generated yet"
-                  aria-label="Description"
                 />
               </div>
 
@@ -476,3 +432,4 @@ export function AssetCard({
     </article>
   )
 }
+

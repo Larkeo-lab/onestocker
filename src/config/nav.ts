@@ -2,7 +2,6 @@ import {
   FileSpreadsheet,
   History,
   Images,
-  Settings,
   Store,
   WandSparkles,
 } from 'lucide-react'
@@ -32,9 +31,6 @@ export const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: 'Configuration',
-    items: [
-      { label: 'Platforms', to: '/platforms', icon: Store },
-      { label: 'Settings', to: '/settings', icon: Settings },
-    ],
+    items: [{ label: 'Platforms', to: '/platforms', icon: Store }],
   },
 ]

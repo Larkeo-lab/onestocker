@@ -40,5 +40,6 @@ func (r *repository) Upsert(ctx context.Context, in Profile) (Profile, error) {
 		LastName:   row.LastName,
 		Email:      row.Email,
 		ProfileURL: row.ProfileUrl,
+		UserType:   row.UserType,
 	}, nil
 }

@@ -65,11 +65,10 @@ export const EXPORT_FORMATS: ExportFormat[] = [
     label: 'ทั่วไป (ทุกช่อง)',
     verified: true,
     // ไม่ได้เจาะจงเจ้าไหน ใส่ครบทุกช่องไว้ให้เอาไปปรับเอง
-    headers: ['Filename', 'Title', 'Description', 'Keywords', 'Category'],
+    headers: ['Filename', 'Title', 'Keywords', 'Category'],
     row: (asset, platform) => [
       asset.filename,
       fit(asset.title, platform.limits.title),
-      fit(asset.description, platform.limits.description),
       keywordsFor(asset, platform),
       asset.category,
     ],

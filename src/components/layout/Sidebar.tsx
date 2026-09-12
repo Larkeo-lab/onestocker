@@ -1,23 +1,105 @@
-import { SignOutButton } from '@clerk/clerk-react'
-import { ArrowRight, LogOut, X } from 'lucide-react'
-import { NavLink } from 'react-router-dom'
+import { SignOutButton } from "@clerk/clerk-react";
+import { Check, LogOut, Settings, X } from "lucide-react";
+import { NavLink } from "react-router-dom";
 
-import { NAV_SECTIONS } from '@/config/nav'
-import { env } from '@/lib/env'
-import { siteConfig } from '@/config/site'
-import type { Meta } from '@/lib/api'
-import { cn } from '@/lib/utils'
-import { fullName, type Profile } from '@/types/profile'
+import { NAV_SECTIONS } from "@/config/nav";
+import { env } from "@/lib/env";
+import { siteConfig } from "@/config/site";
+import type { Meta } from "@/lib/api";
+import { cn } from "@/lib/utils";
+import { fullName, type Profile } from "@/types/profile";
+import { getSelectedPlatforms, usePlatformsStore } from "@/store/platforms";
+import { useUsageStore } from "@/store/usage";
 
 type PanelProps = {
-  onNavigate?: () => void
-  profile: Profile | null
-  meta: Meta | null
+  onNavigate?: () => void;
+  profile: Profile | null;
+  meta: Meta | null;
   /** true = ต่อ API ไม่ติด แสดงสถานะให้รู้แทนที่จะโชว์ช่องว่าง */
-  offline: boolean
+  offline: boolean;
+};
+
+/** เปอร์เซ็นต์ที่ทำให้แถบเปลี่ยนเป็นสีเตือน */
+const USAGE_WARN_PERCENT = 80;
+
+function formatResetDate(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("th-TH", {
+    day: "numeric",
+    month: "short",
+  }).format(date);
 }
 
-function SidebarPanel({ onNavigate, profile, meta, offline }: PanelProps) {
+/**
+ * ยอดที่ใช้ไปในเดือนนี้ เทียบกับเพดานของระดับผู้ใช้
+ *
+ * อ่านจาก store ตรง ๆ ไม่รับเป็น prop เพราะตัวที่ทำให้ตัวเลขขยับคือ
+ * GenerateProvider ซึ่งอยู่คนละกิ่งของต้นไม้ ไม่ได้เป็นพ่อของ sidebar
+ *
+ * ยังไม่รู้ยอดก็แสดงขีดไว้ ดีกว่าโชว์ 0 ให้เข้าใจผิดว่ายังไม่ได้ใช้เลย
+ */
+function UsageCard() {
+  const usage = useUsageStore((state) => state.usage);
+
+  const limit = usage?.monthlyLimit ?? null;
+  const percent =
+    usage && limit !== null && limit > 0
+      ? Math.min(100, Math.round((usage.used / limit) * 100))
+      : null;
+
+  const exhausted = usage !== null && limit !== null && usage.used >= limit;
+
+  const countTone = !usage
+    ? "text-subtle-foreground"
+    : exhausted
+      ? "text-danger"
+      : percent !== null && percent >= USAGE_WARN_PERCENT
+        ? "text-warning"
+        : "text-subtle-foreground";
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-[11px] font-medium text-muted-foreground">
+          Usage this month
+        </span>
+        <span className={cn("shrink-0 font-mono text-[11px]", countTone)}>
+          {!usage ? "—" : limit === null ? `${usage.used} · ไม่จำกัด` : `${usage.used}/${limit}`}
+        </span>
+      </div>
+
+      <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
+        {percent !== null ? (
+          <div
+            className={cn(
+              "h-full rounded-full transition-[width] duration-300",
+              exhausted
+                ? "bg-danger"
+                : percent >= USAGE_WARN_PERCENT
+                  ? "bg-warning"
+                  : "bg-primary",
+            )}
+            style={{ width: `${percent}%` }}
+          />
+        ) : null}
+      </div>
+
+      {usage ? (
+        <p className="mt-1.5 truncate text-[10px] text-subtle-foreground">
+          {usage.userType}
+          {usage.resetsAt ? ` · รีเซ็ต ${formatResetDate(usage.resetsAt)}` : ""}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function SidebarPanel({ onNavigate, profile }: PanelProps) {
+  const selectedIds = usePlatformsStore((s) => s.selectedIds);
+  const activePlatformId = usePlatformsStore((s) => s.activePlatformId);
+  const setActivePlatformId = usePlatformsStore((s) => s.setActivePlatformId);
+  const selectedPlatforms = getSelectedPlatforms(selectedIds);
   return (
     <div className="flex h-full flex-col bg-sidebar">
       {/* Brand */}
@@ -49,7 +131,8 @@ function SidebarPanel({ onNavigate, profile, meta, offline }: PanelProps) {
             </p>
             <ul className="space-y-0.5">
               {section.items.map((item) => {
-                const Icon = item.icon
+                const Icon = item.icon;
+                const isPlatformsItem = item.to === "/platforms";
                 return (
                   <li key={item.to}>
                     <NavLink
@@ -58,18 +141,76 @@ function SidebarPanel({ onNavigate, profile, meta, offline }: PanelProps) {
                       onClick={onNavigate}
                       className={({ isActive }) =>
                         cn(
-                          'flex h-9 items-center gap-2.5 rounded-md px-2 text-[13px] transition-colors',
+                          "flex h-9 items-center gap-2.5 rounded-md px-2 text-[13px] transition-colors",
                           isActive
-                            ? 'bg-primary-soft font-medium text-primary'
-                            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                            ? "bg-primary-soft font-medium text-primary"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
                         )
                       }
                     >
                       <Icon className="size-4 shrink-0" aria-hidden />
-                      {item.label}
+                      <span className="flex-1 truncate">{item.label}</span>
+                      {isPlatformsItem && selectedPlatforms.length > 0 ? (
+                        <span className="font-mono text-[10.5px] font-normal text-subtle-foreground tabular-nums">
+                          {selectedPlatforms.length}
+                        </span>
+                      ) : null}
                     </NavLink>
+
+                    {/* แสดงแพลตฟอร์มที่เลือกไว้ ถัดลงมาจากเมนู Platforms */}
+                    {isPlatformsItem && selectedPlatforms.length > 0 ? (
+                      <ul className="mt-1 ml-3.5 space-y-0.5 border-l border-border/60 pl-2.5">
+                        {selectedPlatforms.map((platform) => {
+                          const isActive =
+                            (activePlatformId || selectedPlatforms[0]?.id) ===
+                            platform.id;
+                          return (
+                            <li key={platform.id}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActivePlatformId(platform.id);
+                                  onNavigate?.();
+                                }}
+                                title={`Select ${platform.name} for generate`}
+                                className={cn(
+                                  "flex h-7 w-full cursor-pointer items-center justify-between gap-2 rounded-md px-1.5 text-[12px] transition-colors",
+                                  isActive
+                                    ? "bg-primary-soft font-medium text-primary"
+                                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground active:scale-[0.98]",
+                                )}
+                              >
+                                <span className="flex min-w-0 items-center gap-2">
+                                  {platform.icon ? (
+                                    <img
+                                      src={platform.icon}
+                                      alt=""
+                                      className="size-3.5 shrink-0 rounded-xs object-contain"
+                                    />
+                                  ) : (
+                                    <span
+                                      className="flex size-3.5 shrink-0 items-center justify-center rounded-xs text-[8px] font-bold text-white"
+                                      style={{ backgroundColor: platform.color }}
+                                    >
+                                      {platform.monogram}
+                                    </span>
+                                  )}
+                                  <span className="truncate text-left">
+                                    {platform.name}
+                                  </span>
+                                </span>
+
+                                {isActive ? (
+                                  <Check className="size-3.5 shrink-0 text-primary" aria-hidden />
+                                ) : null}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : null}
                   </li>
-                )
+                );
               })}
             </ul>
           </div>
@@ -78,45 +219,24 @@ function SidebarPanel({ onNavigate, profile, meta, offline }: PanelProps) {
 
       {/* Footer */}
       <div className="shrink-0 space-y-3 border-t border-border p-3">
-        <div className="rounded-lg border border-border bg-card p-3">
-          <div className="flex items-baseline justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">
-              Usage this month
-            </span>
-            {/* TODO: ยังไม่มี endpoint นับโควตา แสดงขีดไว้ก่อน
-                ดีกว่าโชว์ตัวเลขปลอมให้ผู้ใช้เข้าใจผิดว่าใช้ไปเท่านั้นจริง */}
-            <span className="font-mono text-[11px] text-subtle-foreground">
-              —
-            </span>
-          </div>
-          <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted" />
-        </div>
-
-        {/* สถานะ provider ตั้งที่ฝั่งเซิร์ฟเวอร์ ไม่ใช่ค่าที่ตั้งในหน้าเว็บ */}
+        {/* เมนู Settings ย้ายมาวางชิดล่าง */}
         <NavLink
           to="/settings"
           onClick={onNavigate}
-          className="group flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2.5 transition-colors hover:border-border-strong"
+          className={({ isActive }) =>
+            cn(
+              "flex h-9 items-center gap-2.5 rounded-md px-2 text-[13px] transition-colors",
+              isActive
+                ? "bg-primary-soft font-medium text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+            )
+          }
         >
-          <span
-            className={cn(
-              'size-1.5 shrink-0 rounded-full',
-              meta ? 'bg-success' : offline ? 'bg-danger' : 'bg-warning',
-            )}
-          />
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-[12px] leading-tight font-medium capitalize">
-              {meta ? meta.provider : offline ? 'ต่อเซิร์ฟเวอร์ไม่ติด' : 'กำลังโหลด'}
-            </span>
-            <span className="block truncate font-mono text-[11px] leading-tight text-subtle-foreground">
-              {meta ? meta.model : offline ? 'ตรวจว่า API รันอยู่หรือไม่' : '—'}
-            </span>
-          </span>
-          <ArrowRight
-            className="size-3.5 shrink-0 text-subtle-foreground transition-transform group-hover:translate-x-0.5"
-            aria-hidden
-          />
+          <Settings className="size-4 shrink-0" aria-hidden />
+          <span>Settings</span>
         </NavLink>
+
+        <UsageCard />
 
         {/* บัญชีผู้ใช้ — ปุ่มขวาคือออกจากระบบ ต่อกับ Clerk ทีหลัง */}
         <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2.5">
@@ -132,10 +252,10 @@ function SidebarPanel({ onNavigate, profile, meta, offline }: PanelProps) {
 
           <span className="min-w-0 flex-1">
             <span className="block truncate text-[12px] leading-tight font-medium">
-              {fullName(profile) || '—'}
+              {fullName(profile) || "—"}
             </span>
             <span className="block truncate text-[11px] leading-tight text-subtle-foreground">
-              {profile?.email ?? ''}
+              {profile?.email ?? ""}
             </span>
           </span>
 
@@ -165,7 +285,7 @@ function SidebarPanel({ onNavigate, profile, meta, offline }: PanelProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export function Sidebar({
@@ -175,11 +295,11 @@ export function Sidebar({
   meta,
   offline,
 }: {
-  open: boolean
-  onClose: () => void
-  profile: Profile | null
-  meta: Meta | null
-  offline: boolean
+  open: boolean;
+  onClose: () => void;
+  profile: Profile | null;
+  meta: Meta | null;
+  offline: boolean;
 }) {
   return (
     <>
@@ -191,22 +311,22 @@ export function Sidebar({
       {/* Mobile drawer */}
       <div
         className={cn(
-          'fixed inset-0 z-50 lg:hidden',
-          open ? 'pointer-events-auto' : 'pointer-events-none',
+          "fixed inset-0 z-50 lg:hidden",
+          open ? "pointer-events-auto" : "pointer-events-none",
         )}
         aria-hidden={!open}
       >
         <div
           onClick={onClose}
           className={cn(
-            'absolute inset-0 bg-black/50 transition-opacity',
-            open ? 'opacity-100' : 'opacity-0',
+            "absolute inset-0 bg-black/50 transition-opacity",
+            open ? "opacity-100" : "opacity-0",
           )}
         />
         <div
           className={cn(
-            'absolute inset-y-0 left-0 w-64 border-r border-border transition-transform duration-200',
-            open ? 'translate-x-0' : '-translate-x-full',
+            "absolute inset-y-0 left-0 w-64 border-r border-border transition-transform duration-200",
+            open ? "translate-x-0" : "-translate-x-full",
           )}
         >
           <button
@@ -225,5 +345,5 @@ export function Sidebar({
         </div>
       </div>
     </>
-  )
+  );
 }

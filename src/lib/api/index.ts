@@ -13,8 +13,10 @@ export {
   type Pagination,
 } from './client'
 export * from './auth'
+export * from './contact'
 export * from './meta'
 export * from './generate'
 export * from './history'
 export * from './settings'
+export * from './usage'
 export * from './uploads'

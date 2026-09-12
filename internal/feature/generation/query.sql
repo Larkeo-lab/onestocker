@@ -1,7 +1,7 @@
 -- name: ListGenerations :many
 -- ใหม่ไปเก่า ใช้ดัชนี generations_user_created_idx ตอบได้ทั้งกรองและเรียง
 select id, filename, preview_key, title, description,
-       keywords, category, provider, model, created_at
+       keywords, category, provider, model, platform_id, created_at
 from generations
 where user_id = $1
 order by created_at desc
@@ -17,7 +17,24 @@ delete from generations where id = $1 and user_id = $2;
 -- name: InsertGeneration :one
 insert into generations (
   user_id, filename, preview_key, title, description,
-  keywords, category, provider, model
-) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+  keywords, category, provider, model, platform_id
+) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 returning id, filename, preview_key, title, description,
-          keywords, category, provider, model, created_at;
+          keywords, category, provider, model, platform_id, created_at;
+
+-- name: ListGenerationsByPlatform :many
+-- filter ตาม platform ใช้ดัชนี generations_platform_idx
+select id, filename, preview_key, title, description,
+       keywords, category, provider, model, platform_id, created_at
+from generations
+where user_id = $1 and platform_id = $2
+order by created_at desc
+limit $3 offset $4;
+
+-- name: CountGenerationsByPlatform :one
+select count(*) from generations where user_id = $1 and platform_id = $2;
+
+-- name: ListUserPlatforms :many
+select distinct platform_id
+from generations
+where user_id = $1 and platform_id is not null;

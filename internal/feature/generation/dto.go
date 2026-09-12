@@ -16,6 +16,7 @@ type Generation struct {
 	Category    *string   `json:"category"`
 	Provider    *string   `json:"provider"`
 	Model       *string   `json:"model"`
+	PlatformId  *string   `json:"platformId"`
 	CreatedAt   time.Time `json:"createdAt"`
 	// ลิงก์ชั่วคราวสำหรับแสดงรูป สร้างใหม่ทุกครั้งที่เรียก เพราะมีวันหมดอายุ
 	PreviewURL *string `json:"previewUrl"`
@@ -23,15 +24,17 @@ type Generation struct {
 
 // ListQuery คือพารามิเตอร์ที่รับจาก query string
 type ListQuery struct {
-	Page  int `query:"page"  json:"page"`
-	Limit int `query:"limit" json:"limit"`
+	Page     int    `query:"page"     json:"page"`
+	Limit    int    `query:"limit"    json:"limit"`
+	Platform string `query:"platform" json:"platform"`
 }
 
 // ListResult ส่งค่าที่ใช้จริงกลับมาด้วย (Page, Limit หลังเติมค่าเริ่มต้น)
 // controller จะได้ตอบข้อมูลการแบ่งหน้าตรงกับที่ query จริง
 type ListResult struct {
-	Items []Generation
-	Total int
-	Page  int
-	Limit int
+	Items              []Generation
+	Total              int
+	Page               int
+	Limit              int
+	AvailablePlatforms []string
 }

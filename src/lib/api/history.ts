@@ -6,11 +6,13 @@ export type HistoryQuery = {
   /** เริ่มที่ 1 */
   page?: number
   limit?: number
+  platform?: string
 }
 
 export type HistoryPage = {
   items: GenerationWithPreview[]
   pagination: Pagination
+  availablePlatforms?: string[]
 }
 
 export async function fetchHistory(
