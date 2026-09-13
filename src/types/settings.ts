@@ -13,7 +13,7 @@ export const KEYWORD_COUNTS = [20, 30, 40, 50] as const
 export const PRIMARY_LANGUAGE = 'en'
 
 /**
- * ใช้สำหรับแสดงชื่อภาษาเท่านั้น (languageName)
+ * รหัสภาษาที่รู้จัก ชื่อที่แสดงบนหน้าจอแปลตามภาษาของหน้าเว็บ (hooks/useLanguageName.ts)
  * รายการที่เลือกได้จริงมาจาก GET /meta เซิร์ฟเวอร์เป็นเจ้าของ
  */
 export const OUTPUT_LANGUAGES = [
@@ -23,10 +23,6 @@ export const OUTPUT_LANGUAGES = [
 ] as const
 
 export type LanguageCode = (typeof OUTPUT_LANGUAGES)[number]['code']
-
-export function languageName(code: string): string {
-  return OUTPUT_LANGUAGES.find((item) => item.code === code)?.name ?? code
-}
 
 export type UserSettings = {
   keywordsPerImage: number

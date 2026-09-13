@@ -1,41 +1,29 @@
-import { ClerkProvider } from '@clerk/clerk-react'
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-
-import { env } from '@/lib/env'
-
-import App from './App.tsx'
 import './index.css'
 
-if (!env.authDevBypass && !env.clerkPublishableKey) {
-  throw new Error(
-    'ไม่พบ VITE_CLERK_PUBLISHABLE_KEY — คัดลอก .env.example เป็น .env แล้วเติมค่า',
-  )
+import { landingLanguageFromPath } from '@/config/languages'
+
+/*
+  หน้า /, /th, /lo คือหน้า landing สาธารณะ (หนึ่งหน้าต่อภาษา) ทุก path อื่นคือตัวแอป
+
+  ตอน build หน้า landing ถูกเขียนลง HTML นิ่งแล้ว (scripts/prerender.mjs)
+  บนเว็บจริงหน้าแรกจึงไม่ต้องรัน JavaScript อะไรเลย
+  Google กับตัวทำพรีวิวลิงก์ที่ไม่รัน JavaScript ก็เห็นเนื้อหาครบ
+
+  ตัวแอปโหลดด้วย import() แยกเป็นอีกก้อน คนที่เปิดแค่หน้าแรกจะไม่ต้อง
+  โหลด Clerk, i18next กับโค้ดทั้งแอปมาด้วย หน้าแรกจึงขึ้นเร็ว
+*/
+const landingLanguage = landingLanguageFromPath(window.location.pathname)
+
+if (landingLanguage) {
+  const landing = document.getElementById('landing')
+
+  // มีเนื้อหาอยู่แล้วแปลว่ามาจากไฟล์ที่ build ไว้ ไม่ต้องทำอะไร
+  // ว่างอยู่แปลว่ากำลังรัน vite dev ซึ่งไม่ได้ prerender จึงวาดด้วย React แทน
+  if (landing && !landing.firstElementChild) {
+    void import('./landing/mount').then(({ mountLanding }) =>
+      mountLanding(landing, landingLanguage),
+    )
+  }
+} else {
+  void import('./bootstrap')
 }
-
-if (env.authDevBypass) {
-  console.warn(
-    'ข้ามหน้าล็อกอินอยู่ (VITE_AUTH_DEV_BYPASS=true) — ฝั่ง Go ต้องตั้ง AUTH_DEV_BYPASS=true ด้วย',
-  )
-}
-
-// ตอนข้ามล็อกอินไม่ห่อด้วย ClerkProvider เลย เพราะ Clerk จะพยายาม
-// ต่อไปหาเซิร์ฟเวอร์ของตัวเองแล้วล้มเหลว ทำให้ทั้งแอปค้าง
-const tree = env.authDevBypass ? (
-  <App />
-) : (
-  <ClerkProvider
-    publishableKey={env.clerkPublishableKey}
-    // Clerk ต้องรู้เส้นทางของหน้าเข้าสู่ระบบ เพื่อพาผู้ใช้ไปถูกที่
-    // ตอน RedirectToSignIn ทำงาน — ต้องตรงกับ routes/router.tsx
-    signInUrl="/sign-in"
-    signUpUrl="/sign-up"
-    afterSignOutUrl="/sign-in"
-  >
-    <App />
-  </ClerkProvider>
-)
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>{tree}</StrictMode>,
-)

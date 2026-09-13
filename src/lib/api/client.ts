@@ -1,6 +1,7 @@
 import axios from 'axios'
 import type { AxiosInstance, AxiosRequestConfig } from 'axios'
 
+import i18n from '@/config/i18n'
 import { env } from '@/lib/env'
 
 /**
@@ -94,7 +95,7 @@ api.interceptors.response.use(
 
     const message =
       body?.message ??
-      (status === 0 ? 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้' : error.message)
+      (status === 0 ? i18n.t('errors.network') : error.message)
 
     return Promise.reject(
       new ApiError(message, status, body?.code ?? '', body?.requestId),

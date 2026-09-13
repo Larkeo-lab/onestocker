@@ -6,6 +6,8 @@
  * ส่วนโมเดล vision อ่านที่ความละเอียดประมาณนี้ก็พอแล้ว
  * ไฟล์ต้นฉบับยังอยู่ในเครื่องคุณ ใช้อัปเข้า Adobe Stock ตามปกติ
  */
+import i18n from "@/config/i18n";
+
 export const PREVIEW_MAX_EDGE = 1600;
 export const PREVIEW_QUALITY = 0.85;
 export const PREVIEW_CONTENT_TYPE = "image/webp";
@@ -40,7 +42,7 @@ export async function processImage(file: File): Promise<ProcessedImage> {
 
     const context = canvas.getContext("2d");
     if (!context) {
-      throw new Error("เบราว์เซอร์นี้ไม่รองรับการย่อรูปด้วย canvas");
+      throw new Error(i18n.t("errors.canvasUnsupported"));
     }
     context.drawImage(bitmap, 0, 0, target.width, target.height);
 
@@ -48,7 +50,7 @@ export async function processImage(file: File): Promise<ProcessedImage> {
       canvas.toBlob(resolve, PREVIEW_CONTENT_TYPE, PREVIEW_QUALITY),
     );
     if (!blob) {
-      throw new Error("แปลงรูปไม่สำเร็จ");
+      throw new Error(i18n.t("errors.imageConvertFailed"));
     }
 
     return {

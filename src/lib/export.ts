@@ -62,7 +62,8 @@ export const EXPORT_FORMATS: ExportFormat[] = [
   },
   {
     id: 'general',
-    label: 'ทั่วไป (ทุกช่อง)',
+    // ชื่อที่แสดงถูกแปลใน ExportMenu (exportMenu.generalFormat)
+    label: 'General (all fields)',
     verified: true,
     // ไม่ได้เจาะจงเจ้าไหน ใส่ครบทุกช่องไว้ให้เอาไปปรับเอง
     headers: ['Filename', 'Title', 'Keywords', 'Category'],

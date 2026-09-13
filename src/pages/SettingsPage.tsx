@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import { CONTAINER } from '@/config/container'
 import { PageHeader } from '@/components/header/PageHeader'
 import { SettingsForm } from '@/components/settings/SettingsForm'
@@ -7,6 +9,8 @@ import { fetchMeta, fetchSettings } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
 export function SettingsPage() {
+  const { t } = useTranslation()
+
   const settings = useAsync(fetchSettings)
   const meta = useAsync(fetchMeta)
 
@@ -17,8 +21,8 @@ export function SettingsPage() {
     <>
       <PageHeader
         width="narrow"
-        title="Settings"
-        description="These defaults are saved to your account and applied every time you generate"
+        title={t('nav.settings')}
+        description={t('settings.description')}
       />
 
       <div className={cn(CONTAINER.narrow, 'space-y-5 py-6')}>

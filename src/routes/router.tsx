@@ -1,10 +1,12 @@
 import { createBrowserRouter } from 'react-router-dom'
 
 import { AuthLayout } from '@/components/auth/AuthLayout'
+import { APP_PATH } from '@/config/site'
 import { ExportsPage } from '@/pages/ExportsPage'
 import { GeneratePage } from '@/pages/GeneratePage'
 import { HistoryPage } from '@/pages/HistoryPage'
 import { LibraryPage } from '@/pages/LibraryPage'
+import { LandingRedirect } from '@/pages/LandingRedirect'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { PlatformsPage } from '@/pages/PlatformsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
@@ -15,7 +17,14 @@ import { RootLayout } from './RootLayout'
 
 /** path ที่ประกาศที่นี่ต้องตรงกับ NAV_SECTIONS ใน config/nav.ts */
 export const router = createBrowserRouter([
+  /*
+    หน้า / เป็นหน้า landing ที่ build เป็น HTML นิ่ง ไม่ได้อยู่ใน react-router
+    ถ้ามีอะไรในแอปพาผู้ใช้มาที่ / แบบไม่โหลดหน้าใหม่ ต้องสั่งโหลดใหม่ทั้งหน้า
+    ไม่งั้นจะตกไปที่ NotFoundPage
+  */
+  { path: '/', element: <LandingRedirect /> },
   {
+    path: APP_PATH,
     element: <RootLayout />,
     children: [
       { index: true, element: <GeneratePage /> },

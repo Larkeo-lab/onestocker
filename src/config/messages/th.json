@@ -1,0 +1,299 @@
+{
+  "common": {
+    "loading": "กำลังโหลด",
+    "retry": "ลองใหม่",
+    "close": "ปิด",
+    "previous": "ก่อนหน้า",
+    "next": "ถัดไป",
+    "selectLanguage": "เลือกภาษา",
+    "unknownError": "เกิดข้อผิดพลาดที่ไม่รู้จัก"
+  },
+  "languageNames": {
+    "en": "อังกฤษ",
+    "th": "ไทย",
+    "lo": "ลาว"
+  },
+  "errors": {
+    "network": "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้",
+    "canvasUnsupported": "เบราว์เซอร์นี้ไม่รองรับการย่อรูป",
+    "imageConvertFailed": "แปลงรูปไม่สำเร็จ",
+    "uploadFailed": "อัปโหลดไม่สำเร็จ",
+    "uploadCors": "อัปขึ้น R2 ไม่ได้จาก {{origin}} — ตรวจว่าโดเมนนี้อยู่ใน CORS policy ของ bucket แล้วหรือยัง",
+    "uploadForbidden": "อัปขึ้น R2 ไม่ได้ (403) — ลิงก์หมดอายุหรือคีย์ไม่มีสิทธิ์เขียน",
+    "uploadStatus": "อัปขึ้น R2 ไม่สำเร็จ ({{status}})",
+    "noUploadUrl": "ไม่ได้รับลิงก์อัปโหลดจากเซิร์ฟเวอร์",
+    "clerkUnreachable": "ต่อ Clerk ไม่ได้จาก {{origin}} — โดเมนนี้ต้องถูกตั้งไว้ใน Clerk instance ที่คีย์นี้เป็นของมัน ถ้ากำลังทดสอบบนเครื่อง ให้ใช้คีย์ pk_test_ ของ instance development",
+    "generateFailed": "สร้าง metadata ไม่สำเร็จ"
+  },
+  "nav": {
+    "workspace": "พื้นที่ทำงาน",
+    "configuration": "การตั้งค่า",
+    "generate": "สร้าง Metadata",
+    "library": "คลังรูป",
+    "history": "ประวัติ",
+    "exports": "ไฟล์ที่ส่งออก",
+    "platforms": "แพลตฟอร์ม",
+    "settings": "ตั้งค่า",
+    "openNavigation": "เปิดเมนู",
+    "closeNavigation": "ปิดเมนู"
+  },
+  "sidebar": {
+    "tagline": "Metadata Studio",
+    "usageThisMonth": "ใช้ไปเดือนนี้",
+    "unlimited": "{{used}} · ไม่จำกัด",
+    "resets": "รีเซ็ต {{date}}",
+    "selectPlatform": "เลือก {{name}} สำหรับสร้าง metadata",
+    "signOut": "ออกจากระบบ",
+    "devBypassTitle": "ข้ามระบบล็อกอินอยู่ (VITE_AUTH_DEV_BYPASS=true) จึงไม่มีอะไรให้ออก"
+  },
+  "auth": {
+    "signIn": "เข้าสู่ระบบ",
+    "signUp": "สมัครสมาชิก",
+    "checking": "กำลังตรวจสอบสิทธิ์",
+    "bypassTitle": "ข้ามหน้าล็อกอินอยู่",
+    "bypassBody": "ตั้ง <code>VITE_AUTH_DEV_BYPASS=false</code> แล้วใช้คีย์ของ development instance ถ้าต้องการทดสอบการเข้าสู่ระบบจริง",
+    "backToApp": "กลับเข้าแอป"
+  },
+  "notFound": {
+    "title": "ไม่พบหน้านี้",
+    "body": "ลิงก์อาจพิมพ์ผิด หรือหน้านี้ถูกย้ายไปแล้ว",
+    "home": "กลับหน้าแรก"
+  },
+  "generate": {
+    "description": "อัปโหลดได้สูงสุด {{max}} รูป เพื่อสร้าง title และ description",
+    "clear": "ล้าง",
+    "generate": "สร้าง",
+    "generateCount": "สร้าง {{count}} รูป",
+    "generating": "กำลังสร้าง {{count}} รูป",
+    "results": "ผลลัพธ์"
+  },
+  "dropzone": {
+    "count": "<count>{{count}}</count> จาก {{max}} รูป",
+    "full": "เต็มแล้ว — ล้างหรือลบรูปออกก่อนจึงจะเพิ่มได้",
+    "dropMore": "ลากรูปมาวางเพิ่มที่นี่ หรือเลือกจากเครื่องของคุณ",
+    "addImages": "เพิ่มรูป",
+    "uploadTitle": "อัปโหลดไฟล์",
+    "dragOrBrowse": "ลากไฟล์มาวาง หรือ <browse>แตะเพื่อเลือกไฟล์</browse>",
+    "notSupported": "ยังไม่รองรับ",
+    "soon": "เร็ว ๆ นี้",
+    "upTo": "ครั้งละไม่เกิน {{max}} รูป",
+    "chooseImages": "เลือกรูปที่จะอัปโหลด",
+    "privacy": "ระบบย่อรูปในเบราว์เซอร์ของคุณ — ส่งไปวิเคราะห์เฉพาะภาพย่อเท่านั้น",
+    "skipped_one": "เพิ่มไม่ได้ {{count}} ไฟล์: {{names}}{{rest}} — {{reasons}}",
+    "skipped_other": "เพิ่มไม่ได้ {{count}} ไฟล์: {{names}}{{rest}} — {{reasons}}",
+    "skippedRest": " และอีก {{count}} ไฟล์",
+    "unsupportedType": "ชนิดไฟล์ไม่รองรับ",
+    "overLimit": "เกินเพดาน {{max}} รูป"
+  },
+  "asset": {
+    "uploading": "กำลังอัปโหลด",
+    "generating": "กำลังสร้าง",
+    "failed": "สร้างไม่สำเร็จ",
+    "generated": "สร้างแล้ว",
+    "uploaded": "อัปโหลดแล้ว",
+    "title": "Title",
+    "keywords": "Keywords",
+    "result": "ผลลัพธ์",
+    "remove": "ลบ {{name}}",
+    "removeKeyword": "ลบคีย์เวิร์ด {{keyword}}",
+    "copyField": "คัดลอก {{field}}",
+    "fieldCopied": "คัดลอก {{field}} แล้ว",
+    "titleRecommended": "Adobe Stock แนะนำให้ไม่เกิน {{max}} ตัวอักษร",
+    "titlePlaceholder": "ยังไม่ได้สร้าง — กดปุ่มสร้าง",
+    "titleIn": "Title ({{language}})",
+    "retry": "ลองใหม่",
+    "regenerate": "สร้างใหม่",
+    "copied": "คัดลอกแล้ว",
+    "copyAll": "คัดลอกทั้งหมด"
+  },
+  "exportMenu": {
+    "button": "Export CSV",
+    "exported_one": "ส่งออก {{count}} รูปแล้ว",
+    "exported_other": "ส่งออก {{count}} รูปแล้ว",
+    "nothingReady": "ยังไม่มีรูปที่สร้าง metadata เสร็จ",
+    "exportCount_one": "ส่งออก {{count}} รูป",
+    "exportCount_other": "ส่งออก {{count}} รูป",
+    "chooseFormat": "เลือกรูปแบบไฟล์",
+    "generalFormat": "ทั่วไป (ทุกช่อง)",
+    "beta": "beta",
+    "betaTitle": "รูปแบบคอลัมน์ยังไม่ได้เทียบกับเทมเพลตทางการ",
+    "hint": "อัปไฟล์รูปขึ้นแพลตฟอร์มก่อน แล้วค่อยอัป CSV — ระบบจับคู่ด้วยชื่อไฟล์"
+  },
+  "platforms": {
+    "description": "เลือกเว็บที่คุณขายรูป และดูเพดานความยาวของ metadata ของแต่ละเจ้า",
+    "info": "ระบบสร้าง metadata ครั้งเดียวต่อรูปแบบเต็มความยาว แล้วค่อยตัดให้พอดีแต่ละแพลตฟอร์มตอน export — เพิ่มแพลตฟอร์มจึงไม่ต้องเรียก API ซ้ำ เพดานแสดงเป็น <mono>title · description · keywords</mono> ส่วน Adobe Stock ไม่มีช่อง description",
+    "pickerTitle": "แพลตฟอร์มที่จะส่งออก",
+    "pickerDescription": "สร้าง metadata ครั้งเดียว แล้วตัดให้พอดีเพดานของแต่ละแพลตฟอร์ม",
+    "selected": "เลือก {{count}} จาก {{total}}",
+    "general": "ทั่วไป"
+  },
+  "library": {
+    "description": "ทุกชุดรูปที่คุณเคยทำ พร้อม metadata ที่สร้างไว้",
+    "emptyTitle": "ยังไม่มีชุดรูปที่บันทึกไว้",
+    "emptyBody": "ชุดรูปที่คุณสร้าง metadata จะถูกรวบรวมไว้ที่นี่ กลับมาดูและ export ซ้ำได้ทีหลัง",
+    "start": "เริ่มชุดใหม่"
+  },
+  "exports": {
+    "description": "ไฟล์ CSV ที่สร้างไว้สำหรับแต่ละแพลตฟอร์ม",
+    "emptyTitle": "ยังไม่มีไฟล์ที่ส่งออก",
+    "emptyBody": "เมื่อคุณ export ชุดรูป ไฟล์ CSV ทุกไฟล์จะถูกเก็บไว้ที่นี่ ดาวน์โหลดซ้ำได้โดยไม่ต้องสร้างใหม่"
+  },
+  "history": {
+    "description": "ทุกอย่างที่คุณเคยสร้าง เรียงจากล่าสุด",
+    "results": "ผลลัพธ์",
+    "platform": "แพลตฟอร์ม:",
+    "allPlatforms": "ทุกแพลตฟอร์ม",
+    "emptyTitle": "ยังไม่มีประวัติ",
+    "emptyBody": "ทุกรูปที่คุณสร้าง metadata จะถูกบันทึกไว้ที่นี่อัตโนมัติ กลับมาใช้ซ้ำได้ทีหลัง",
+    "emptyFilteredTitle": "ไม่มีผลลัพธ์ของแพลตฟอร์มนี้",
+    "emptyFilteredBody": "ไม่พบ metadata ที่สร้างสำหรับแพลตฟอร์มที่เลือก",
+    "generateFirst": "สร้าง metadata รูปแรก",
+    "showAll": "แสดงทุกแพลตฟอร์ม"
+  },
+  "settings": {
+    "description": "ค่าตั้งต้นเหล่านี้บันทึกไว้ในบัญชีของคุณ และใช้ทุกครั้งที่สร้าง metadata",
+    "sectionTitle": "ค่าตั้งต้นของการสร้าง",
+    "sectionDescription": "ใช้ทุกครั้งที่สร้าง metadata",
+    "saved": "บันทึกแล้ว",
+    "saving": "กำลังบันทึก",
+    "save": "บันทึกการเปลี่ยนแปลง",
+    "keywordsPerImage": "จำนวนคีย์เวิร์ดต่อรูป",
+    "keywordsHint": "ความแม่นยำสำคัญกว่าจำนวน",
+    "keywordsOption": "{{count}} คำ",
+    "keywordsMaxOption": "{{count}} คำ (สูงสุด)",
+    "titleStyle": "รูปแบบ Title",
+    "titleStyleHint": "ประโยคบรรยายได้ผลดีที่สุดในการค้นหา",
+    "titleStyleDescriptive": "ประโยคบรรยาย",
+    "titleStyleConcise": "วลีสั้น ๆ",
+    "titleStyleCommercial": "เชิงพาณิชย์ / การตลาด",
+    "outputLanguages": "ภาษาของผลลัพธ์",
+    "outputLanguagesHint": "สร้างภาษาอังกฤษเสมอ — Adobe Stock ค้นหาด้วยภาษาอังกฤษ ภาษาอื่นจะเพิ่มต่อท้ายด้านล่าง",
+    "alwaysOn": "เปิดเสมอ",
+    "blockedTerms": "คำต้องห้าม",
+    "blockedTermsHint": "ตัดออกจากทุกผลลัพธ์ เพิ่มจากรายการเครื่องหมายการค้าที่มีอยู่แล้ว",
+    "blockedTermsPlaceholder": "เช่น my-studio, client-name"
+  },
+  "quota": {
+    "title": "โควตาเดือนนี้หมดแล้ว",
+    "usage": "ใช้ไป {{used}} จาก {{limit}} รูปของแพ็กเกจ {{plan}}",
+    "resets": " — รีเซ็ตวันที่ {{date}}",
+    "noUsage": "สร้างต่อไม่ได้เพราะใช้ครบตามแพ็กเกจของเดือนนี้แล้ว",
+    "upgrade": "อยากใช้ต่อเลยไหม ทักมาทางช่องทางด้านล่าง เราจะอัปเกรดแพ็กเกจให้",
+    "loadingContacts": "กำลังโหลดช่องทางติดต่อ",
+    "noContacts": "ยังไม่ได้ตั้งช่องทางติดต่อไว้ กรุณาลองใหม่อีกครั้งภายหลัง",
+    "later": "ไว้ทีหลัง"
+  },
+  "landing": {
+    "seo": {
+      "title": "Onestocks — สร้าง Title และ Keywords ให้รูป Adobe Stock ด้วย AI",
+      "description": "อัปโหลดรูปแล้วให้ AI สร้าง title, keywords และ category ที่ตรงกับรูปจริง พร้อม export CSV ส่งขึ้น Adobe Stock ได้ทันที ไม่ต้องพิมพ์ทีละรูป เริ่มใช้ฟรี"
+    },
+    "nav": {
+      "label": "เมนูหลัก",
+      "howItWorks": "วิธีใช้งาน",
+      "features": "ฟีเจอร์",
+      "platforms": "แพลตฟอร์ม",
+      "faq": "คำถามที่พบบ่อย"
+    },
+    "signIn": "เข้าสู่ระบบ",
+    "signUp": "เริ่มใช้ฟรี",
+    "hero": {
+      "badge": "สำหรับคนขายรูปบน Adobe Stock และ Stock Photo",
+      "titleLine1": "สร้าง Title และ Keywords",
+      "titleLine2": "ให้รูป Stock ด้วย AI",
+      "body": "อัปรูปทีเดียวหลายรูป ได้ title, keywords และ category ที่ตรงกับรูปจริง แล้ว export เป็นไฟล์ CSV ส่งขึ้น Adobe Stock ได้ทันที ไม่ต้องนั่งพิมพ์ metadata ทีละรูปอีกต่อไป",
+      "secondaryCta": "ดูวิธีใช้งาน",
+      "note": "ไม่ต้องใช้บัตรเครดิต · สมัครด้วยบัญชี Google ได้"
+    },
+    "sample": {
+      "moreKeywords": "+{{count}} คำ",
+      "caption": "ตัวอย่าง metadata ที่ {{siteName}} สร้างจากรูปพระอาทิตย์ตกที่ชายหาด"
+    },
+    "howItWorks": {
+      "title": "ใช้งานง่ายใน 3 ขั้นตอน",
+      "subtitle": "จากโฟลเดอร์รูปถึงไฟล์ CSV ที่พร้อมอัปขึ้น Adobe Stock",
+      "step": "ขั้นที่ {{step}}",
+      "steps": [
+        {
+          "title": "อัปโหลดรูป",
+          "body": "ลากรูป JPG, PNG หรือ WebP มาวางทีเดียวหลายรูป ระบบย่อรูปในเบราว์เซอร์ก่อนอัป ไฟล์ต้นฉบับไม่ออกจากเครื่องคุณ"
+        },
+        {
+          "title": "AI สร้าง metadata",
+          "body": "ได้ title, description, keywords และ category ที่ดูจากรูปจริง ไม่ใช่เดาจากชื่อไฟล์"
+        },
+        {
+          "title": "Export CSV",
+          "body": "ดาวน์โหลดไฟล์ CSV ตามรูปแบบของ Adobe Stock แล้วอัปในหน้า Contributor ได้ทันที ไม่ต้องคัดลอกทีละรูป"
+        }
+      ]
+    },
+    "features": {
+      "title": "metadata ที่ช่วยให้รูปขายได้",
+      "subtitle": "รูปสวยแต่ไม่มีใครค้นเจอก็ขายไม่ออก title และ keywords ที่ดีคือสิ่งที่ทำให้ลูกค้าค้นเจอรูปของคุณ",
+      "items": [
+        {
+          "title": "Title ที่อ่านแล้วเข้าใจ",
+          "body": "เขียนเป็นประโยคที่บอกว่าในรูปมีอะไร อยู่ที่ไหน กำลังทำอะไร ตามแนวทางที่ Adobe Stock แนะนำ"
+        },
+        {
+          "title": "Keywords สูงสุด 50 คำ",
+          "body": "เรียงคำที่สำคัญที่สุดไว้ก่อน ครอบคลุมทั้งวัตถุ สถานที่ อารมณ์ และแนวคิดของรูป ไม่ยัดคำที่ไม่เกี่ยว"
+        },
+        {
+          "title": "เลือก Category ให้",
+          "body": "จับคู่กับหมวดหมู่ของ Adobe Stock ทั้ง 21 หมวดให้อัตโนมัติ ไม่ต้องไล่เลือกเองทีละรูป"
+        },
+        {
+          "title": "ตัดชื่อแบรนด์ออกให้",
+          "body": "กรองชื่อแบรนด์และคำต้องห้ามที่ทำให้รูปโดนปฏิเสธออกก่อนถึงมือคุณ และเพิ่มคำที่ไม่อยากให้มีเองได้"
+        },
+        {
+          "title": "คำแปลภาษาไทยและลาว",
+          "body": "metadata หลักเป็นภาษาอังกฤษตามที่ตลาดใช้ค้น พร้อมคำแปลไว้ตรวจความหมายก่อนส่ง"
+        },
+        {
+          "title": "เก็บประวัติให้ทุกรูป",
+          "body": "ทุกรูปที่สร้างถูกบันทึกไว้ กลับมาคัดลอกหรือ export ซ้ำได้ทีหลัง ไม่ต้องสร้างใหม่"
+        }
+      ]
+    },
+    "platforms": {
+      "title": "ใช้กับเว็บขายรูปที่คุณขายอยู่",
+      "subtitle": "Export CSV ตามรูปแบบของ Adobe Stock ได้โดยตรง และตั้งค่าเพดานความยาวของ title และ keywords ตามแพลตฟอร์มอื่นได้"
+    },
+    "faq": {
+      "title": "คำถามที่พบบ่อย",
+      "items": [
+        {
+          "question": "ใช้ฟรีไหม",
+          "answer": "เริ่มใช้ได้ฟรี แพ็กเกจฟรีมีโควตาจำนวนรูปต่อเดือน ถ้าต้องการใช้มากกว่านั้นติดต่อเราเพื่ออัปเกรดแพ็กเกจได้"
+        },
+        {
+          "question": "รองรับไฟล์แบบไหนบ้าง",
+          "answer": "รองรับรูป JPG, PNG และ WebP อัปพร้อมกันได้ทีละหลายรูป"
+        },
+        {
+          "question": "รูปต้นฉบับของฉันถูกอัปขึ้นเซิร์ฟเวอร์ไหม",
+          "answer": "ไม่ ระบบย่อรูปในเบราว์เซอร์ของคุณก่อน แล้วส่งเฉพาะภาพย่อไปให้ AI วิเคราะห์ ไฟล์ความละเอียดเต็มไม่ออกจากเครื่องคุณ"
+        },
+        {
+          "question": "เอาไฟล์ CSV ไปใช้กับ Adobe Stock ยังไง",
+          "answer": "หลังอัปรูปขึ้น Adobe Stock Contributor แล้ว ให้อัปไฟล์ CSV ที่ export จากที่นี่ในหน้า Upload CSV ระบบของ Adobe จะเติม title, keywords และ category ให้ทุกรูปที่ชื่อไฟล์ตรงกันพร้อมกันทีเดียว"
+        },
+        {
+          "question": "ใช้กับแพลตฟอร์มอื่นนอกจาก Adobe Stock ได้ไหม",
+          "answer": "ได้ เลือกแพลตฟอร์มที่คุณขายได้ในหน้าแพลตฟอร์ม เช่น Shutterstock, Freepik และ iStock แล้วคัดลอก metadata ไปใช้ หรือ export เป็น CSV แบบทั่วไป"
+        }
+      ]
+    },
+    "closing": {
+      "title": "เลิกพิมพ์ metadata ทีละรูป",
+      "body": "เอาเวลาไปถ่ายรูปเพิ่ม แล้วให้ {{siteName}} จัดการ title และ keywords ให้",
+      "secondaryCta": "มีบัญชีแล้ว เข้าแอป"
+    },
+    "footer": {
+      "tagline": "สร้าง metadata ให้รูป Stock ด้วย AI"
+    }
+  }
+}

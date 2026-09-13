@@ -1,12 +1,14 @@
 import { Image as ImageIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Badge } from "@/components/ui/Badge";
-import { PLATFORMS } from "@/config/platforms";
+import { intlLocale } from "@/config/i18n";
+import { PLATFORMS, platformName } from "@/config/platforms";
 import type { GenerationWithPreview } from "@/types/generation";
 
 /** วันเวลาแบบสั้น อ่านง่ายทั้งวันนี้และเดือนก่อน */
 function formatDate(value: string): string {
-  return new Date(value).toLocaleString("en-GB", {
+  return new Date(value).toLocaleString(intlLocale(), {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
@@ -19,6 +21,7 @@ export function HistoryCard({
 }: {
   generation: GenerationWithPreview;
 }) {
+  const { t } = useTranslation();
   const platform = PLATFORMS.find((p) => p.id === generation.platformId);
 
   return (
@@ -66,11 +69,11 @@ export function HistoryCard({
               {platform.icon ? (
                 <img
                   src={platform.icon}
-                  alt={platform.name}
+                  alt={platformName(platform, t)}
                   className="size-3.5 rounded-full object-cover"
                 />
               ) : null}
-              {platform.name}
+              {platformName(platform, t)}
             </Badge>
           ) : null}
 

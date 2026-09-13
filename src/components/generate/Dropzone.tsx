@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
@@ -44,6 +45,7 @@ export function Dropzone({
   notice: string | null
   onFiles: (files: File[]) => void
 }) {
+  const { t } = useTranslation()
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -84,20 +86,23 @@ export function Dropzone({
               </span>
               <div className="min-w-0">
                 <p className="text-[13.5px] font-medium">
-                  <span className="tabular-nums">{count}</span> of {maxAssets}{' '}
-                  images
+                  <Trans
+                    i18nKey="dropzone.count"
+                    values={{ count, max: maxAssets }}
+                    components={{ count: <span className="tabular-nums" /> }}
+                  />
                 </p>
                 <p className="mt-0.5 text-[12px] text-subtle-foreground">
                   {full
-                    ? 'Batch is full — clear or remove an image to add more'
-                    : 'Drop more images here, or add them from your device'}
+                    ? t('dropzone.full')
+                    : t('dropzone.dropMore')}
                 </p>
               </div>
             </div>
 
             <Button size="sm" onClick={openPicker} disabled={full}>
               <Plus className="size-3.5" aria-hidden />
-              Add images
+              {t('dropzone.addImages')}
             </Button>
           </div>
         ) : (
@@ -107,28 +112,32 @@ export function Dropzone({
             </span>
 
             <h2 className="mt-6 text-2xl font-semibold tracking-tight">
-              Upload Media
+              {t('dropzone.uploadTitle')}
             </h2>
 
             <p className="mt-2 text-[15px] text-muted-foreground">
-              Drag and drop or{' '}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  openPicker()
+              <Trans
+                i18nKey="dropzone.dragOrBrowse"
+                components={{
+                  browse: (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openPicker()
+                      }}
+                      className="rounded-sm font-medium text-primary hover:underline"
+                    />
+                  ),
                 }}
-                className="rounded-sm font-medium text-primary hover:underline"
-              >
-                tap to browse
-              </button>
+              />
             </p>
 
             <ul className="mt-7 flex flex-wrap justify-center gap-2.5">
               {FORMATS.map(({ icon: Icon, label, supported }) => (
                 <li
                   key={label}
-                  title={supported ? undefined : 'ยังไม่รองรับ'}
+                  title={supported ? undefined : t('dropzone.notSupported')}
                   className={cn(
                     'flex items-center gap-2 rounded-full border px-4 py-2 text-[13px]',
                     supported
@@ -139,8 +148,9 @@ export function Dropzone({
                   <Icon className="size-3.5 shrink-0" aria-hidden />
                   {label}
                   {supported ? null : (
-                    <span className="font-mono text-[10px] tracking-wide uppercase">
-                      soon
+                    // ฟอนต์ mono ไม่มีอักษรไทย/ลาว ใช้กับทุกภาษาแล้วตัวอักษรจะถ่างห่างกัน
+                    <span className="text-[10px] uppercase [&:lang(en)]:font-mono [&:lang(en)]:tracking-wide">
+                      {t('dropzone.soon')}
                     </span>
                   )}
                 </li>
@@ -148,7 +158,7 @@ export function Dropzone({
             </ul>
 
             <p className="mt-7 text-[13px] text-subtle-foreground">
-              Up to {maxAssets} images at a time
+              {t('dropzone.upTo', { max: maxAssets })}
             </p>
           </>
         )}
@@ -159,7 +169,7 @@ export function Dropzone({
           multiple
           accept={ACCEPT_ATTRIBUTE}
           className="hidden"
-          aria-label="Choose images to upload"
+          aria-label={t('dropzone.chooseImages')}
           onClick={(e) => e.stopPropagation()}
           onChange={(e) => {
             const files = Array.from(e.target.files ?? [])
@@ -179,8 +189,7 @@ export function Dropzone({
 
       <p className="mt-4 flex items-center justify-center gap-2 text-center text-[13px] text-muted-foreground">
         <Lock className="size-3.5 shrink-0" aria-hidden />
-        Images are resized in your browser — only the small copy is sent for
-        analysis
+        {t('dropzone.privacy')}
       </p>
     </section>
   )

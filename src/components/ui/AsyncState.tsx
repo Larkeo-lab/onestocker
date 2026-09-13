@@ -1,13 +1,16 @@
 import { LoaderCircle, TriangleAlert } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from './Button'
 
 /** ใช้ระหว่างรอข้อมูลจาก API */
-export function Loading({ label = 'กำลังโหลด' }: { label?: string }) {
+export function Loading({ label }: { label?: string }) {
+  const { t } = useTranslation()
+
   return (
     <div className="flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-16 text-[13px] text-muted-foreground">
       <LoaderCircle className="size-4 animate-spin" aria-hidden />
-      {label}
+      {label ?? t('common.loading')}
     </div>
   )
 }
@@ -23,13 +26,15 @@ export function ErrorState({
   message: string
   onRetry?: () => void
 }) {
+  const { t } = useTranslation()
+
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-danger/40 bg-danger-soft px-6 py-14 text-center">
       <TriangleAlert className="size-5 text-danger" aria-hidden />
       <p className="mt-3 max-w-md text-[13px] text-danger">{message}</p>
       {onRetry ? (
         <Button size="sm" className="mt-4" onClick={onRetry}>
-          ลองใหม่
+          {t('common.retry')}
         </Button>
       ) : null}
     </div>

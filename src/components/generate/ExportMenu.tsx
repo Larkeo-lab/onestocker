@@ -1,5 +1,6 @@
 import { Check, ChevronDown, Download } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/Button'
 import { EXPORT_FORMATS, exportAssets } from '@/lib/export'
@@ -10,6 +11,7 @@ import type { Asset } from '@/types/asset'
 const CONFIRM_MS = 2500
 
 export function ExportMenu({ assets }: { assets: Asset[] }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [exported, setExported] = useState<number | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -46,8 +48,8 @@ export function ExportMenu({ assets }: { assets: Asset[] }) {
         aria-expanded={open}
         title={
           ready === 0
-            ? 'ยังไม่มีรูปที่สร้าง metadata เสร็จ'
-            : `ส่งออก ${ready} รูป`
+            ? t('exportMenu.nothingReady')
+            : t('exportMenu.exportCount', { count: ready })
         }
       >
         {exported === null ? (
@@ -55,7 +57,9 @@ export function ExportMenu({ assets }: { assets: Asset[] }) {
         ) : (
           <Check className="size-3.5 text-success" aria-hidden />
         )}
-        {exported === null ? 'Export CSV' : `ส่งออก ${exported} รูปแล้ว`}
+        {exported === null
+          ? t('exportMenu.button')
+          : t('exportMenu.exported', { count: exported })}
         <ChevronDown className="size-3 opacity-60" aria-hidden />
       </Button>
 
@@ -69,7 +73,7 @@ export function ExportMenu({ assets }: { assets: Asset[] }) {
             className="absolute right-0 z-50 mt-1 w-56 overflow-hidden rounded-lg border border-border bg-card py-1 shadow-lg"
           >
             <p className="px-3 py-1.5 text-[10px] font-semibold tracking-[0.08em] text-subtle-foreground uppercase">
-              เลือกรูปแบบไฟล์
+              {t('exportMenu.chooseFormat')}
             </p>
 
             {EXPORT_FORMATS.map((format) => (
@@ -80,13 +84,17 @@ export function ExportMenu({ assets }: { assets: Asset[] }) {
                 onClick={() => run(format.id)}
                 className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[13px] transition-colors hover:bg-muted"
               >
-                <span>{format.label}</span>
+                <span>
+                  {format.id === 'general'
+                    ? t('exportMenu.generalFormat')
+                    : format.label}
+                </span>
                 {format.verified ? null : (
                   <span
-                    title="รูปแบบคอลัมน์ยังไม่ได้เทียบกับเทมเพลตทางการ"
+                    title={t('exportMenu.betaTitle')}
                     className="shrink-0 rounded border border-warning/40 bg-warning-soft px-1.5 py-0.5 font-mono text-[9px] tracking-wide text-warning uppercase"
                   >
-                    beta
+                    {t('exportMenu.beta')}
                   </span>
                 )}
               </button>
@@ -98,7 +106,7 @@ export function ExportMenu({ assets }: { assets: Asset[] }) {
                 'text-[11px] leading-relaxed text-subtle-foreground',
               )}
             >
-              อัปไฟล์รูปขึ้นแพลตฟอร์มก่อน แล้วค่อยอัป CSV — ระบบจับคู่ด้วยชื่อไฟล์
+              {t('exportMenu.hint')}
             </p>
           </div>
         </>

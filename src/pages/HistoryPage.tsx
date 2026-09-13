@@ -1,21 +1,24 @@
 import { ChevronLeft, ChevronRight, Filter, History, WandSparkles } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
+import { APP_PATH } from '@/config/site'
 import { PageHeader } from '@/components/header/PageHeader'
 import { HistoryCard } from '@/components/history/HistoryCard'
 import { ErrorState, Loading } from '@/components/ui/AsyncState'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { CONTAINER } from '@/config/container'
-import { PLATFORMS } from '@/config/platforms'
+import { PLATFORMS, platformName } from '@/config/platforms'
 import { useAsync } from '@/hooks/useAsync'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { fetchHistory } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
 export function HistoryPage() {
-  useDocumentTitle('History')
+  const { t } = useTranslation()
+  useDocumentTitle(t('nav.history'))
 
   const [page, setPage] = useState(1)
   const [selectedPlatform, setSelectedPlatform] = useState<string>('all')
@@ -42,15 +45,15 @@ export function HistoryPage() {
   return (
     <>
       <PageHeader
-        title="History"
-        description="Everything you have generated, newest first"
+        title={t('nav.history')}
+        description={t('history.description')}
       />
 
       <div className={cn(CONTAINER.wide, 'py-6')}>
         {!history.loading && !history.error ? (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3">
             <p className="text-[13px] font-semibold tracking-tight">
-              Results
+              {t('history.results')}
               <span className="ml-2 font-mono text-[11px] font-normal text-subtle-foreground tabular-nums">
                 {pagination?.total ?? items.length}
               </span>
@@ -59,7 +62,7 @@ export function HistoryPage() {
             <div className="flex items-center gap-2">
               <Filter className="size-3.5 text-muted-foreground" aria-hidden />
               <label htmlFor="platform-filter" className="text-[12px] text-muted-foreground">
-                Platform:
+                {t('history.platform')}
               </label>
               <select
                 id="platform-filter"
@@ -67,10 +70,10 @@ export function HistoryPage() {
                 onChange={(e) => handlePlatformChange(e.target.value)}
                 className="h-8 rounded-md border border-border bg-background px-2.5 text-[12.5px] font-medium text-foreground shadow-xs transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               >
-                <option value="all">All Platforms</option>
+                <option value="all">{t('history.allPlatforms')}</option>
                 {filteredPlatforms.map((platform) => (
                   <option key={platform.id} value={platform.id}>
-                    {platform.name}
+                    {platformName(platform, t)}
                   </option>
                 ))}
               </select>
@@ -87,24 +90,28 @@ export function HistoryPage() {
         {!history.loading && !history.error && items.length === 0 ? (
           <EmptyState
             icon={History}
-            title={selectedPlatform === 'all' ? "No history yet" : "No results for this platform"}
+            title={
+              selectedPlatform === 'all'
+                ? t('history.emptyTitle')
+                : t('history.emptyFilteredTitle')
+            }
             description={
               selectedPlatform === 'all'
-                ? "Every image you generate metadata for is saved here automatically, so you can come back and reuse it later."
-                : "No metadata generations found for the selected platform."
+                ? t('history.emptyBody')
+                : t('history.emptyFilteredBody')
             }
             action={
               selectedPlatform === 'all' ? (
                 <Link
-                  to="/"
+                  to={APP_PATH}
                   className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
                 >
                   <WandSparkles className="size-3.5" aria-hidden />
-                  Generate your first image
+                  {t('history.generateFirst')}
                 </Link>
               ) : (
                 <Button size="sm" onClick={() => handlePlatformChange('all')}>
-                  Show All Platforms
+                  {t('history.showAll')}
                 </Button>
               )
             }
@@ -127,7 +134,7 @@ export function HistoryPage() {
                   onClick={() => setPage((value) => value - 1)}
                 >
                   <ChevronLeft className="size-3.5" aria-hidden />
-                  ก่อนหน้า
+                  {t('common.previous')}
                 </Button>
                 <span className="font-mono text-[12px] text-subtle-foreground tabular-nums">
                   {pagination.page} / {pagination.totalPages}
@@ -137,7 +144,7 @@ export function HistoryPage() {
                   disabled={page >= pagination.totalPages}
                   onClick={() => setPage((value) => value + 1)}
                 >
-                  ถัดไป
+                  {t('common.next')}
                   <ChevronRight className="size-3.5" aria-hidden />
                 </Button>
               </div>

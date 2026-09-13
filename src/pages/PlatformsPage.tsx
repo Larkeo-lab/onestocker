@@ -1,4 +1,5 @@
 import { Info } from 'lucide-react'
+import { Trans, useTranslation } from 'react-i18next'
 
 import { PlatformPicker } from '@/components/generate/PlatformPicker'
 import { PageHeader } from '@/components/header/PageHeader'
@@ -7,13 +8,14 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { cn } from '@/lib/utils'
 
 export function PlatformsPage() {
-  useDocumentTitle('Platforms')
+  const { t } = useTranslation()
+  useDocumentTitle(t('nav.platforms'))
 
   return (
     <>
       <PageHeader
-        title="Platforms"
-        description="Choose which marketplaces you sell on and review their metadata limits"
+        title={t('nav.platforms')}
+        description={t('platforms.description')}
       />
       <div className={cn(CONTAINER.wide, 'space-y-5 py-6')}>
         <div className="flex gap-3 rounded-lg border border-border bg-muted px-4 py-3">
@@ -22,11 +24,10 @@ export function PlatformsPage() {
             aria-hidden
           />
           <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-            Metadata is generated once per image at full length, then trimmed to
-            each platform on export — so adding a platform never costs another
-            API call. Limits are shown as{' '}
-            <span className="font-mono">title · description · keywords</span>.
-            Adobe Stock has no description field of its own.
+            <Trans
+              i18nKey="platforms.info"
+              components={{ mono: <span className="font-mono" /> }}
+            />
           </p>
         </div>
 

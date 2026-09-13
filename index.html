@@ -1,15 +1,119 @@
 <!doctype html>
-<html lang="th">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- ใช้โลโก้ตัวเดียวกับที่แสดงใน sidebar พื้นหลังโปร่งใส
          จึงอ่านออกทั้งแท็บโหมดมืดและสว่าง -->
     <link rel="icon" type="image/png" href="/logo/mark.png" />
     <link rel="apple-touch-icon" href="/logo/mark.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>One Stock</title>
+
+    <!--
+      ฟอนต์ลาว (ใช้ใน src/index.css)
+
+      โหลดด้วย <link> ใน <head> ไม่ใช่ @import ใน CSS เพราะเบราว์เซอร์จะเริ่มโหลดทันที
+      ไม่ต้องรอไฟล์ CSS ของแอปก่อน และ Google แบ่งไฟล์ตาม unicode-range ไว้แล้ว
+      หน้าที่ไม่มีอักษรลาวเลยจะไม่ดาวน์โหลดตัวฟอนต์จริง เสียแค่ CSS ไม่กี่ KB
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@100..900&display=swap"
+    />
+
+    <!--
+      ตอน build บรรทัด <title> กับ comment seo-head ด้านล่างถูกแทนด้วย title,
+      description, og:*, canonical, hreflang และ JSON-LD ของแต่ละภาษา
+      จาก src/config/messages/<ภาษา>.json (ดู scripts/prerender.mjs)
+      — title ตัวนี้มีไว้ใช้ตอน vite dev เท่านั้น
+    -->
+    <title>Onestocks</title>
+    <!--seo-head-->
+
+    <!--
+      ไฟล์ HTML นี้ถูกส่งให้ทุก path ของเว็บ ทั้งหน้าแรกและตัวแอป
+      เพราะตัวแอปจัดการเส้นทางเองในเบราว์เซอร์
+
+      ต้องเป็น inline script ใน <head> เพราะเป็นจังหวะเดียวที่ทำงานก่อนวาด <body>
+      และหน้า landing บนเว็บจริงไม่มี React มาผูก event ให้
+
+      LANDING_PATHS กับ STORAGE_KEY ต้องตรงกับ src/config/languages.ts
+    -->
+    <script>
+      ;(() => {
+        const LANDING_PATHS = { en: '/', th: '/th', lo: '/lo' }
+        const STORAGE_KEY = 'i18nextLng'
+
+        const path = location.pathname.replace(/(.)\/+$/, '$1')
+        const pageLanguage = Object.keys(LANDING_PATHS).find(
+          (code) => LANDING_PATHS[code] === path,
+        )
+
+        // ไม่ใช่หน้า landing — ซ่อนหน้า landing ที่ฝังอยู่ในไฟล์ก่อนเบราว์เซอร์วาด
+        // ไม่งั้นคนที่เปิด /app จะเห็นหน้า landing แวบขึ้นมาก่อนตัวแอปโหลดเสร็จ
+        if (!pageLanguage) {
+          document.documentElement.dataset.app = ''
+          return
+        }
+
+        const read = () => {
+          try {
+            return localStorage.getItem(STORAGE_KEY)
+          } catch {
+            return null
+          }
+        }
+        const save = (code) => {
+          try {
+            localStorage.setItem(STORAGE_KEY, code)
+          } catch {}
+        }
+
+        /*
+          ใครเคยเลือกภาษาไว้ (ในหน้านี้หรือในตัวแอป) แล้วเปิด / ให้ไปหน้าภาษานั้นเลย
+          ทำเฉพาะหน้าภาษาตั้งต้น — คนที่เปิด /th ตรง ๆ ตั้งใจจะอ่านภาษานั้น
+          จึงจำภาษานั้นไว้แทน ตัวแอปจะได้ขึ้นเป็นภาษาเดียวกัน
+          bot ไม่มี localStorage ค้างไว้ จึงเห็นทุกหน้าตามจริงไม่โดนพาไปไหน
+        */
+        const saved = read()
+        if (pageLanguage === 'en') {
+          if (saved !== 'en' && Object.hasOwn(LANDING_PATHS, saved)) {
+            location.replace(LANDING_PATHS[saved] + location.search + location.hash)
+            return
+          }
+        } else {
+          save(pageLanguage)
+        }
+
+        // ช่องเลือกภาษา — value ของแต่ละตัวเลือกคือ path ของหน้าภาษานั้น
+        // จำไว้ก่อนย้ายหน้า ไม่งั้นเลือก English แล้วจะโดนพากลับหน้าภาษาเดิม
+        document.addEventListener('change', (event) => {
+          const select = event.target
+          if (select.id !== 'language-select') return
+          save(select.selectedOptions[0].dataset.language)
+          location.href = select.value + location.hash
+        })
+
+        /*
+          กด Back กลับมา เบราว์เซอร์คืนหน้าเดิมจาก cache โดยไม่รัน script ด้านบนซ้ำ
+          ช่องเลือกยังค้างค่าที่เพิ่งเลือกไป และภาษาที่จำไว้ยังเป็นของหน้าที่เพิ่งออกมา
+          ทั้งที่ผู้ใช้กำลังดูหน้าภาษานี้อยู่
+        */
+        addEventListener('pageshow', (event) => {
+          if (event.persisted) save(pageLanguage)
+          const select = document.getElementById('language-select')
+          if (!select) return
+          for (const option of select.options) option.selected = option.defaultSelected
+        })
+      })()
+    </script>
+    <style>
+      [data-app] #landing { display: none; }
+    </style>
   </head>
   <body>
+    <div id="landing"><!--landing--></div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

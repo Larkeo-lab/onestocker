@@ -1,3 +1,5 @@
+import type { TFunction } from 'i18next'
+
 /**
  * แพลตฟอร์มปลายทางสำหรับ export
  * `limits` คือสเปคที่ใช้ตัด/ตรวจ metadata ตอน export (ยังไม่ผูกกับ logic)
@@ -134,6 +136,14 @@ export const PLATFORMS: Platform[] = [
     limits: { title: 200, description: 300, keywords: 50 },
   },
 ]
+
+/**
+ * ชื่อที่แสดงบนหน้าจอ ชื่อแบรนด์ไม่ต้องแปล มีแค่ "General" ที่เป็นคำธรรมดา
+ * รับ t เข้ามาแทนการ import i18n เพราะหน้า landing ก็ใช้ไฟล์นี้
+ */
+export function platformName(platform: Platform, t: TFunction): string {
+  return platform.id === 'general' ? t('platforms.general') : platform.name
+}
 
 /** แพลตฟอร์มที่เลือกไว้ตั้งต้นเมื่อเปิดแอปครั้งแรก */
 export const DEFAULT_PLATFORM_IDS = ['adobe-stock']

@@ -1,11 +1,13 @@
 import { Check } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
-import { PLATFORMS, type Platform } from "@/config/platforms";
+import { PLATFORMS, platformName, type Platform } from "@/config/platforms";
 import { cn } from "@/lib/utils";
 import { usePlatformsStore } from "@/store/platforms";
 
 function PlatformIcon({ platform }: { platform: Platform }) {
+  const { t } = useTranslation();
   const [error, setError] = useState(false);
 
   if (platform.icon && !error) {
@@ -13,7 +15,7 @@ function PlatformIcon({ platform }: { platform: Platform }) {
       <div className="relative flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border/40 bg-white p-0.5 shadow-2xs">
         <img
           src={platform.icon}
-          alt={platform.name}
+          alt={platformName(platform, t)}
           onError={() => setError(true)}
           className="size-full rounded-xs object-contain"
         />
@@ -33,6 +35,7 @@ function PlatformIcon({ platform }: { platform: Platform }) {
 }
 
 export function PlatformPicker() {
+  const { t } = useTranslation();
   const selected = usePlatformsStore((s) => s.selectedIds);
   const toggle = usePlatformsStore((s) => s.togglePlatform);
 
@@ -41,15 +44,17 @@ export function PlatformPicker() {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
         <div>
           <h2 className="text-[13px] font-semibold tracking-tight">
-            Export platforms
+            {t("platforms.pickerTitle")}
           </h2>
           <p className="mt-0.5 text-[12px] text-muted-foreground">
-            Metadata is generated once, then trimmed to each platform&apos;s
-            limits
+            {t("platforms.pickerDescription")}
           </p>
         </div>
         <span className="font-mono text-[11px] text-subtle-foreground tabular-nums">
-          {selected.length} of {PLATFORMS.length} selected
+          {t("platforms.selected", {
+            count: selected.length,
+            total: PLATFORMS.length,
+          })}
         </span>
       </div>
 
@@ -72,7 +77,7 @@ export function PlatformPicker() {
               <PlatformIcon platform={platform} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[12.5px] leading-tight font-medium">
-                  {platform.name}
+                  {platformName(platform, t)}
                 </span>
               </span>
               <span

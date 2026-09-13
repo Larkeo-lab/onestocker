@@ -1,0 +1,299 @@
+{
+  "common": {
+    "loading": "Loading",
+    "retry": "Try again",
+    "close": "Close",
+    "previous": "Previous",
+    "next": "Next",
+    "selectLanguage": "Select language",
+    "unknownError": "Something went wrong"
+  },
+  "languageNames": {
+    "en": "English",
+    "th": "Thai",
+    "lo": "Lao"
+  },
+  "errors": {
+    "network": "Cannot connect to the server",
+    "canvasUnsupported": "This browser cannot resize images",
+    "imageConvertFailed": "Could not convert the image",
+    "uploadFailed": "Upload failed",
+    "uploadCors": "Cannot upload to R2 from {{origin}} — check that this domain is in the bucket CORS policy",
+    "uploadForbidden": "Cannot upload to R2 (403) — the link has expired or the key cannot write",
+    "uploadStatus": "Upload to R2 failed ({{status}})",
+    "noUploadUrl": "The server did not return an upload link",
+    "clerkUnreachable": "Cannot reach Clerk from {{origin}} — this domain must be set in the Clerk instance this key belongs to. If you are testing locally, use the pk_test_ key of the development instance.",
+    "generateFailed": "Could not generate metadata"
+  },
+  "nav": {
+    "workspace": "Workspace",
+    "configuration": "Configuration",
+    "generate": "Generate",
+    "library": "Library",
+    "history": "History",
+    "exports": "Exports",
+    "platforms": "Platforms",
+    "settings": "Settings",
+    "openNavigation": "Open navigation",
+    "closeNavigation": "Close navigation"
+  },
+  "sidebar": {
+    "tagline": "Metadata Studio",
+    "usageThisMonth": "Usage this month",
+    "unlimited": "{{used}} · Unlimited",
+    "resets": "Resets {{date}}",
+    "selectPlatform": "Select {{name}} for generate",
+    "signOut": "Sign out",
+    "devBypassTitle": "Sign-in is bypassed (VITE_AUTH_DEV_BYPASS=true), so there is nothing to sign out of"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "checking": "Checking your session",
+    "bypassTitle": "Sign-in is bypassed",
+    "bypassBody": "Set <code>VITE_AUTH_DEV_BYPASS=false</code> and use a development instance key to test real sign-in.",
+    "backToApp": "Back to the app"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The link may be mistyped, or this page has moved.",
+    "home": "Back to home"
+  },
+  "generate": {
+    "description": "Upload up to {{max}} images to generate their titles and descriptions",
+    "clear": "Clear",
+    "generate": "Generate",
+    "generateCount": "Generate {{count}}",
+    "generating": "Generating {{count}}",
+    "results": "Results"
+  },
+  "dropzone": {
+    "count": "<count>{{count}}</count> of {{max}} images",
+    "full": "Batch is full — clear or remove an image to add more",
+    "dropMore": "Drop more images here, or add them from your device",
+    "addImages": "Add images",
+    "uploadTitle": "Upload Media",
+    "dragOrBrowse": "Drag and drop or <browse>tap to browse</browse>",
+    "notSupported": "Not supported yet",
+    "soon": "soon",
+    "upTo": "Up to {{max}} images at a time",
+    "chooseImages": "Choose images to upload",
+    "privacy": "Images are resized in your browser — only the small copy is sent for analysis",
+    "skipped_one": "Could not add {{count}} file: {{names}}{{rest}} — {{reasons}}",
+    "skipped_other": "Could not add {{count}} files: {{names}}{{rest}} — {{reasons}}",
+    "skippedRest": " and {{count}} more",
+    "unsupportedType": "Unsupported file type",
+    "overLimit": "Over the {{max}} image limit"
+  },
+  "asset": {
+    "uploading": "Uploading",
+    "generating": "Generating",
+    "failed": "Generate failed",
+    "generated": "Generated",
+    "uploaded": "Uploaded",
+    "title": "Title",
+    "keywords": "Keywords",
+    "result": "Result",
+    "remove": "Remove {{name}}",
+    "removeKeyword": "Remove keyword {{keyword}}",
+    "copyField": "Copy {{field}}",
+    "fieldCopied": "{{field}} copied",
+    "titleRecommended": "Adobe Stock recommends {{max}} characters or fewer",
+    "titlePlaceholder": "Not generated yet — click Generate",
+    "titleIn": "Title ({{language}})",
+    "retry": "Retry",
+    "regenerate": "Regenerate",
+    "copied": "Copied",
+    "copyAll": "Copy all"
+  },
+  "exportMenu": {
+    "button": "Export CSV",
+    "exported_one": "Exported {{count}} image",
+    "exported_other": "Exported {{count}} images",
+    "nothingReady": "No images have finished generating yet",
+    "exportCount_one": "Export {{count}} image",
+    "exportCount_other": "Export {{count}} images",
+    "chooseFormat": "Choose file format",
+    "generalFormat": "General (all fields)",
+    "beta": "beta",
+    "betaTitle": "The column format has not been checked against the official template yet",
+    "hint": "Upload the image files to the platform first, then upload the CSV — rows are matched by file name"
+  },
+  "platforms": {
+    "description": "Choose which marketplaces you sell on and review their metadata limits",
+    "info": "Metadata is generated once per image at full length, then trimmed to each platform on export — so adding a platform never costs another API call. Limits are shown as <mono>title · description · keywords</mono>. Adobe Stock has no description field of its own.",
+    "pickerTitle": "Export platforms",
+    "pickerDescription": "Metadata is generated once, then trimmed to each platform's limits",
+    "selected": "{{count}} of {{total}} selected",
+    "general": "General"
+  },
+  "library": {
+    "description": "Every batch you have processed, with its generated metadata",
+    "emptyTitle": "No batches saved yet",
+    "emptyBody": "Batches you generate metadata for will be collected here so you can revisit and re-export them later.",
+    "start": "Start a batch"
+  },
+  "exports": {
+    "description": "CSV files generated for each platform",
+    "emptyTitle": "No exports yet",
+    "emptyBody": "Once you export a batch, every generated CSV is kept here so you can download it again without re-running generation."
+  },
+  "history": {
+    "description": "Everything you have generated, newest first",
+    "results": "Results",
+    "platform": "Platform:",
+    "allPlatforms": "All platforms",
+    "emptyTitle": "No history yet",
+    "emptyBody": "Every image you generate metadata for is saved here automatically, so you can come back and reuse it later.",
+    "emptyFilteredTitle": "No results for this platform",
+    "emptyFilteredBody": "No metadata generations found for the selected platform.",
+    "generateFirst": "Generate your first image",
+    "showAll": "Show all platforms"
+  },
+  "settings": {
+    "description": "These defaults are saved to your account and applied every time you generate",
+    "sectionTitle": "Generation defaults",
+    "sectionDescription": "Applied every time you generate metadata",
+    "saved": "Saved",
+    "saving": "Saving",
+    "save": "Save changes",
+    "keywordsPerImage": "Keywords per image",
+    "keywordsHint": "Accuracy beats quantity",
+    "keywordsOption": "{{count}} keywords",
+    "keywordsMaxOption": "{{count}} keywords (maximum)",
+    "titleStyle": "Title style",
+    "titleStyleHint": "Descriptive sentences perform best in search",
+    "titleStyleDescriptive": "Descriptive sentence",
+    "titleStyleConcise": "Concise phrase",
+    "titleStyleCommercial": "Commercial / marketing",
+    "outputLanguages": "Output languages",
+    "outputLanguagesHint": "English is always produced — Adobe Stock searches in English. Extra languages are added below it.",
+    "alwaysOn": "always on",
+    "blockedTerms": "Blocked terms",
+    "blockedTermsHint": "Removed from every result, on top of the built-in trademark list",
+    "blockedTermsPlaceholder": "e.g. my-studio, client-name"
+  },
+  "quota": {
+    "title": "This month's quota is used up",
+    "usage": "Used {{used}} of {{limit}} images on the {{plan}} plan",
+    "resets": " — resets on {{date}}",
+    "noUsage": "You can't generate more because this month's plan allowance is used up",
+    "upgrade": "Want to keep going? Message us through one of the channels below and we will upgrade your plan",
+    "loadingContacts": "Loading contact channels",
+    "noContacts": "No contact channels have been set up yet. Please try again later.",
+    "later": "Maybe later"
+  },
+  "landing": {
+    "seo": {
+      "title": "Onestocks — AI Titles & Keywords for Adobe Stock Images",
+      "description": "Upload images and let AI write titles, keywords and categories that match what is really in them. Export a CSV ready for Adobe Stock. Start free."
+    },
+    "nav": {
+      "label": "Main menu",
+      "howItWorks": "How it works",
+      "features": "Features",
+      "platforms": "Platforms",
+      "faq": "FAQ"
+    },
+    "signIn": "Sign in",
+    "signUp": "Start free",
+    "hero": {
+      "badge": "For contributors selling on Adobe Stock and other stock sites",
+      "titleLine1": "Titles and keywords",
+      "titleLine2": "for stock images with AI",
+      "body": "Upload a batch of images and get titles, keywords and categories that match what is really in each one, then export a CSV and submit it to Adobe Stock right away. No more typing metadata one image at a time.",
+      "secondaryCta": "See how it works",
+      "note": "No credit card required · Sign up with Google"
+    },
+    "sample": {
+      "moreKeywords": "+{{count}} more",
+      "caption": "Sample metadata {{siteName}} generated from a photo of a sunset on a beach"
+    },
+    "howItWorks": {
+      "title": "Three simple steps",
+      "subtitle": "From a folder of images to a CSV ready for Adobe Stock",
+      "step": "Step {{step}}",
+      "steps": [
+        {
+          "title": "Upload images",
+          "body": "Drag and drop many JPG, PNG or WebP files at once. Images are resized in your browser before upload, so your originals never leave your device."
+        },
+        {
+          "title": "AI writes the metadata",
+          "body": "Get a title, description, keywords and category based on the actual image, not guessed from the file name."
+        },
+        {
+          "title": "Export CSV",
+          "body": "Download a CSV in the Adobe Stock format and upload it on the Contributor portal right away. No copying image by image."
+        }
+      ]
+    },
+    "features": {
+      "title": "Metadata that helps your images sell",
+      "subtitle": "A great image nobody can find will not sell. Good titles and keywords are what help buyers find your work.",
+      "items": [
+        {
+          "title": "Titles that make sense",
+          "body": "A clear line describing what is in the image, where it is and what is happening, following Adobe Stock guidelines."
+        },
+        {
+          "title": "Up to 50 keywords",
+          "body": "The most important terms come first, covering objects, places, mood and concept, with no irrelevant keyword stuffing."
+        },
+        {
+          "title": "Category picked for you",
+          "body": "Automatically matched to one of the 21 Adobe Stock categories, so you do not have to choose one for every image."
+        },
+        {
+          "title": "Brand names removed",
+          "body": "Brand names and banned terms that get images rejected are filtered out before you see the results, and you can add your own terms to exclude."
+        },
+        {
+          "title": "Thai and Lao translations",
+          "body": "The main metadata is in English, the language buyers search in, with translations so you can check the meaning before you submit."
+        },
+        {
+          "title": "History for every image",
+          "body": "Every image you generate is saved, so you can copy or export it again later without generating it again."
+        }
+      ]
+    },
+    "platforms": {
+      "title": "Works with the stock sites you already sell on",
+      "subtitle": "Export a CSV in the Adobe Stock format directly, and set title and keyword length limits to match other platforms."
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "items": [
+        {
+          "question": "Is it free?",
+          "answer": "You can start for free. The free plan includes a monthly image quota. If you need more, contact us to upgrade your plan."
+        },
+        {
+          "question": "Which file types are supported?",
+          "answer": "JPG, PNG and WebP images. You can upload many images at once."
+        },
+        {
+          "question": "Are my original images uploaded to your server?",
+          "answer": "No. Images are resized in your browser first, and only the small preview is sent to the AI for analysis. Your full-resolution files never leave your device."
+        },
+        {
+          "question": "How do I use the CSV with Adobe Stock?",
+          "answer": "After uploading your images to Adobe Stock Contributor, upload the CSV exported from here on the Upload CSV page. Adobe fills in the title, keywords and category for every image with a matching file name in one go."
+        },
+        {
+          "question": "Can I use it with platforms other than Adobe Stock?",
+          "answer": "Yes. Choose the platforms you sell on in the Platforms page, such as Shutterstock, Freepik and iStock, then copy the metadata or export a general CSV."
+        }
+      ]
+    },
+    "closing": {
+      "title": "Stop typing metadata one image at a time",
+      "body": "Spend the time shooting more, and let {{siteName}} handle your titles and keywords.",
+      "secondaryCta": "Already have an account? Open the app"
+    },
+    "footer": {
+      "tagline": "AI metadata for stock images"
+    }
+  }
+}

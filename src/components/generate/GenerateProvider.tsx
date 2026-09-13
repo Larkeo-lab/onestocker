@@ -5,6 +5,7 @@ import {
   GENERATE_CONCURRENCY,
   UPLOAD_CONCURRENCY,
 } from '@/config/site'
+import i18n from '@/config/i18n'
 import { useAsync } from '@/hooks/useAsync'
 import {
   ApiError,
@@ -42,7 +43,7 @@ const PROCESS_CONCURRENCY = 3
 const NAMES_IN_NOTICE = 3
 
 function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'เกิดข้อผิดพลาดที่ไม่รู้จัก'
+  return error instanceof Error ? error.message : i18n.t('common.unknownError')
 }
 
 /** ไฟล์ที่ไม่ได้เข้ารอบนี้ พร้อมเหตุผล ใช้ประกอบข้อความเตือน */
@@ -58,9 +59,12 @@ function describeSkipped(skipped: Skipped[]): string | null {
   const rest = skipped.length - NAMES_IN_NOTICE
   const reasons = [...new Set(skipped.map((item) => item.reason))].join(' · ')
 
-  return `เพิ่มไม่ได้ ${skipped.length} ไฟล์: ${shown}${
-    rest > 0 ? ` และอีก ${rest} ไฟล์` : ''
-  } — ${reasons}`
+  return i18n.t('dropzone.skipped', {
+    count: skipped.length,
+    names: shown,
+    rest: rest > 0 ? i18n.t('dropzone.skippedRest', { count: rest }) : '',
+    reasons,
+  })
 }
 
 export function GenerateProvider({ children }: { children: ReactNode }) {
@@ -156,11 +160,11 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
           .filter((file) => !ACCEPTED_INPUT_TYPES.includes(file.type))
           .map((file) => ({
             filename: file.name,
-            reason: 'ชนิดไฟล์ไม่รองรับ',
+            reason: i18n.t('dropzone.unsupportedType'),
           })),
         ...accepted.slice(room).map((file) => ({
           filename: file.name,
-          reason: `เกินเพดาน ${limit} รูป`,
+          reason: i18n.t('dropzone.overLimit', { max: limit }),
         })),
       ]
 
@@ -245,7 +249,7 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
         processed.map((item, index) => async () => {
           const upload = uploads[index]
           if (!upload) {
-            drop(item.id, item.filename, 'ไม่ได้รับลิงก์อัปโหลดจากเซิร์ฟเวอร์')
+            drop(item.id, item.filename, i18n.t('errors.noUploadUrl'))
             return
           }
           try {

@@ -11,13 +11,14 @@ import {
   X,
 } from 'lucide-react'
 import { useRef, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { useCopy } from '@/hooks/useCopy'
+import { useLanguageName } from '@/hooks/useLanguageName'
 import { cn } from '@/lib/utils'
 import { formatFileSize, type Asset, type AssetTranslation } from '@/types/asset'
-import { languageName } from '@/types/settings'
 
 /** ความยาว title ที่ Adobe Stock แนะนำ เกินกว่านี้เตือนแต่ยังส่งได้ */
 const TITLE_RECOMMENDED = 140
@@ -37,6 +38,8 @@ function FieldLabel({
   /** ปุ่มท้ายแถว เช่นปุ่มคัดลอกของช่องนี้ */
   action?: ReactNode
 }) {
+  const { t } = useTranslation()
+
   return (
     <div className="mb-1.5 flex items-center justify-between gap-3">
       <span className="text-[10.5px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
@@ -46,7 +49,7 @@ function FieldLabel({
         <span
           title={
             warn
-              ? `Adobe Stock recommends ${TITLE_RECOMMENDED} characters or fewer`
+              ? t('asset.titleRecommended', { max: TITLE_RECOMMENDED })
               : undefined
           }
           className={cn(
@@ -68,14 +71,19 @@ function FieldLabel({
  * ต้องอ่านค่าตอนกด ไม่ใช่ค่าที่โมเดลส่งมาตอนแรก
  */
 function CopyButton({ text, label }: { text: () => string; label: string }) {
+  const { t } = useTranslation()
   const [copied, copy] = useCopy()
 
   return (
     <button
       type="button"
       onClick={() => copy(text())}
-      title={`Copy ${label}`}
-      aria-label={copied ? `${label} copied` : `Copy ${label}`}
+      title={t('asset.copyField', { field: label })}
+      aria-label={
+        copied
+          ? t('asset.fieldCopied', { field: label })
+          : t('asset.copyField', { field: label })
+      }
       className={cn(
         'flex size-6 shrink-0 items-center justify-center rounded-md transition-colors',
         copied
@@ -97,11 +105,13 @@ const inputClass =
 
 /** สถานะของรูปนี้รูปเดียว ครอบทั้งช่วงอัปโหลดและช่วงสร้าง metadata */
 function StatusBadge({ asset }: { asset: Asset }) {
+  const { t } = useTranslation()
+
   if (asset.status === 'uploading') {
     return (
       <Badge tone="primary">
         <LoaderCircle className="size-3 animate-spin" aria-hidden />
-        Uploading
+        {t('asset.uploading')}
       </Badge>
     )
   }
@@ -109,7 +119,7 @@ function StatusBadge({ asset }: { asset: Asset }) {
     return (
       <Badge tone="primary">
         <LoaderCircle className="size-3 animate-spin" aria-hidden />
-        Generating
+        {t('asset.generating')}
       </Badge>
     )
   }
@@ -117,7 +127,7 @@ function StatusBadge({ asset }: { asset: Asset }) {
     return (
       <Badge tone="danger">
         <TriangleAlert className="size-3" aria-hidden />
-        Generate failed
+        {t('asset.failed')}
       </Badge>
     )
   }
@@ -125,14 +135,14 @@ function StatusBadge({ asset }: { asset: Asset }) {
     return (
       <Badge tone="success">
         <CircleCheck className="size-3" aria-hidden />
-        Generated
+        {t('asset.generated')}
       </Badge>
     )
   }
   return (
     <Badge tone="neutral">
       <CircleCheck className="size-3" aria-hidden />
-      Uploaded
+      {t('asset.uploaded')}
     </Badge>
   )
 }
@@ -150,6 +160,8 @@ function TranslationBlock({
   assetId: string
   status: string
 }) {
+  const { t } = useTranslation()
+  const languageName = useLanguageName()
   const titleRef = useRef<HTMLTextAreaElement>(null)
 
   const titleText = () => titleRef.current?.value ?? translation.title
@@ -167,10 +179,10 @@ function TranslationBlock({
       <div className="space-y-3">
         <div>
           <FieldLabel
-            label="Title"
+            label={t('asset.title')}
             count={translation.title.length}
             max={TITLE_MAX}
-            action={<CopyButton text={titleText} label="title" />}
+            action={<CopyButton text={titleText} label={t('asset.title')} />}
           />
           <textarea
             key={`${key}-title`}
@@ -178,7 +190,9 @@ function TranslationBlock({
             rows={4}
             className={cn(inputClass, 'resize-y')}
             defaultValue={translation.title}
-            aria-label={`Title (${languageName(translation.language)})`}
+            aria-label={t('asset.titleIn', {
+              language: languageName(translation.language),
+            })}
           />
         </div>
 
@@ -186,13 +200,13 @@ function TranslationBlock({
           <div>
             <div className="mb-1.5 flex items-center justify-between gap-3">
               <span className="text-[10.5px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-                Keywords
+                {t('asset.keywords')}
               </span>
               <div className="flex items-center gap-1.5">
                 <span className="font-mono text-[11px] text-subtle-foreground tabular-nums">
                   {translation.keywords.length}
                 </span>
-                <CopyButton text={keywordsText} label="keywords" />
+                <CopyButton text={keywordsText} label={t('asset.keywords')} />
               </div>
             </div>
             <p className="rounded-md border border-border bg-background px-3 py-2 text-[12.5px] leading-relaxed text-muted-foreground">
@@ -221,6 +235,8 @@ export function AssetCard({
   onRemove: () => void
   onRegenerate: () => void
 }) {
+  const { t } = useTranslation()
+  const languageName = useLanguageName()
   const uploading = asset.status === 'uploading'
   const generating = asset.status === 'generating'
   // รูปที่อัปไม่สำเร็จถูกถอดออกจากรายการไปแล้ว error ที่เหลือคือพลาดตอนสร้าง metadata
@@ -243,8 +259,12 @@ export function AssetCard({
   const everything = () =>
     [
       [titleText(), keywordsText()].filter(Boolean).join('\n\n'),
-      ...translations.map((t) =>
-        [languageName(t.language), t.title, t.keywords.join(', ')]
+      ...translations.map((translation) =>
+        [
+          languageName(translation.language),
+          translation.title,
+          translation.keywords.join(', '),
+        ]
           .filter(Boolean)
           .join('\n\n'),
       ),
@@ -291,7 +311,7 @@ export function AssetCard({
               <span className="font-mono text-subtle-foreground tabular-nums">
                 #{index}
               </span>{' '}
-              Result
+              {t('asset.result')}
               {asset.category ? (
                 <span className="ml-2 font-normal text-subtle-foreground">
                   {asset.category}
@@ -301,7 +321,7 @@ export function AssetCard({
             <button
               type="button"
               onClick={onRemove}
-              aria-label={`Remove ${asset.filename}`}
+              aria-label={t('asset.remove', { name: asset.filename })}
               className="flex size-7 shrink-0 items-center justify-center rounded-md text-subtle-foreground transition-colors hover:bg-danger-soft hover:text-danger"
             >
               <Trash2 className="size-3.5" aria-hidden />
@@ -310,7 +330,7 @@ export function AssetCard({
 
           {failed ? (
             <p className="rounded-md border border-danger/40 bg-danger-soft px-3 py-2 text-[12.5px] text-danger">
-              {asset.error ?? 'สร้าง metadata ไม่สำเร็จ'}
+              {asset.error ?? t('errors.generateFailed')}
             </p>
           ) : busy ? (
             <div className="space-y-2" aria-hidden>
@@ -322,17 +342,17 @@ export function AssetCard({
               {translations.length > 0 ? (
                 <p className="flex items-center gap-2 text-[10.5px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
                   <Languages className="size-3.5" aria-hidden />
-                  English
+                  {languageName('en')}
                 </p>
               ) : null}
 
               <div>
                 <FieldLabel
-                  label="Title"
+                  label={t('asset.title')}
                   count={asset.title.length}
                   max={TITLE_MAX}
                   warn={asset.title.length > TITLE_RECOMMENDED}
-                  action={<CopyButton text={titleText} label="title" />}
+                  action={<CopyButton text={titleText} label={t('asset.title')} />}
                 />
                 <textarea
                   key={`${asset.id}-title-${asset.status}`}
@@ -340,8 +360,8 @@ export function AssetCard({
                   rows={4}
                   className={cn(inputClass, 'resize-y')}
                   defaultValue={asset.title}
-                  placeholder="Not generated yet — click Generate"
-                  aria-label="Title"
+                  placeholder={t('asset.titlePlaceholder')}
+                  aria-label={t('asset.title')}
                 />
               </div>
 
@@ -349,13 +369,13 @@ export function AssetCard({
                 <div>
                   <div className="mb-1.5 flex items-center justify-between gap-3">
                     <span className="text-[10.5px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-                      Keywords
+                      {t('asset.keywords')}
                     </span>
                     <div className="flex items-center gap-1.5">
                       <span className="font-mono text-[11px] text-subtle-foreground tabular-nums">
                         {asset.keywords.length}/50
                       </span>
-                      <CopyButton text={keywordsText} label="keywords" />
+                      <CopyButton text={keywordsText} label={t('asset.keywords')} />
                     </div>
                   </div>
                   <ul className="flex flex-wrap gap-1.5">
@@ -367,7 +387,7 @@ export function AssetCard({
                         {keyword}
                         <button
                           type="button"
-                          aria-label={`Remove keyword ${keyword}`}
+                          aria-label={t('asset.removeKeyword', { keyword })}
                           className="flex size-3.5 items-center justify-center rounded-sm text-subtle-foreground transition-colors hover:bg-danger-soft hover:text-danger"
                         >
                           <X className="size-2.5" aria-hidden />
@@ -411,7 +431,7 @@ export function AssetCard({
               onClick={onRegenerate}
             >
               <RefreshCw className="size-3.5" aria-hidden />
-              {failed ? 'Retry' : 'Regenerate'}
+              {failed ? t('asset.retry') : t('asset.regenerate')}
             </Button>
             <Button
               variant="ghost"
@@ -424,7 +444,7 @@ export function AssetCard({
               ) : (
                 <Copy className="size-3.5" aria-hidden />
               )}
-              {copiedAll ? 'Copied' : 'Copy all'}
+              {copiedAll ? t('asset.copied') : t('asset.copyAll')}
             </Button>
           </div>
         </div>

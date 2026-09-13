@@ -5,18 +5,21 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && vite build --ssr src/landing/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
     "lint": "oxlint",
     "preview": "vite preview",
     "deploy:cf": "pnpm build && wrangler deploy"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.61.3",
+    "@clerk/localizations": "^3.37.8",
     "@tailwindcss/vite": "^4.3.3",
     "axios": "^1.20.0",
+    "i18next": "^26.4.2",
     "lucide-react": "^1.43.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-i18next": "^17.0.13",
     "react-router-dom": "^7.18.3",
     "tailwindcss": "^4.3.3",
     "zustand": "^5.0.15"

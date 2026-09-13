@@ -1,5 +1,7 @@
 import axios from 'axios'
 
+import i18n from '@/config/i18n'
+
 import { apiPost } from './client'
 
 export type PresignItem = {
@@ -60,18 +62,15 @@ export async function uploadToR2(
  */
 function uploadErrorMessage(error: unknown): string {
   if (!axios.isAxiosError(error)) {
-    return error instanceof Error ? error.message : 'อัปโหลดไม่สำเร็จ'
+    return error instanceof Error ? error.message : i18n.t('errors.uploadFailed')
   }
 
   const status = error.response?.status
   if (status === undefined) {
-    return (
-      `อัปขึ้น R2 ไม่ได้จาก ${window.location.origin} — ` +
-      'ตรวจว่าโดเมนนี้อยู่ใน CORS policy ของ bucket แล้วหรือยัง'
-    )
+    return i18n.t('errors.uploadCors', { origin: window.location.origin })
   }
   if (status === 403) {
-    return 'อัปขึ้น R2 ไม่ได้ (403) — ลิงก์หมดอายุหรือคีย์ไม่มีสิทธิ์เขียน'
+    return i18n.t('errors.uploadForbidden')
   }
-  return `อัปขึ้น R2 ไม่สำเร็จ (${status})`
+  return i18n.t('errors.uploadStatus', { status })
 }

@@ -1,0 +1,299 @@
+{
+  "common": {
+    "loading": "ກຳລັງໂຫລດ",
+    "retry": "ລອງໃໝ່",
+    "close": "ປິດ",
+    "previous": "ກ່ອນໜ້າ",
+    "next": "ຖັດໄປ",
+    "selectLanguage": "ເລືອກພາສາ",
+    "unknownError": "ເກີດຂໍ້ຜິດພາດທີ່ບໍ່ຮູ້ຈັກ"
+  },
+  "languageNames": {
+    "en": "ອັງກິດ",
+    "th": "ໄທ",
+    "lo": "ລາວ"
+  },
+  "errors": {
+    "network": "ເຊື່ອມຕໍ່ເຊີບເວີບໍ່ໄດ້",
+    "canvasUnsupported": "ບຣາວເຊີນີ້ບໍ່ຮອງຮັບການຫຍໍ້ຮູບ",
+    "imageConvertFailed": "ແປງຮູບບໍ່ສຳເລັດ",
+    "uploadFailed": "ອັບໂຫລດບໍ່ສຳເລັດ",
+    "uploadCors": "ອັບຂຶ້ນ R2 ບໍ່ໄດ້ຈາກ {{origin}} — ກວດເບິ່ງວ່າໂດເມນນີ້ຢູ່ໃນ CORS policy ຂອງ bucket ແລ້ວຫຼືຍັງ",
+    "uploadForbidden": "ອັບຂຶ້ນ R2 ບໍ່ໄດ້ (403) — ລິ້ງໝົດອາຍຸ ຫຼື ຄີບໍ່ມີສິດຂຽນ",
+    "uploadStatus": "ອັບຂຶ້ນ R2 ບໍ່ສຳເລັດ ({{status}})",
+    "noUploadUrl": "ບໍ່ໄດ້ຮັບລິ້ງອັບໂຫລດຈາກເຊີບເວີ",
+    "clerkUnreachable": "ເຊື່ອມຕໍ່ Clerk ບໍ່ໄດ້ຈາກ {{origin}} — ໂດເມນນີ້ຕ້ອງຖືກຕັ້ງໄວ້ໃນ Clerk instance ທີ່ຄີນີ້ເປັນຂອງມັນ ຖ້າກຳລັງທົດສອບໃນເຄື່ອງ ໃຫ້ໃຊ້ຄີ pk_test_ ຂອງ instance development",
+    "generateFailed": "ສ້າງ metadata ບໍ່ສຳເລັດ"
+  },
+  "nav": {
+    "workspace": "ພື້ນທີ່ເຮັດວຽກ",
+    "configuration": "ການຕັ້ງຄ່າ",
+    "generate": "ສ້າງ Metadata",
+    "library": "ຄັງຮູບ",
+    "history": "ປະຫວັດ",
+    "exports": "ໄຟລ໌ທີ່ສົ່ງອອກ",
+    "platforms": "ແພລດຟອມ",
+    "settings": "ຕັ້ງຄ່າ",
+    "openNavigation": "ເປີດເມນູ",
+    "closeNavigation": "ປິດເມນູ"
+  },
+  "sidebar": {
+    "tagline": "Metadata Studio",
+    "usageThisMonth": "ໃຊ້ໄປເດືອນນີ້",
+    "unlimited": "{{used}} · ບໍ່ຈຳກັດ",
+    "resets": "ຣີເຊັດ {{date}}",
+    "selectPlatform": "ເລືອກ {{name}} ສຳລັບສ້າງ metadata",
+    "signOut": "ອອກຈາກລະບົບ",
+    "devBypassTitle": "ຂ້າມລະບົບເຂົ້າສູ່ລະບົບຢູ່ (VITE_AUTH_DEV_BYPASS=true) ຈຶ່ງບໍ່ມີຫຍັງໃຫ້ອອກ"
+  },
+  "auth": {
+    "signIn": "ເຂົ້າສູ່ລະບົບ",
+    "signUp": "ສະໝັກສະມາຊິກ",
+    "checking": "ກຳລັງກວດສອບສິດ",
+    "bypassTitle": "ຂ້າມໜ້າເຂົ້າສູ່ລະບົບຢູ່",
+    "bypassBody": "ຕັ້ງ <code>VITE_AUTH_DEV_BYPASS=false</code> ແລ້ວໃຊ້ຄີຂອງ development instance ຖ້າຕ້ອງການທົດສອບການເຂົ້າສູ່ລະບົບແທ້",
+    "backToApp": "ກັບເຂົ້າແອັບ"
+  },
+  "notFound": {
+    "title": "ບໍ່ພົບໜ້ານີ້",
+    "body": "ລິ້ງອາດພິມຜິດ ຫຼື ໜ້ານີ້ຖືກຍ້າຍໄປແລ້ວ",
+    "home": "ກັບໜ້າຫຼັກ"
+  },
+  "generate": {
+    "description": "ອັບໂຫລດໄດ້ສູງສຸດ {{max}} ຮູບ ເພື່ອສ້າງ title ແລະ description",
+    "clear": "ລ້າງ",
+    "generate": "ສ້າງ",
+    "generateCount": "ສ້າງ {{count}} ຮູບ",
+    "generating": "ກຳລັງສ້າງ {{count}} ຮູບ",
+    "results": "ຜົນລັບ"
+  },
+  "dropzone": {
+    "count": "<count>{{count}}</count> ຈາກ {{max}} ຮູບ",
+    "full": "ເຕັມແລ້ວ — ລ້າງ ຫຼື ລົບຮູບອອກກ່ອນຈຶ່ງຈະເພີ່ມໄດ້",
+    "dropMore": "ລາກຮູບມາວາງເພີ່ມບ່ອນນີ້ ຫຼື ເລືອກຈາກເຄື່ອງຂອງທ່ານ",
+    "addImages": "ເພີ່ມຮູບ",
+    "uploadTitle": "ອັບໂຫລດໄຟລ໌",
+    "dragOrBrowse": "ລາກໄຟລ໌ມາວາງ ຫຼື <browse>ແຕະເພື່ອເລືອກໄຟລ໌</browse>",
+    "notSupported": "ຍັງບໍ່ຮອງຮັບ",
+    "soon": "ໄວໆນີ້",
+    "upTo": "ເທື່ອລະບໍ່ເກີນ {{max}} ຮູບ",
+    "chooseImages": "ເລືອກຮູບທີ່ຈະອັບໂຫລດ",
+    "privacy": "ລະບົບຫຍໍ້ຮູບໃນບຣາວເຊີຂອງທ່ານ — ສົ່ງໄປວິເຄາະສະເພາະຮູບຫຍໍ້ເທົ່ານັ້ນ",
+    "skipped_one": "ເພີ່ມບໍ່ໄດ້ {{count}} ໄຟລ໌: {{names}}{{rest}} — {{reasons}}",
+    "skipped_other": "ເພີ່ມບໍ່ໄດ້ {{count}} ໄຟລ໌: {{names}}{{rest}} — {{reasons}}",
+    "skippedRest": " ແລະອີກ {{count}} ໄຟລ໌",
+    "unsupportedType": "ປະເພດໄຟລ໌ບໍ່ຮອງຮັບ",
+    "overLimit": "ເກີນຂີດຈຳກັດ {{max}} ຮູບ"
+  },
+  "asset": {
+    "uploading": "ກຳລັງອັບໂຫລດ",
+    "generating": "ກຳລັງສ້າງ",
+    "failed": "ສ້າງບໍ່ສຳເລັດ",
+    "generated": "ສ້າງແລ້ວ",
+    "uploaded": "ອັບໂຫລດແລ້ວ",
+    "title": "Title",
+    "keywords": "Keywords",
+    "result": "ຜົນລັບ",
+    "remove": "ລົບ {{name}}",
+    "removeKeyword": "ລົບຄີເວີດ {{keyword}}",
+    "copyField": "ສຳເນົາ {{field}}",
+    "fieldCopied": "ສຳເນົາ {{field}} ແລ້ວ",
+    "titleRecommended": "Adobe Stock ແນະນຳໃຫ້ບໍ່ເກີນ {{max}} ຕົວອັກສອນ",
+    "titlePlaceholder": "ຍັງບໍ່ໄດ້ສ້າງ — ກົດປຸ່ມສ້າງ",
+    "titleIn": "Title ({{language}})",
+    "retry": "ລອງໃໝ່",
+    "regenerate": "ສ້າງໃໝ່",
+    "copied": "ສຳເນົາແລ້ວ",
+    "copyAll": "ສຳເນົາທັງໝົດ"
+  },
+  "exportMenu": {
+    "button": "Export CSV",
+    "exported_one": "ສົ່ງອອກ {{count}} ຮູບແລ້ວ",
+    "exported_other": "ສົ່ງອອກ {{count}} ຮູບແລ້ວ",
+    "nothingReady": "ຍັງບໍ່ມີຮູບທີ່ສ້າງ metadata ສຳເລັດ",
+    "exportCount_one": "ສົ່ງອອກ {{count}} ຮູບ",
+    "exportCount_other": "ສົ່ງອອກ {{count}} ຮູບ",
+    "chooseFormat": "ເລືອກຮູບແບບໄຟລ໌",
+    "generalFormat": "ທົ່ວໄປ (ທຸກຊ່ອງ)",
+    "beta": "beta",
+    "betaTitle": "ຮູບແບບຖັນຍັງບໍ່ໄດ້ທຽບກັບແມ່ແບບທາງການ",
+    "hint": "ອັບໄຟລ໌ຮູບຂຶ້ນແພລດຟອມກ່ອນ ແລ້ວຈຶ່ງອັບ CSV — ລະບົບຈັບຄູ່ດ້ວຍຊື່ໄຟລ໌"
+  },
+  "platforms": {
+    "description": "ເລືອກເວັບທີ່ທ່ານຂາຍຮູບ ແລະເບິ່ງຂີດຈຳກັດຄວາມຍາວຂອງ metadata ຂອງແຕ່ລະເຈົ້າ",
+    "info": "ລະບົບສ້າງ metadata ເທື່ອດຽວຕໍ່ຮູບແບບເຕັມຄວາມຍາວ ແລ້ວຈຶ່ງຕັດໃຫ້ພໍດີແຕ່ລະແພລດຟອມຕອນ export — ເພີ່ມແພລດຟອມຈຶ່ງບໍ່ຕ້ອງເອີ້ນ API ຊ້ຳ ຂີດຈຳກັດສະແດງເປັນ <mono>title · description · keywords</mono> ສ່ວນ Adobe Stock ບໍ່ມີຊ່ອງ description",
+    "pickerTitle": "ແພລດຟອມທີ່ຈະສົ່ງອອກ",
+    "pickerDescription": "ສ້າງ metadata ເທື່ອດຽວ ແລ້ວຕັດໃຫ້ພໍດີຂີດຈຳກັດຂອງແຕ່ລະແພລດຟອມ",
+    "selected": "ເລືອກ {{count}} ຈາກ {{total}}",
+    "general": "ທົ່ວໄປ"
+  },
+  "library": {
+    "description": "ທຸກຊຸດຮູບທີ່ທ່ານເຄີຍເຮັດ ພ້ອມ metadata ທີ່ສ້າງໄວ້",
+    "emptyTitle": "ຍັງບໍ່ມີຊຸດຮູບທີ່ບັນທຶກໄວ້",
+    "emptyBody": "ຊຸດຮູບທີ່ທ່ານສ້າງ metadata ຈະຖືກລວບລວມໄວ້ບ່ອນນີ້ ກັບມາເບິ່ງ ແລະ export ຊ້ຳໄດ້ພາຍຫຼັງ",
+    "start": "ເລີ່ມຊຸດໃໝ່"
+  },
+  "exports": {
+    "description": "ໄຟລ໌ CSV ທີ່ສ້າງໄວ້ສຳລັບແຕ່ລະແພລດຟອມ",
+    "emptyTitle": "ຍັງບໍ່ມີໄຟລ໌ທີ່ສົ່ງອອກ",
+    "emptyBody": "ເມື່ອທ່ານ export ຊຸດຮູບ ໄຟລ໌ CSV ທຸກໄຟລ໌ຈະຖືກເກັບໄວ້ບ່ອນນີ້ ດາວໂຫລດຊ້ຳໄດ້ໂດຍບໍ່ຕ້ອງສ້າງໃໝ່"
+  },
+  "history": {
+    "description": "ທຸກຢ່າງທີ່ທ່ານເຄີຍສ້າງ ລຽງຈາກລ່າສຸດ",
+    "results": "ຜົນລັບ",
+    "platform": "ແພລດຟອມ:",
+    "allPlatforms": "ທຸກແພລດຟອມ",
+    "emptyTitle": "ຍັງບໍ່ມີປະຫວັດ",
+    "emptyBody": "ທຸກຮູບທີ່ທ່ານສ້າງ metadata ຈະຖືກບັນທຶກໄວ້ບ່ອນນີ້ອັດຕະໂນມັດ ກັບມາໃຊ້ຊ້ຳໄດ້ພາຍຫຼັງ",
+    "emptyFilteredTitle": "ບໍ່ມີຜົນລັບຂອງແພລດຟອມນີ້",
+    "emptyFilteredBody": "ບໍ່ພົບ metadata ທີ່ສ້າງສຳລັບແພລດຟອມທີ່ເລືອກ",
+    "generateFirst": "ສ້າງ metadata ຮູບທຳອິດ",
+    "showAll": "ສະແດງທຸກແພລດຟອມ"
+  },
+  "settings": {
+    "description": "ຄ່າຕັ້ງຕົ້ນເຫຼົ່ານີ້ບັນທຶກໄວ້ໃນບັນຊີຂອງທ່ານ ແລະໃຊ້ທຸກເທື່ອທີ່ສ້າງ metadata",
+    "sectionTitle": "ຄ່າຕັ້ງຕົ້ນຂອງການສ້າງ",
+    "sectionDescription": "ໃຊ້ທຸກເທື່ອທີ່ສ້າງ metadata",
+    "saved": "ບັນທຶກແລ້ວ",
+    "saving": "ກຳລັງບັນທຶກ",
+    "save": "ບັນທຶກການປ່ຽນແປງ",
+    "keywordsPerImage": "ຈຳນວນຄີເວີດຕໍ່ຮູບ",
+    "keywordsHint": "ຄວາມຖືກຕ້ອງສຳຄັນກວ່າຈຳນວນ",
+    "keywordsOption": "{{count}} ຄຳ",
+    "keywordsMaxOption": "{{count}} ຄຳ (ສູງສຸດ)",
+    "titleStyle": "ຮູບແບບ Title",
+    "titleStyleHint": "ປະໂຫຍກບັນຍາຍໄດ້ຜົນດີທີ່ສຸດໃນການຄົ້ນຫາ",
+    "titleStyleDescriptive": "ປະໂຫຍກບັນຍາຍ",
+    "titleStyleConcise": "ວະລີສັ້ນໆ",
+    "titleStyleCommercial": "ເຊີງການຄ້າ / ການຕະຫຼາດ",
+    "outputLanguages": "ພາສາຂອງຜົນລັບ",
+    "outputLanguagesHint": "ສ້າງພາສາອັງກິດສະເໝີ — Adobe Stock ຄົ້ນຫາດ້ວຍພາສາອັງກິດ ພາສາອື່ນຈະເພີ່ມຕໍ່ທ້າຍດ້ານລຸ່ມ",
+    "alwaysOn": "ເປີດສະເໝີ",
+    "blockedTerms": "ຄຳຕ້ອງຫ້າມ",
+    "blockedTermsHint": "ຕັດອອກຈາກທຸກຜົນລັບ ເພີ່ມຈາກລາຍການເຄື່ອງໝາຍການຄ້າທີ່ມີຢູ່ແລ້ວ",
+    "blockedTermsPlaceholder": "ເຊັ່ນ my-studio, client-name"
+  },
+  "quota": {
+    "title": "ໂຄຕ້າເດືອນນີ້ໝົດແລ້ວ",
+    "usage": "ໃຊ້ໄປ {{used}} ຈາກ {{limit}} ຮູບຂອງແພັກເກັດ {{plan}}",
+    "resets": " — ຣີເຊັດວັນທີ {{date}}",
+    "noUsage": "ສ້າງຕໍ່ບໍ່ໄດ້ ເພາະໃຊ້ຄົບຕາມແພັກເກັດຂອງເດືອນນີ້ແລ້ວ",
+    "upgrade": "ຢາກໃຊ້ຕໍ່ເລີຍບໍ່ ທັກມາທາງຊ່ອງທາງດ້ານລຸ່ມ ພວກເຮົາຈະອັບເກຣດແພັກເກັດໃຫ້",
+    "loadingContacts": "ກຳລັງໂຫລດຊ່ອງທາງຕິດຕໍ່",
+    "noContacts": "ຍັງບໍ່ໄດ້ຕັ້ງຊ່ອງທາງຕິດຕໍ່ໄວ້ ກະລຸນາລອງໃໝ່ອີກຄັ້ງພາຍຫຼັງ",
+    "later": "ໄວ້ພາຍຫຼັງ"
+  },
+  "landing": {
+    "seo": {
+      "title": "Onestocks — ສ້າງ Title ແລະ Keywords ໃຫ້ຮູບ Adobe Stock ດ້ວຍ AI",
+      "description": "ອັບໂຫລດຮູບແລ້ວໃຫ້ AI ສ້າງ title, keywords ແລະ category ທີ່ກົງກັບຮູບແທ້ ພ້ອມ export CSV ສົ່ງຂຶ້ນ Adobe Stock ໄດ້ທັນທີ ບໍ່ຕ້ອງພິມເທື່ອລະຮູບ ເລີ່ມໃຊ້ຟຣີ"
+    },
+    "nav": {
+      "label": "ເມນູຫຼັກ",
+      "howItWorks": "ວິທີໃຊ້ງານ",
+      "features": "ຄຸນສົມບັດ",
+      "platforms": "ແພລດຟອມ",
+      "faq": "ຄຳຖາມທີ່ພົບເລື້ອຍ"
+    },
+    "signIn": "ເຂົ້າສູ່ລະບົບ",
+    "signUp": "ເລີ່ມໃຊ້ຟຣີ",
+    "hero": {
+      "badge": "ສຳລັບຄົນຂາຍຮູບໃນ Adobe Stock ແລະ Stock Photo",
+      "titleLine1": "ສ້າງ Title ແລະ Keywords",
+      "titleLine2": "ໃຫ້ຮູບ Stock ດ້ວຍ AI",
+      "body": "ອັບໂຫລດຮູບເທື່ອດຽວຫຼາຍຮູບ ໄດ້ title, keywords ແລະ category ທີ່ກົງກັບຮູບແທ້ ແລ້ວ export ເປັນໄຟລ໌ CSV ສົ່ງຂຶ້ນ Adobe Stock ໄດ້ທັນທີ ບໍ່ຕ້ອງນັ່ງພິມ metadata ເທື່ອລະຮູບອີກຕໍ່ໄປ",
+      "secondaryCta": "ເບິ່ງວິທີໃຊ້ງານ",
+      "note": "ບໍ່ຕ້ອງໃຊ້ບັດເຄຣດິດ · ສະໝັກດ້ວຍບັນຊີ Google ໄດ້"
+    },
+    "sample": {
+      "moreKeywords": "+{{count}} ຄຳ",
+      "caption": "ຕົວຢ່າງ metadata ທີ່ {{siteName}} ສ້າງຈາກຮູບຕາເວັນຕົກຢູ່ຫາດຊາຍ"
+    },
+    "howItWorks": {
+      "title": "ໃຊ້ງານງ່າຍໃນ 3 ຂັ້ນຕອນ",
+      "subtitle": "ຈາກໂຟນເດີຮູບເຖິງໄຟລ໌ CSV ທີ່ພ້ອມອັບຂຶ້ນ Adobe Stock",
+      "step": "ຂັ້ນທີ {{step}}",
+      "steps": [
+        {
+          "title": "ອັບໂຫລດຮູບ",
+          "body": "ລາກຮູບ JPG, PNG ຫຼື WebP ມາວາງເທື່ອດຽວຫຼາຍຮູບ ລະບົບຈະຫຍໍ້ຮູບໃນບຣາວເຊີກ່ອນອັບໂຫລດ ໄຟລ໌ຕົ້ນສະບັບບໍ່ອອກຈາກເຄື່ອງຂອງທ່ານ"
+        },
+        {
+          "title": "AI ສ້າງ metadata",
+          "body": "ໄດ້ title, description, keywords ແລະ category ທີ່ເບິ່ງຈາກຮູບແທ້ ບໍ່ແມ່ນເດົາຈາກຊື່ໄຟລ໌"
+        },
+        {
+          "title": "Export CSV",
+          "body": "ດາວໂຫລດໄຟລ໌ CSV ຕາມຮູບແບບຂອງ Adobe Stock ແລ້ວອັບໂຫລດໃນໜ້າ Contributor ໄດ້ທັນທີ ບໍ່ຕ້ອງສຳເນົາເທື່ອລະຮູບ"
+        }
+      ]
+    },
+    "features": {
+      "title": "metadata ທີ່ຊ່ວຍໃຫ້ຮູບຂາຍໄດ້",
+      "subtitle": "ຮູບງາມແຕ່ບໍ່ມີໃຜຄົ້ນຫາເຫັນກໍ່ຂາຍບໍ່ອອກ title ແລະ keywords ທີ່ດີຄືສິ່ງທີ່ເຮັດໃຫ້ລູກຄ້າຄົ້ນຫາຮູບຂອງທ່ານເຫັນ",
+      "items": [
+        {
+          "title": "Title ທີ່ອ່ານແລ້ວເຂົ້າໃຈ",
+          "body": "ຂຽນເປັນປະໂຫຍກທີ່ບອກວ່າໃນຮູບມີຫຍັງ ຢູ່ໃສ ກຳລັງເຮັດຫຍັງ ຕາມແນວທາງທີ່ Adobe Stock ແນະນຳ"
+        },
+        {
+          "title": "Keywords ສູງສຸດ 50 ຄຳ",
+          "body": "ລຽງຄຳທີ່ສຳຄັນທີ່ສຸດໄວ້ກ່ອນ ຄອບຄຸມທັງວັດຖຸ ສະຖານທີ່ ອາລົມ ແລະແນວຄິດຂອງຮູບ ບໍ່ຍັດຄຳທີ່ບໍ່ກ່ຽວຂ້ອງ"
+        },
+        {
+          "title": "ເລືອກ Category ໃຫ້",
+          "body": "ຈັບຄູ່ກັບໝວດໝູ່ຂອງ Adobe Stock ທັງ 21 ໝວດໃຫ້ອັດຕະໂນມັດ ບໍ່ຕ້ອງໄລ່ເລືອກເອງເທື່ອລະຮູບ"
+        },
+        {
+          "title": "ຕັດຊື່ແບຣນອອກໃຫ້",
+          "body": "ກັ່ນຕອງຊື່ແບຣນ ແລະຄຳຕ້ອງຫ້າມທີ່ເຮັດໃຫ້ຮູບຖືກປະຕິເສດອອກກ່ອນເຖິງມືທ່ານ ແລະເພີ່ມຄຳທີ່ບໍ່ຢາກໃຫ້ມີເອງໄດ້"
+        },
+        {
+          "title": "ຄຳແປພາສາໄທ ແລະລາວ",
+          "body": "metadata ຫຼັກເປັນພາສາອັງກິດຕາມທີ່ຕະຫຼາດໃຊ້ຄົ້ນຫາ ພ້ອມຄຳແປໄວ້ກວດຄວາມໝາຍກ່ອນສົ່ງ"
+        },
+        {
+          "title": "ເກັບປະຫວັດໃຫ້ທຸກຮູບ",
+          "body": "ທຸກຮູບທີ່ສ້າງຖືກບັນທຶກໄວ້ ກັບມາສຳເນົາ ຫຼື export ຊ້ຳໄດ້ພາຍຫຼັງ ບໍ່ຕ້ອງສ້າງໃໝ່"
+        }
+      ]
+    },
+    "platforms": {
+      "title": "ໃຊ້ກັບເວັບຂາຍຮູບທີ່ທ່ານຂາຍຢູ່",
+      "subtitle": "Export CSV ຕາມຮູບແບບຂອງ Adobe Stock ໄດ້ໂດຍກົງ ແລະຕັ້ງຄ່າຄວາມຍາວສູງສຸດຂອງ title ແລະ keywords ຕາມແພລດຟອມອື່ນໄດ້"
+    },
+    "faq": {
+      "title": "ຄຳຖາມທີ່ພົບເລື້ອຍ",
+      "items": [
+        {
+          "question": "ໃຊ້ຟຣີບໍ່",
+          "answer": "ເລີ່ມໃຊ້ໄດ້ຟຣີ ແພັກເກັດຟຣີມີໂຄຕ້າຈຳນວນຮູບຕໍ່ເດືອນ ຖ້າຕ້ອງການໃຊ້ຫຼາຍກວ່ານັ້ນ ຕິດຕໍ່ພວກເຮົາເພື່ອອັບເກຣດແພັກເກັດໄດ້"
+        },
+        {
+          "question": "ຮອງຮັບໄຟລ໌ແບບໃດແດ່",
+          "answer": "ຮອງຮັບຮູບ JPG, PNG ແລະ WebP ອັບໂຫລດພ້ອມກັນໄດ້ເທື່ອລະຫຼາຍຮູບ"
+        },
+        {
+          "question": "ຮູບຕົ້ນສະບັບຂອງຂ້ອຍຖືກອັບຂຶ້ນເຊີບເວີບໍ່",
+          "answer": "ບໍ່ ລະບົບຈະຫຍໍ້ຮູບໃນບຣາວເຊີຂອງທ່ານກ່ອນ ແລ້ວສົ່ງສະເພາະຮູບຫຍໍ້ໄປໃຫ້ AI ວິເຄາະ ໄຟລ໌ຄວາມລະອຽດເຕັມບໍ່ອອກຈາກເຄື່ອງຂອງທ່ານ"
+        },
+        {
+          "question": "ເອົາໄຟລ໌ CSV ໄປໃຊ້ກັບ Adobe Stock ແນວໃດ",
+          "answer": "ຫຼັງຈາກອັບຮູບຂຶ້ນ Adobe Stock Contributor ແລ້ວ ໃຫ້ອັບໄຟລ໌ CSV ທີ່ export ຈາກບ່ອນນີ້ໃນໜ້າ Upload CSV ລະບົບຂອງ Adobe ຈະເຕີມ title, keywords ແລະ category ໃຫ້ທຸກຮູບທີ່ຊື່ໄຟລ໌ກົງກັນພ້ອມກັນເທື່ອດຽວ"
+        },
+        {
+          "question": "ໃຊ້ກັບແພລດຟອມອື່ນນອກຈາກ Adobe Stock ໄດ້ບໍ່",
+          "answer": "ໄດ້ ເລືອກແພລດຟອມທີ່ທ່ານຂາຍໃນໜ້າແພລດຟອມ ເຊັ່ນ Shutterstock, Freepik ແລະ iStock ແລ້ວສຳເນົາ metadata ໄປໃຊ້ ຫຼື export ເປັນ CSV ແບບທົ່ວໄປ"
+        }
+      ]
+    },
+    "closing": {
+      "title": "ເຊົາພິມ metadata ເທື່ອລະຮູບ",
+      "body": "ເອົາເວລາໄປຖ່າຍຮູບເພີ່ມ ແລ້ວໃຫ້ {{siteName}} ຈັດການ title ແລະ keywords ໃຫ້",
+      "secondaryCta": "ມີບັນຊີແລ້ວ ເຂົ້າແອັບ"
+    },
+    "footer": {
+      "tagline": "ສ້າງ metadata ໃຫ້ຮູບ Stock ດ້ວຍ AI"
+    }
+  }
+}

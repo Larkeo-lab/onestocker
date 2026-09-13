@@ -1,5 +1,6 @@
 import { useAuth } from '@clerk/clerk-react'
 import { useEffect, useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { ErrorState, Loading } from '@/components/ui/AsyncState'
 
@@ -21,6 +22,7 @@ const LOAD_TIMEOUT_MS = 8000
  * ซึ่ง Clerk จะตอบ 400 Invalid HTTP Origin header แล้วเงียบไป
  */
 export function ClerkGate({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
   const { isLoaded } = useAuth()
   const [timedOut, setTimedOut] = useState(false)
 
@@ -36,15 +38,13 @@ export function ClerkGate({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen items-center justify-center p-6">
       {timedOut ? (
         <ErrorState
-          message={
-            `ต่อ Clerk ไม่ได้จาก ${window.location.origin} — ` +
-            'โดเมนนี้ต้องถูกตั้งไว้ใน Clerk instance ที่คีย์นี้เป็นของมัน ' +
-            'ถ้ากำลังทดสอบบนเครื่อง ให้ใช้คีย์ pk_test_ ของ instance development'
-          }
+          message={t('errors.clerkUnreachable', {
+            origin: window.location.origin,
+          })}
           onRetry={() => window.location.reload()}
         />
       ) : (
-        <Loading label="กำลังตรวจสอบสิทธิ์" />
+        <Loading label={t('auth.checking')} />
       )}
     </div>
   )

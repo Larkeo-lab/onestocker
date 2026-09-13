@@ -1,4 +1,5 @@
 import { FileSpreadsheet } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { PageHeader } from '@/components/header/PageHeader'
 import { CONTAINER } from '@/config/container'
@@ -7,19 +8,20 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { cn } from '@/lib/utils'
 
 export function ExportsPage() {
-  useDocumentTitle('Exports')
+  const { t } = useTranslation()
+  useDocumentTitle(t('nav.exports'))
 
   return (
     <>
       <PageHeader
-        title="Exports"
-        description="CSV files generated for each platform"
+        title={t('nav.exports')}
+        description={t('exports.description')}
       />
       <div className={cn(CONTAINER.wide, 'py-6')}>
         <EmptyState
           icon={FileSpreadsheet}
-          title="No exports yet"
-          description="Once you export a batch, every generated CSV is kept here so you can download it again without re-running generation."
+          title={t('exports.emptyTitle')}
+          description={t('exports.emptyBody')}
         />
       </div>
     </>

@@ -1,10 +1,14 @@
 import { SignOutButton } from "@clerk/clerk-react";
 import { Check, LogOut, Settings, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 
+import { LanguageSelect } from "@/components/ui/LanguageSelect";
+import { intlLocale } from "@/config/i18n";
 import { NAV_SECTIONS } from "@/config/nav";
+import { platformName } from "@/config/platforms";
 import { env } from "@/lib/env";
-import { siteConfig } from "@/config/site";
+import { APP_PATH, siteConfig } from "@/config/site";
 import type { Meta } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { fullName, type Profile } from "@/types/profile";
@@ -25,7 +29,7 @@ const USAGE_WARN_PERCENT = 80;
 function formatResetDate(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("th-TH", {
+  return new Intl.DateTimeFormat(intlLocale(), {
     day: "numeric",
     month: "short",
   }).format(date);
@@ -40,6 +44,7 @@ function formatResetDate(iso: string): string {
  * ยังไม่รู้ยอดก็แสดงขีดไว้ ดีกว่าโชว์ 0 ให้เข้าใจผิดว่ายังไม่ได้ใช้เลย
  */
 function UsageCard() {
+  const { t } = useTranslation();
   const usage = useUsageStore((state) => state.usage);
 
   const limit = usage?.monthlyLimit ?? null;
@@ -62,10 +67,10 @@ function UsageCard() {
     <div className="rounded-lg border border-border bg-card p-3">
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-[11px] font-medium text-muted-foreground">
-          Usage this month
+          {t("sidebar.usageThisMonth")}
         </span>
         <span className={cn("shrink-0 font-mono text-[11px]", countTone)}>
-          {!usage ? "—" : limit === null ? `${usage.used} · ไม่จำกัด` : `${usage.used}/${limit}`}
+          {!usage ? "—" : limit === null ? t("sidebar.unlimited", { used: usage.used }) : `${usage.used}/${limit}`}
         </span>
       </div>
 
@@ -88,7 +93,9 @@ function UsageCard() {
       {usage ? (
         <p className="mt-1.5 truncate text-[10px] text-subtle-foreground">
           {usage.userType}
-          {usage.resetsAt ? ` · รีเซ็ต ${formatResetDate(usage.resetsAt)}` : ""}
+          {usage.resetsAt
+            ? ` · ${t("sidebar.resets", { date: formatResetDate(usage.resetsAt) })}`
+            : ""}
         </p>
       ) : null}
     </div>
@@ -96,6 +103,7 @@ function UsageCard() {
 }
 
 function SidebarPanel({ onNavigate, profile }: PanelProps) {
+  const { t } = useTranslation();
   const selectedIds = usePlatformsStore((s) => s.selectedIds);
   const activePlatformId = usePlatformsStore((s) => s.activePlatformId);
   const setActivePlatformId = usePlatformsStore((s) => s.setActivePlatformId);
@@ -117,7 +125,7 @@ function SidebarPanel({ onNavigate, profile }: PanelProps) {
             {siteConfig.name}
           </span>
           <span className="block truncate text-[11px] leading-tight text-subtle-foreground">
-            Metadata Studio
+            {t("sidebar.tagline")}
           </span>
         </span>
       </div>
@@ -125,14 +133,14 @@ function SidebarPanel({ onNavigate, profile }: PanelProps) {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         {NAV_SECTIONS.map((section) => (
-          <div key={section.label} className="mb-5 last:mb-0">
+          <div key={section.labelKey} className="mb-5 last:mb-0">
             <p className="mb-1.5 px-2 text-[10px] font-semibold tracking-[0.09em] text-subtle-foreground uppercase">
-              {section.label}
+              {t(section.labelKey)}
             </p>
             <ul className="space-y-0.5">
               {section.items.map((item) => {
                 const Icon = item.icon;
-                const isPlatformsItem = item.to === "/platforms";
+                const isPlatformsItem = item.to === `${APP_PATH}/platforms`;
                 return (
                   <li key={item.to}>
                     <NavLink
@@ -149,7 +157,7 @@ function SidebarPanel({ onNavigate, profile }: PanelProps) {
                       }
                     >
                       <Icon className="size-4 shrink-0" aria-hidden />
-                      <span className="flex-1 truncate">{item.label}</span>
+                      <span className="flex-1 truncate">{t(item.labelKey)}</span>
                       {isPlatformsItem && selectedPlatforms.length > 0 ? (
                         <span className="font-mono text-[10.5px] font-normal text-subtle-foreground tabular-nums">
                           {selectedPlatforms.length}
@@ -172,7 +180,9 @@ function SidebarPanel({ onNavigate, profile }: PanelProps) {
                                   setActivePlatformId(platform.id);
                                   onNavigate?.();
                                 }}
-                                title={`Select ${platform.name} for generate`}
+                                title={t("sidebar.selectPlatform", {
+                                  name: platformName(platform, t),
+                                })}
                                 className={cn(
                                   "flex h-7 w-full cursor-pointer items-center justify-between gap-2 rounded-md px-1.5 text-[12px] transition-colors",
                                   isActive
@@ -196,7 +206,7 @@ function SidebarPanel({ onNavigate, profile }: PanelProps) {
                                     </span>
                                   )}
                                   <span className="truncate text-left">
-                                    {platform.name}
+                                    {platformName(platform, t)}
                                   </span>
                                 </span>
 
@@ -221,7 +231,7 @@ function SidebarPanel({ onNavigate, profile }: PanelProps) {
       <div className="shrink-0 space-y-3 border-t border-border p-3">
         {/* เมนู Settings ย้ายมาวางชิดล่าง */}
         <NavLink
-          to="/settings"
+          to={`${APP_PATH}/settings`}
           onClick={onNavigate}
           className={({ isActive }) =>
             cn(
@@ -233,8 +243,10 @@ function SidebarPanel({ onNavigate, profile }: PanelProps) {
           }
         >
           <Settings className="size-4 shrink-0" aria-hidden />
-          <span>Settings</span>
+          <span>{t("nav.settings")}</span>
         </NavLink>
+
+        <LanguageSelect />
 
         <UsageCard />
 
@@ -265,7 +277,7 @@ function SidebarPanel({ onNavigate, profile }: PanelProps) {
           */}
           {env.authDevBypass ? (
             <span
-              title="ข้ามระบบล็อกอินอยู่ (VITE_AUTH_DEV_BYPASS=true) จึงไม่มีอะไรให้ออก"
+              title={t("sidebar.devBypassTitle")}
               className="shrink-0 rounded border border-warning/40 bg-warning-soft px-1.5 py-0.5 font-mono text-[9px] tracking-wide text-warning uppercase"
             >
               dev
@@ -274,8 +286,8 @@ function SidebarPanel({ onNavigate, profile }: PanelProps) {
             <SignOutButton>
               <button
                 type="button"
-                aria-label="ออกจากระบบ"
-                title="ออกจากระบบ"
+                aria-label={t("sidebar.signOut")}
+                title={t("sidebar.signOut")}
                 className="flex size-7 shrink-0 items-center justify-center rounded-md text-subtle-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <LogOut className="size-3.5" aria-hidden />
@@ -301,6 +313,8 @@ export function Sidebar({
   meta: Meta | null;
   offline: boolean;
 }) {
+  const { t } = useTranslation();
+
   return (
     <>
       {/* Desktop */}
@@ -331,7 +345,7 @@ export function Sidebar({
         >
           <button
             onClick={onClose}
-            aria-label="Close navigation"
+            aria-label={t("nav.closeNavigation")}
             className="absolute top-3.5 -right-11 flex size-8 items-center justify-center rounded-md bg-card text-muted-foreground"
           >
             <X className="size-4" aria-hidden />

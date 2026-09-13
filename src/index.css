@@ -80,14 +80,38 @@
   --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
+
+  /* ฟอนต์ mono ไม่มีอักษรลาว ใส่ Noto Sans Lao ไว้รับช่วงต่อ เช่น "ຂັ້ນທີ 1" บนหน้า landing */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", "Noto Sans Lao", monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 4rem;
 }
 
 body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  /*
+    Noto Sans Lao อยู่หลังฟอนต์ระบบ — ตัวอังกฤษและไทยยังใช้ฟอนต์ระบบเหมือนเดิม
+    เบราว์เซอร์เลือกฟอนต์ทีละตัวอักษร อักษรลาวที่ฟอนต์ระบบไม่มีจะไปใช้ Noto Sans Lao
+    เช่นชื่อ "ລາວ" ในช่องเลือกภาษา หรือ metadata ฉบับแปลลาวบนหน้าภาษาอื่น
+  */
+  font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Noto Sans Lao",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/*
+  หน้าภาษาลาวใช้ Noto Sans Lao ทั้งหน้า รวมตัวอังกฤษที่ปนอยู่ ตัวอักษรจะได้หน้าตาเข้ากัน
+  :lang(lo) จับจาก <html lang="lo"> ซึ่ง prerender กับ config/i18n.ts ตั้งให้ตามภาษาที่เลือก
+  ถ้าโหลดฟอนต์ไม่ได้จะถอยไปใช้ฟอนต์ระบบชุดเดียวกับภาษาอื่น
+*/
+body:lang(lo) {
+  font-family: "Noto Sans Lao", ui-sans-serif, system-ui, sans-serif;
 }
 
 /* โฟกัสแบบเดียวกันทั้งแอป */

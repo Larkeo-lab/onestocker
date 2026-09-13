@@ -1,8 +1,10 @@
 import { CircleCheck, LoaderCircle, TriangleAlert } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/Button'
 import { errorMessage } from '@/hooks/useAsync'
+import { useLanguageName } from '@/hooks/useLanguageName'
 import { saveSettings, type MetaLanguage } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import {
@@ -53,6 +55,8 @@ export function SettingsForm({
   languages: MetaLanguage[]
   onSaved?: () => void
 }) {
+  const { t } = useTranslation()
+  const languageName = useLanguageName()
   const [state, setState] = useState<SaveState>({ status: 'idle' })
   const pending = state.status === 'saving'
 
@@ -90,10 +94,10 @@ export function SettingsForm({
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
           <div>
             <h2 className="text-[13px] font-semibold tracking-tight">
-              Generation defaults
+              {t('settings.sectionTitle')}
             </h2>
             <p className="mt-0.5 text-[12px] text-muted-foreground">
-              Applied every time you generate metadata
+              {t('settings.sectionDescription')}
             </p>
           </div>
 
@@ -101,7 +105,7 @@ export function SettingsForm({
             {state.status === 'saved' ? (
               <span className="flex items-center gap-1.5 text-[12px] text-success">
                 <CircleCheck className="size-3.5" aria-hidden />
-                Saved
+                {t('settings.saved')}
               </span>
             ) : null}
             {state.status === 'error' ? (
@@ -120,13 +124,16 @@ export function SettingsForm({
               {pending ? (
                 <LoaderCircle className="size-3.5 animate-spin" aria-hidden />
               ) : null}
-              {pending ? 'Saving' : 'Save changes'}
+              {pending ? t('settings.saving') : t('settings.save')}
             </Button>
           </div>
         </div>
 
         <div className="space-y-5 p-5">
-          <Field label="Keywords per image" hint="Accuracy beats quantity">
+          <Field
+            label={t('settings.keywordsPerImage')}
+            hint={t('settings.keywordsHint')}
+          >
             <select
               name="keywordsPerImage"
               className={controlClass}
@@ -134,30 +141,36 @@ export function SettingsForm({
             >
               {KEYWORD_COUNTS.map((count) => (
                 <option key={count} value={count}>
-                  {count} keywords{count === 50 ? ' (maximum)' : ''}
+                  {count === 50
+                    ? t('settings.keywordsMaxOption', { count })
+                    : t('settings.keywordsOption', { count })}
                 </option>
               ))}
             </select>
           </Field>
 
           <Field
-            label="Title style"
-            hint="Descriptive sentences perform best in search"
+            label={t('settings.titleStyle')}
+            hint={t('settings.titleStyleHint')}
           >
             <select
               name="titleStyle"
               className={controlClass}
               defaultValue={settings.titleStyle}
             >
-              <option value="descriptive">Descriptive sentence</option>
-              <option value="concise">Concise phrase</option>
-              <option value="commercial">Commercial / marketing</option>
+              <option value="descriptive">
+                {t('settings.titleStyleDescriptive')}
+              </option>
+              <option value="concise">{t('settings.titleStyleConcise')}</option>
+              <option value="commercial">
+                {t('settings.titleStyleCommercial')}
+              </option>
             </select>
           </Field>
 
           <Field
-            label="Output languages"
-            hint="English is always produced — Adobe Stock searches in English. Extra languages are added below it."
+            label={t('settings.outputLanguages')}
+            hint={t('settings.outputLanguagesHint')}
           >
             {/* checkbox ที่ disabled ไม่ถูกส่งไปกับฟอร์ม จึงต้องมี hidden คู่กัน */}
             <input type="hidden" name="languages" value={primary} />
@@ -181,15 +194,18 @@ export function SettingsForm({
                     disabled={language.primary}
                     className="size-3.5 accent-primary"
                   />
-                  <span className="font-medium">{language.name}</span>
-                  {language.native !== language.name ? (
+                  <span className="font-medium">
+                    {languageName(language.code)}
+                  </span>
+                  {language.native !== languageName(language.code) ? (
                     <span className="text-subtle-foreground">
                       {language.native}
                     </span>
                   ) : null}
                   {language.primary ? (
-                    <span className="ml-auto font-mono text-[10px] tracking-wide text-subtle-foreground uppercase">
-                      always on
+                    // ฟอนต์ mono ไม่มีอักษรไทย/ลาว ใช้เฉพาะตอนเป็นภาษาอังกฤษ
+                    <span className="ml-auto text-[10px] text-subtle-foreground uppercase [&:lang(en)]:font-mono [&:lang(en)]:tracking-wide">
+                      {t('settings.alwaysOn')}
                     </span>
                   ) : null}
                 </label>
@@ -198,16 +214,16 @@ export function SettingsForm({
           </Field>
 
           <Field
-            label="Blocked terms"
-            hint="Removed from every result, on top of the built-in trademark list"
+            label={t('settings.blockedTerms')}
+            hint={t('settings.blockedTermsHint')}
           >
             <textarea
               name="blockedTerms"
               rows={3}
               className={`${controlClass} resize-y`}
               defaultValue={settings.blockedTerms}
-              placeholder="e.g. my-studio, client-name"
-              aria-label="Blocked terms"
+              placeholder={t('settings.blockedTermsPlaceholder')}
+              aria-label={t('settings.blockedTerms')}
             />
           </Field>
         </div>

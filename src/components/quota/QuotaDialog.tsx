@@ -1,7 +1,9 @@
 import { LoaderCircle, X } from 'lucide-react'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/Button'
+import { intlLocale } from '@/config/i18n'
 import { contactOptions } from '@/config/contact'
 import { useAsync } from '@/hooks/useAsync'
 import { fetchContact } from '@/lib/api/contact'
@@ -10,7 +12,7 @@ import { useUsageStore } from '@/store/usage'
 function formatResetDate(iso: string): string {
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return ''
-  return new Intl.DateTimeFormat('th-TH', {
+  return new Intl.DateTimeFormat(intlLocale(), {
     day: 'numeric',
     month: 'long',
   }).format(date)
@@ -29,6 +31,7 @@ export function QuotaDialog() {
 }
 
 function QuotaDialogContent() {
+  const { t } = useTranslation()
   const usage = useUsageStore((state) => state.usage)
   const dismiss = useUsageStore((state) => state.dismissLimitReached)
 
@@ -62,7 +65,7 @@ function QuotaDialogContent() {
         <button
           type="button"
           onClick={dismiss}
-          aria-label="ปิด"
+          aria-label={t('common.close')}
           autoFocus
           className="absolute top-3 right-3 flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
@@ -73,35 +76,40 @@ function QuotaDialogContent() {
           id="quota-dialog-title"
           className="pr-8 text-[15px] font-semibold tracking-tight"
         >
-          โควตาเดือนนี้หมดแล้ว
+          {t('quota.title')}
         </h2>
 
         <p className="mt-1.5 text-[13px] text-muted-foreground">
           {usage && limit !== null ? (
             <>
-              ใช้ไป {usage.used.toLocaleString('th-TH')} จาก{' '}
-              {limit.toLocaleString('th-TH')} รูปของแพ็กเกจ {usage.userType}
-              {usage.resetsAt ? ` — รีเซ็ตวันที่ ${formatResetDate(usage.resetsAt)}` : ''}
+              {t('quota.usage', {
+                used: usage.used.toLocaleString(intlLocale()),
+                limit: limit.toLocaleString(intlLocale()),
+                plan: usage.userType,
+              })}
+              {usage.resetsAt
+                ? t('quota.resets', { date: formatResetDate(usage.resetsAt) })
+                : ''}
             </>
           ) : (
-            'สร้างต่อไม่ได้เพราะใช้ครบตามแพ็กเกจของเดือนนี้แล้ว'
+            t('quota.noUsage')
           )}
         </p>
 
         <p className="mt-3 text-[13px]">
-          อยากใช้ต่อเลยไหม ทักมาทางช่องทางด้านล่าง เราจะอัปเกรดแพ็กเกจให้
+          {t('quota.upgrade')}
         </p>
 
         <div className="mt-4">
           {contact.loading ? (
             <div className="flex items-center justify-center gap-2 rounded-lg border border-border px-4 py-6 text-[13px] text-muted-foreground">
               <LoaderCircle className="size-4 animate-spin" aria-hidden />
-              กำลังโหลดช่องทางติดต่อ
+              {t('quota.loadingContacts')}
             </div>
           ) : options.length === 0 ? (
             /* ยังไม่ได้ตั้งช่องทางไว้ หรืออ่านไม่สำเร็จ — ต้องไม่ปล่อยให้กล่องว่างเปล่า */
             <p className="rounded-lg border border-dashed border-border-strong px-4 py-5 text-center text-[12.5px] text-muted-foreground">
-              ยังไม่ได้ตั้งช่องทางติดต่อไว้ กรุณาลองใหม่อีกครั้งภายหลัง
+              {t('quota.noContacts')}
             </p>
           ) : (
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -131,7 +139,7 @@ function QuotaDialogContent() {
         </div>
 
         <Button variant="ghost" className="mt-4 w-full" onClick={dismiss}>
-          ไว้ทีหลัง
+          {t('quota.later')}
         </Button>
       </div>
     </div>

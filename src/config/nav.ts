@@ -6,31 +6,35 @@ import {
   WandSparkles,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import type { ParseKeys } from 'i18next'
+
+import { APP_PATH } from '@/config/site'
 
 export type NavItem = {
-  label: string
+  /** key ของข้อความใน config/messages — แปลตอน render จะได้เปลี่ยนตามภาษาทันที */
+  labelKey: ParseKeys
   /** path ต้องตรงกับที่ประกาศไว้ใน routes/router.tsx */
   to: string
   icon: LucideIcon
 }
 
 export type NavSection = {
-  label: string
+  labelKey: ParseKeys
   items: NavItem[]
 }
 
 export const NAV_SECTIONS: NavSection[] = [
   {
-    label: 'Workspace',
+    labelKey: 'nav.workspace',
     items: [
-      { label: 'Generate', to: '/', icon: WandSparkles },
-      { label: 'Library', to: '/library', icon: Images },
-      { label: 'History', to: '/history', icon: History },
-      { label: 'Exports', to: '/exports', icon: FileSpreadsheet },
+      { labelKey: 'nav.generate', to: APP_PATH, icon: WandSparkles },
+      { labelKey: 'nav.library', to: `${APP_PATH}/library`, icon: Images },
+      { labelKey: 'nav.history', to: `${APP_PATH}/history`, icon: History },
+      { labelKey: 'nav.exports', to: `${APP_PATH}/exports`, icon: FileSpreadsheet },
     ],
   },
   {
-    label: 'Configuration',
-    items: [{ label: 'Platforms', to: '/platforms', icon: Store }],
+    labelKey: 'nav.configuration',
+    items: [{ labelKey: 'nav.platforms', to: `${APP_PATH}/platforms`, icon: Store }],
   },
 ]

@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import { GenerateHeader } from '@/components/header/GenerateHeader'
 import { CONTAINER } from '@/config/container'
 import { cn } from '@/lib/utils'
@@ -11,6 +13,7 @@ import { isPending, useGenerate } from './context'
  * ทำให้เปลี่ยนไปหน้าอื่นแล้วกลับมา งานที่ทำค้างไว้ยังอยู่
  */
 export function GenerateWorkspace() {
+  const { t } = useTranslation()
   const {
     assets,
     notice,
@@ -50,7 +53,7 @@ export function GenerateWorkspace() {
         {assets.length > 0 ? (
           <section className="space-y-4">
             <h2 className="text-[10.5px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-              Results
+              {t('generate.results')}
             </h2>
             {assets.map((asset, index) => (
               <AssetCard

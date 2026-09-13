@@ -1,4 +1,5 @@
 import { LoaderCircle, Trash2, WandSparkles } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { ExportMenu } from '@/components/generate/ExportMenu'
 import { Button } from '@/components/ui/Button'
@@ -24,13 +25,14 @@ export function GenerateHeader({
   onClear: () => void
   onGenerate: () => void
 }) {
+  const { t } = useTranslation()
   const hasAssets = assets.length > 0
   const generating = generatingCount > 0
 
   return (
     <PageHeader
-      title="Generate"
-      description={`Upload up to ${maxAssets} images to generate their titles and descriptions`}
+      title={t('nav.generate')}
+      description={t('generate.description', { max: maxAssets })}
       actions={
         <>
           <Button
@@ -40,7 +42,7 @@ export function GenerateHeader({
             onClick={onClear}
           >
             <Trash2 className="size-3.5" aria-hidden />
-            Clear
+            {t('generate.clear')}
           </Button>
           <ExportMenu assets={assets} />
           <Button
@@ -55,10 +57,10 @@ export function GenerateHeader({
               <WandSparkles className="size-3.5" aria-hidden />
             )}
             {generating
-              ? `Generating ${generatingCount}`
+              ? t('generate.generating', { count: generatingCount })
               : pendingCount > 1
-                ? `Generate ${pendingCount}`
-                : 'Generate'}
+                ? t('generate.generateCount', { count: pendingCount })
+                : t('generate.generate')}
           </Button>
         </>
       }
