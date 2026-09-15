@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { APP_PATH } from '@/config/site'
-import { PageHeader } from '@/components/header/PageHeader'
 import { CONTAINER } from '@/config/container'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
@@ -15,11 +14,16 @@ export function LibraryPage() {
 
   return (
     <>
-      <PageHeader
-        title={t('nav.library')}
-        description={t('library.description')}
-      />
       <div className={cn(CONTAINER.wide, 'py-6')}>
+        <header className="mb-6">
+          <h1 className="text-[15px] leading-tight font-semibold tracking-tight">
+            {t('nav.library')}
+          </h1>
+          <p className="mt-1 text-[12.5px] text-muted-foreground">
+            {t('library.description')}
+          </p>
+        </header>
+
         <EmptyState
           icon={Images}
           title={t('library.emptyTitle')}

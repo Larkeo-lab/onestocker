@@ -21,12 +21,16 @@ type UsageState = {
   failed: boolean
   /** true เมื่อการสร้างถูกปฏิเสธเพราะโควตาหมด — ป๊อปอัปติดต่อจะถูกเปิด */
   limitReached: boolean
+  /** true เมื่อเปิดป๊อปอัปเลือกแพ็กเกจ (ปุ่ม Upgrade บน header หรือปุ่มดูแพ็กเกจในป๊อปอัปเครดิตหมด) */
+  plansOpen: boolean
 
   refresh: () => Promise<void>
   /** เรียกทุกครั้งที่สร้าง metadata สำเร็จหนึ่งรูป */
   markGenerated: () => void
   /** เรียกเมื่อเซิร์ฟเวอร์ตอบ 402 เพราะโควตาหมด */
   reportLimitReached: () => void
+  openPlans: () => void
+  closePlans: () => void
   dismissLimitReached: () => void
 }
 
@@ -35,6 +39,7 @@ export const useUsageStore = create<UsageState>((set, get) => ({
   loading: false,
   failed: false,
   limitReached: false,
+  plansOpen: false,
 
   refresh: async () => {
     set({ loading: true })
@@ -92,6 +97,18 @@ export const useUsageStore = create<UsageState>((set, get) => ({
     // ดึงยอดจริงมาแสดงในป๊อปอัป เผื่อแอดมินเพิ่งลดเพดานลงระหว่างทาง
     void get().refresh()
   },
+
+  /*
+    ปิดป๊อปอัปเครดิตหมดไปพร้อมกัน ถ้าเปิดมาจากปุ่มในป๊อปอัปนั้น
+    ไม่งั้นปิดหน้าแพ็กเกจแล้วจะเจอป๊อปอัปเครดิตหมดค้างอยู่ข้างหลัง
+  */
+  openPlans: () => {
+    set({ plansOpen: true, limitReached: false })
+    // ป้ายแพ็กเกจปัจจุบันต้องเป็นของล่าสุด เผื่อแอดมินเพิ่งเติมให้
+    void get().refresh()
+  },
+
+  closePlans: () => set({ plansOpen: false }),
 
   dismissLimitReached: () => set({ limitReached: false }),
 }))

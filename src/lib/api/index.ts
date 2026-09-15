@@ -15,6 +15,8 @@ export {
 export * from './auth'
 export * from './contact'
 export * from './meta'
+export * from './payments'
+export * from './plans'
 export * from './generate'
 export * from './history'
 export * from './settings'

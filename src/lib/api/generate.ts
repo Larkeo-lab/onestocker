@@ -6,11 +6,15 @@ export type GenerateRequest = {
   /** ตำแหน่งรูปย่อบน R2 ที่อัปเสร็จแล้ว */
   previewKey: string
   filename: string
+  /** เฟรมจากวิดีโอเรียงตามเวลา ไม่ส่งมาแปลว่าเป็นรูป */
+  frameKeys?: string[]
   /** ID ของแพลตฟอร์มที่เลือกไว้ ใช้ตัดคีย์เวิร์ดตาม limit ของแต่ละ platform */
   platformIds: string[]
 }
 
 export type GenerateResponse = {
+  /** แพลตฟอร์มที่เซิร์ฟเวอร์ใช้กฎจริง ได้ general ถ้าส่ง id ที่ไม่รู้จักไป */
+  platform: string
   title: string
   keywords: string[]
   category: string

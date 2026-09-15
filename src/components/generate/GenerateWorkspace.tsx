@@ -32,16 +32,16 @@ export function GenerateWorkspace() {
 
   return (
     <>
-      <GenerateHeader
-        assets={assets}
-        maxAssets={maxAssets}
-        pendingCount={pendingCount}
-        generatingCount={generatingCount}
-        onClear={clear}
-        onGenerate={generate}
-      />
-
       <div className={cn(CONTAINER.wide, 'space-y-6 py-6')}>
+        <GenerateHeader
+          assets={assets}
+          maxAssets={maxAssets}
+          pendingCount={pendingCount}
+          generatingCount={generatingCount}
+          onClear={clear}
+          onGenerate={generate}
+        />
+
         <Dropzone
           count={assets.length}
           maxAssets={maxAssets}

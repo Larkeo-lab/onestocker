@@ -17,6 +17,9 @@
     "network": "Cannot connect to the server",
     "canvasUnsupported": "This browser cannot resize images",
     "imageConvertFailed": "Could not convert the image",
+    "videoUnreadable": "This browser cannot read this video — try an MP4 (H.264) file",
+    "videoTooLong": "Video is longer than {{max}} seconds",
+    "videoFrameFailed": "Could not capture frames from the video",
     "uploadFailed": "Upload failed",
     "uploadCors": "Cannot upload to R2 from {{origin}} — check that this domain is in the bucket CORS policy",
     "uploadForbidden": "Cannot upload to R2 (403) — the link has expired or the key cannot write",
@@ -39,10 +42,16 @@
   },
   "sidebar": {
     "tagline": "Metadata Studio",
-    "usageThisMonth": "Usage this month",
+    "selectPlatform": "Select {{name}} for generate"
+  },
+  "account": {
+    "menu": "Account menu",
+    "creditsTitle": "Used {{used}} of {{limit}} credits",
+    "upgrade": "Upgrade",
+    "credits": "Credits",
     "unlimited": "{{used}} · Unlimited",
-    "resets": "Resets {{date}}",
-    "selectPlatform": "Select {{name}} for generate",
+    "expires": "Expires {{date}}",
+    "freeForever": "Free credits",
     "signOut": "Sign out",
     "devBypassTitle": "Sign-in is bypassed (VITE_AUTH_DEV_BYPASS=true), so there is nothing to sign out of"
   },
@@ -60,7 +69,7 @@
     "home": "Back to home"
   },
   "generate": {
-    "description": "Upload up to {{max}} images to generate their titles and descriptions",
+    "description": "Upload up to {{max}} images or videos to generate their titles and descriptions",
     "clear": "Clear",
     "generate": "Generate",
     "generateCount": "Generate {{count}}",
@@ -68,22 +77,23 @@
     "results": "Results"
   },
   "dropzone": {
-    "count": "<count>{{count}}</count> of {{max}} images",
-    "full": "Batch is full — clear or remove an image to add more",
-    "dropMore": "Drop more images here, or add them from your device",
-    "addImages": "Add images",
+    "count": "<count>{{count}}</count> of {{max}} files",
+    "full": "Batch is full — clear or remove a file to add more",
+    "dropMore": "Drop more images or videos here, or add them from your device",
+    "addImages": "Add files",
     "uploadTitle": "Upload Media",
     "dragOrBrowse": "Drag and drop or <browse>tap to browse</browse>",
     "notSupported": "Not supported yet",
     "soon": "soon",
-    "upTo": "Up to {{max}} images at a time",
-    "chooseImages": "Choose images to upload",
-    "privacy": "Images are resized in your browser — only the small copy is sent for analysis",
+    "upTo": "Up to {{max}} files at a time",
+    "videoLimit": "Videos up to {{seconds}} seconds",
+    "chooseImages": "Choose images or videos to upload",
+    "privacy": "Files are processed in your browser — only small still images are sent for analysis, never the video itself",
     "skipped_one": "Could not add {{count}} file: {{names}}{{rest}} — {{reasons}}",
     "skipped_other": "Could not add {{count}} files: {{names}}{{rest}} — {{reasons}}",
     "skippedRest": " and {{count}} more",
     "unsupportedType": "Unsupported file type",
-    "overLimit": "Over the {{max}} image limit"
+    "overLimit": "Over the {{max}} file limit"
   },
   "asset": {
     "uploading": "Uploading",
@@ -94,11 +104,13 @@
     "title": "Title",
     "keywords": "Keywords",
     "result": "Result",
+    "forPlatform": "for {{platform}}",
+    "platformChanged": "Written for {{from}}. Click Regenerate to fit the rules of {{to}}.",
     "remove": "Remove {{name}}",
     "removeKeyword": "Remove keyword {{keyword}}",
     "copyField": "Copy {{field}}",
     "fieldCopied": "{{field}} copied",
-    "titleRecommended": "Adobe Stock recommends {{max}} characters or fewer",
+    "titleRecommended": "{{platform}} works best with {{max}} characters or fewer",
     "titlePlaceholder": "Not generated yet — click Generate",
     "titleIn": "Title ({{language}})",
     "retry": "Retry",
@@ -174,14 +186,92 @@
     "blockedTermsPlaceholder": "e.g. my-studio, client-name"
   },
   "quota": {
-    "title": "This month's quota is used up",
-    "usage": "Used {{used}} of {{limit}} images on the {{plan}} plan",
-    "resets": " — resets on {{date}}",
-    "noUsage": "You can't generate more because this month's plan allowance is used up",
-    "upgrade": "Want to keep going? Message us through one of the channels below and we will upgrade your plan",
+    "title": "You're out of credits",
+    "freeUsage": "You've used all {{limit}} free credits. Free credits don't reset",
+    "paidUsage": "Used {{used}} of {{limit}} credits on the {{plan}} plan",
+    "expires": " — expires on {{date}}",
+    "noUsage": "You can't generate more because your credits are used up",
+    "upgrade": "Want to keep going? Message us through one of the channels below and we will top up your credits",
     "loadingContacts": "Loading contact channels",
     "noContacts": "No contact channels have been set up yet. Please try again later.",
     "later": "Maybe later"
+  },
+  "plans": {
+    "title": "Choose a plan",
+    "subtitle": "1 credit = titles and keywords for 1 file · Paid plans last 30 days from top-up",
+    "loading": "Loading plans",
+    "empty": "No plans are available yet. Please try again later.",
+    "recommended": "Recommended",
+    "current": "Current plan",
+    "free": "Free",
+    "noPrice": "Contact us",
+    "perPeriod": "/30 days",
+    "creditsFree": "{{credits}} free credits",
+    "creditsFreeNote": "One-time, never resets",
+    "creditsPaid": "{{credits}} credits",
+    "creditsPaidNote": "Valid for 30 days from top-up",
+    "creditsUnlimited": "Unlimited credits",
+    "choose": "Choose {{plan}}",
+    "topUp": "Top up credits",
+    "starter": "Starter plan",
+    "contactTitleUpgrade": "Upgrade to {{plan}}",
+    "contactTitleTopUp": "Top up {{plan}}",
+    "contactBody": "Message us through one of the channels below and tell us you want the {{plan}} plan. We will top up your credits.",
+    "back": "Back to plans",
+    "viewPlans": "See plans"
+  },
+  "checkout": {
+    "title": "Payment",
+    "back": "Back",
+    "description": "Transfer to one of the accounts below, then attach the slip. Our team will check it and top up your credits.",
+    "loading": "Loading payment details",
+    "plan": "{{plan}} plan",
+    "credits": "{{credits}} credits · valid for {{days}} days from approval",
+    "creditsUnlimited": "Unlimited credits · valid for {{days}} days from approval",
+    "stepCurrency": "1. Choose a currency",
+    "currencyLAK": "Kip (LAK)",
+    "currencyUSD": "US dollar (USD)",
+    "amount": "Amount to transfer",
+    "kip": "LAK",
+    "rateNote": "{{price}} × rate {{rate}} kip per dollar, rounded up to the nearest 1,000",
+    "stepAccount": "2. Transfer to an account",
+    "stepAccountHint": "Transfer the amount above to any account, then select the one you used.",
+    "selectAccount": "I transferred to this account",
+    "copy": "Copy",
+    "copied": "Copied",
+    "openQr": "Open full-size QR",
+    "noQr": "No QR code",
+    "stepSlip": "3. Attach your transfer slip",
+    "slipChoose": "Choose slip image",
+    "slipChange": "Change image",
+    "slipHint": "PNG, JPG or WebP, up to {{size}} MB",
+    "slipInvalidType": "Only PNG, JPG and WebP files are supported",
+    "slipTooLarge": "The file must be {{size}} MB or smaller",
+    "submit": "Submit payment",
+    "submitting": "Submitting",
+    "needAccount": "Please select the account you transferred to",
+    "needSlip": "Please attach your slip",
+    "conflict": "The payment details have changed. Please check the amount and account again, then resubmit.",
+    "successTitle": "Payment submitted",
+    "successBody": "Our team will check your slip and top up your credits. Once approved, your credits appear at the top right automatically.",
+    "backToApp": "Back to generating metadata",
+    "pendingTitle": "A payment is waiting for review",
+    "pendingBody": "You already submitted {{amount}} for the {{plan}} plan. You can submit a new payment after our team reviews it.",
+    "noOptions": "Online payment accounts are not available yet. Contact us through the channels below to pay.",
+    "historyTitle": "Recent payments",
+    "statusPending": "Waiting for review",
+    "statusApproved": "Approved",
+    "statusRejected": "Not approved",
+    "rejectReason": "Reason: {{reason}}"
+  },
+  "welcome": {
+    "title": "Welcome to Onestocks",
+    "subtitle": "Your account is ready. Your {{plan}} plan includes",
+    "creditsLabel": "free credits",
+    "unlimited": "Unlimited",
+    "unlimitedLabel": "free credits",
+    "perCredit": "1 credit = titles and keywords for 1 image or video",
+    "start": "Start creating"
   },
   "landing": {
     "seo": {
@@ -193,15 +283,17 @@
       "howItWorks": "How it works",
       "features": "Features",
       "platforms": "Platforms",
+      "pricing": "Pricing",
       "faq": "FAQ"
     },
     "signIn": "Sign in",
     "signUp": "Start free",
+    "signUpCredits": "Sign up free · {{credits}} credits",
     "hero": {
       "badge": "For contributors selling on Adobe Stock and other stock sites",
       "titleLine1": "Titles and keywords",
       "titleLine2": "for stock images with AI",
-      "body": "Upload a batch of images and get titles, keywords and categories that match what is really in each one, then export a CSV and submit it to Adobe Stock right away. No more typing metadata one image at a time.",
+      "body": "Upload a batch of photos or videos and get titles, keywords and categories that match what is really in each file, then export a CSV and submit it to Adobe Stock right away. No more typing metadata one file at a time.",
       "secondaryCta": "See how it works",
       "note": "No credit card required · Sign up with Google"
     },
@@ -215,8 +307,8 @@
       "step": "Step {{step}}",
       "steps": [
         {
-          "title": "Upload images",
-          "body": "Drag and drop many JPG, PNG or WebP files at once. Images are resized in your browser before upload, so your originals never leave your device."
+          "title": "Upload photos or videos",
+          "body": "Drag in JPG, PNG or WebP photos, or videos up to 60 seconds, many at once. Files are prepared in your browser before upload, so your originals never leave your computer."
         },
         {
           "title": "AI writes the metadata",
@@ -262,20 +354,35 @@
       "title": "Works with the stock sites you already sell on",
       "subtitle": "Export a CSV in the Adobe Stock format directly, and set title and keyword length limits to match other platforms."
     },
+    "pricing": {
+      "title": "Choose the plan that fits you",
+      "subtitle": "Start free right away. 1 credit = titles and keywords for 1 file. Paid plans last 30 days from approval.",
+      "note": "Pay by bank transfer in kip or US dollars. Attach your slip and our team will top up your credits.",
+      "error": "Plans can't be loaded right now. Sign up for free to see all plans in the app.",
+      "contact": "Contact us"
+    },
     "faq": {
       "title": "Frequently asked questions",
       "items": [
         {
           "question": "Is it free?",
-          "answer": "You can start for free. The free plan includes a monthly image quota. If you need more, contact us to upgrade your plan."
+          "answer": "Yes. You get free credits as soon as you sign up. 1 credit generates metadata for 1 file. Free credits are one-time and don't reset. Need more? Choose the PLUS, PRO or ULTRA plan in the pricing section."
         },
         {
           "question": "Which file types are supported?",
-          "answer": "JPG, PNG and WebP images. You can upload many images at once."
+          "answer": "JPG, PNG and WebP photos, plus MP4, MOV and WebM videos up to 60 seconds. You can upload many files at once."
         },
         {
           "question": "Are my original images uploaded to your server?",
-          "answer": "No. Images are resized in your browser first, and only the small preview is sent to the AI for analysis. Your full-resolution files never leave your device."
+          "answer": "No. Photos are resized in your browser, and for videos a few still frames are extracted in your browser. Only those small images are sent to the AI, so your full-resolution files never leave your computer."
+        },
+        {
+          "question": "How do I pay?",
+          "answer": "Choose a plan, then transfer to one of the bank accounts shown on the payment page, in kip or US dollars. Attach your transfer slip on the same page, and our team will verify it, top up your credits and let you know by email."
+        },
+        {
+          "question": "Do paid credits expire?",
+          "answer": "Paid plan credits are valid for 30 days from approval. If you top up during the period, the credits are added together and the 30 days start again."
         },
         {
           "question": "How do I use the CSV with Adobe Stock?",

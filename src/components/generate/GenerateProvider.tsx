@@ -6,16 +6,20 @@ import {
   UPLOAD_CONCURRENCY,
 } from '@/config/site'
 import i18n from '@/config/i18n'
-import { useAsync } from '@/hooks/useAsync'
+import { useMeta } from '@/hooks/queries'
 import {
   ApiError,
-  fetchMeta,
   generateMetadata,
   requestUploadUrls,
   uploadToR2,
+  type PresignedUpload,
+  type UploadPurpose,
 } from '@/lib/api'
 import { runWithConcurrency } from '@/lib/concurrency'
 import { processImage } from '@/lib/image'
+import { queryClient, queryKeys } from '@/lib/query'
+import { mediaKindOf } from '@/lib/media'
+import { processVideo } from '@/lib/video'
 import type { Asset } from '@/types/asset'
 
 import { GenerateContext, isPending } from './context'
@@ -33,11 +37,17 @@ import { useUsageStore } from '@/store/usage'
  * blob ที่ผูกกับหน้าเว็บนั้น ๆ ไม่ได้เก็บลงดิสก์
  */
 
-/** ชนิดไฟล์ที่เบราว์เซอร์ย่อได้ ต้นฉบับไม่ถูกอัปขึ้นคลาวด์ */
-const ACCEPTED_INPUT_TYPES = ['image/jpeg', 'image/png', 'image/webp']
-
-/** ย่อรูปพร้อมกันกี่รูป มากกว่านี้แท็บจะหน่วงตอนอัปทีเดียวหลายสิบรูป */
+/** ย่อรูปหรือดึงเฟรมพร้อมกันกี่ไฟล์ มากกว่านี้แท็บจะหน่วงตอนอัปทีเดียวหลายสิบไฟล์ */
 const PROCESS_CONCURRENCY = 3
+
+/** ไฟล์หนึ่งชิ้นที่ต้องอัปขึ้น R2 */
+type PendingUpload = { blob: Blob; purpose: UploadPurpose }
+
+/**
+ * ไฟล์ที่ประมวลผลเสร็จแล้ว รออัป
+ * uploads[0] เป็นรูปย่อเสมอ ที่เหลือคือเฟรมของวิดีโอเรียงตามเวลา
+ */
+type Processed = { id: string; filename: string; uploads: PendingUpload[] }
 
 /** ชื่อไฟล์ที่แสดงในข้อความเตือน เกินกว่านี้ย่อเป็น "และอีก N ไฟล์" */
 const NAMES_IN_NOTICE = 3
@@ -73,7 +83,7 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
   const activePlatformId = usePlatformsStore((s) => s.activePlatformId)
 
   // เพดานจำนวนรูปเซิร์ฟเวอร์เป็นเจ้าของ ระหว่างรอคำตอบใช้ค่าสำรองไปก่อน
-  const meta = useAsync(fetchMeta)
+  const meta = useMeta()
   const maxAssets = meta.data?.maxAssets ?? FALLBACK_MAX_ASSETS
 
   /**
@@ -139,15 +149,16 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
   const addFiles = useCallback(
     async (files: File[]) => {
       const limit = maxAssetsRef.current
-      const accepted = files.filter((file) =>
-        ACCEPTED_INPUT_TYPES.includes(file.type),
-      )
+      const accepted = files.flatMap((file) => {
+        const kind = mediaKindOf(file)
+        return kind ? [{ file, kind }] : []
+      })
 
       // นับจาก ref ไม่ใช่ state เผื่อมีชุดก่อนหน้ายังอัปไม่เสร็จ
       const room = Math.max(0, limit - assetsRef.current.length)
-      const queued = accepted.slice(0, room).map((file) => ({
+      const queued = accepted.slice(0, room).map((item) => ({
         id: crypto.randomUUID(),
-        file,
+        ...item,
       }))
 
       /**
@@ -157,12 +168,12 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
        */
       const skipped: Skipped[] = [
         ...files
-          .filter((file) => !ACCEPTED_INPUT_TYPES.includes(file.type))
+          .filter((file) => mediaKindOf(file) === null)
           .map((file) => ({
             filename: file.name,
             reason: i18n.t('dropzone.unsupportedType'),
           })),
-        ...accepted.slice(room).map((file) => ({
+        ...accepted.slice(room).map(({ file }) => ({
           filename: file.name,
           reason: i18n.t('dropzone.overLimit', { max: limit }),
         })),
@@ -174,14 +185,22 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
         setNotice(describeSkipped(skipped))
       }
 
+      /** แสดงรูปย่อในการ์ดทันทีที่ได้ ไม่ต้องรอให้อัปเสร็จ */
+      const showPreview = (id: string, blob: Blob, details: Partial<Asset>) => {
+        const previewUrl = URL.createObjectURL(blob)
+        objectUrls.current.set(id, previewUrl)
+        patch(id, { previewUrl, ...details })
+      }
+
       setNotice(describeSkipped(skipped))
       if (queued.length === 0) return
 
       commit((prev) => [
         ...prev,
-        ...queued.map(({ id, file }) => ({
+        ...queued.map(({ id, file, kind }) => ({
           id,
           filename: file.name,
+          kind,
           previewUrl: '',
           width: 0,
           height: 0,
@@ -193,32 +212,45 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
         })),
       ])
 
-      // ย่อรูปก่อน เพื่อให้รู้ชนิดและขนาดจริงของไฟล์ที่จะอัปตอนขอลิงก์
-      const processed: {
-        id: string
-        filename: string
-        blob: Blob
-        contentType: string
-      }[] = []
+      /**
+       * ย่อรูปหรือดึงเฟรมจากวิดีโอก่อน เพื่อให้รู้ว่ามีกี่ไฟล์ที่ต้องอัปตอนขอลิงก์
+       * ลำดับใน processed ไม่ตรงกับ queued เพราะไฟล์ไหนเสร็จก่อนก็เข้าก่อน
+       */
+      const processed: Processed[] = []
 
       await runWithConcurrency(
-        queued.map(({ id, file }) => async () => {
+        queued.map(({ id, file, kind }) => async () => {
           try {
-            const image = await processImage(file)
-            const previewUrl = URL.createObjectURL(image.blob)
-            objectUrls.current.set(id, previewUrl)
-
-            patch(id, {
-              previewUrl,
-              width: image.width,
-              height: image.height,
-            })
-            processed.push({
-              id,
-              filename: file.name,
-              blob: image.blob,
-              contentType: image.contentType,
-            })
+            if (kind === 'video') {
+              const video = await processVideo(file)
+              showPreview(id, video.preview, {
+                width: video.width,
+                height: video.height,
+                duration: video.duration,
+              })
+              processed.push({
+                id,
+                filename: file.name,
+                uploads: [
+                  { blob: video.preview, purpose: 'preview' },
+                  ...video.frames.map((blob) => ({
+                    blob,
+                    purpose: 'frame' as const,
+                  })),
+                ],
+              })
+            } else {
+              const image = await processImage(file)
+              showPreview(id, image.blob, {
+                width: image.width,
+                height: image.height,
+              })
+              processed.push({
+                id,
+                filename: file.name,
+                uploads: [{ blob: image.blob, purpose: 'preview' }],
+              })
+            }
           } catch (error) {
             drop(id, file.name, errorMessage(error))
           }
@@ -228,14 +260,18 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
 
       if (processed.length === 0) return
 
-      // ขอลิงก์ทั้งชุดในคำขอเดียว เพดานต่อรอบยังต่ำกว่าที่ API รับไหว
-      let uploads
+      // เพดานต่อคำขอของ /uploads/presign คือค่าเดียวกับ maxAssets ที่ /meta บอกมา
+      let links: PresignedUpload[]
       try {
-        uploads = await requestUploadUrls(
-          processed.map((item) => ({
-            filename: item.filename,
-            contentType: item.contentType,
-          })),
+        links = await requestUploadUrls(
+          processed.flatMap((item) =>
+            item.uploads.map(({ blob, purpose }) => ({
+              filename: item.filename,
+              contentType: blob.type,
+              purpose,
+            })),
+          ),
+          limit,
         )
       } catch (error) {
         for (const item of processed) {
@@ -244,17 +280,34 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      // เซิร์ฟเวอร์ตอบลิงก์เรียงตามลำดับที่ส่งไป จับคู่ด้วยตำแหน่ง
+      // เซิร์ฟเวอร์ตอบลิงก์เรียงตามลำดับที่ส่งไป ตัดแบ่งคืนให้แต่ละไฟล์ตามจำนวนที่ขอ
+      let cursor = 0
+      const assigned = processed.map((item) => {
+        const itemLinks = links.slice(cursor, cursor + item.uploads.length)
+        cursor += item.uploads.length
+        return { item, itemLinks }
+      })
+
       await runWithConcurrency(
-        processed.map((item, index) => async () => {
-          const upload = uploads[index]
-          if (!upload) {
+        assigned.map(({ item, itemLinks }) => async () => {
+          if (itemLinks.length !== item.uploads.length) {
             drop(item.id, item.filename, i18n.t('errors.noUploadUrl'))
             return
           }
           try {
-            await uploadToR2(upload.url, item.blob)
-            patch(item.id, { status: 'ready', previewKey: upload.key })
+            // ไฟล์ไหนอัปไม่ผ่านสักชิ้น ถือว่าทั้งรูปหรือทั้งคลิปไม่สำเร็จ
+            await Promise.all(
+              item.uploads.map((upload, index) =>
+                uploadToR2(itemLinks[index].url, upload.blob),
+              ),
+            )
+            const [preview, ...frames] = itemLinks
+            patch(item.id, {
+              status: 'ready',
+              previewKey: preview.key,
+              frameKeys:
+                frames.length > 0 ? frames.map((frame) => frame.key) : undefined,
+            })
           } catch (error) {
             drop(item.id, item.filename, errorMessage(error))
           }
@@ -282,10 +335,13 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
         const result = await generateMetadata({
           previewKey: asset.previewKey,
           filename: asset.filename,
+          frameKeys: asset.frameKeys,
           platformIds: [activePlatformId],
         })
         patch(id, {
           status: 'generated',
+          // เซิร์ฟเวอร์รุ่นก่อนหน้าไม่ตอบช่องนี้ ถือว่าใช้แพลตฟอร์มที่ส่งไป
+          platformId: result.platform || activePlatformId,
           title: result.title,
           keywords: result.keywords,
           category: result.category,
@@ -296,6 +352,9 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
         // นับเฉพาะรูปที่สำเร็จ ให้ตรงกับฝั่งเซิร์ฟเวอร์ซึ่งคืนโควตาให้
         // ทุกครั้งที่สร้างไม่สำเร็จ
         useUsageStore.getState().markGenerated()
+
+        // หน้า History ที่ cache ไว้ยังไม่มีรายการนี้ ให้โหลดใหม่ตอนเปิดครั้งถัดไป
+        void queryClient.invalidateQueries({ queryKey: queryKeys.history.all })
       } catch (error) {
         patch(id, { status: 'error', error: errorMessage(error) })
 

@@ -17,13 +17,25 @@ const landingLanguage = landingLanguageFromPath(window.location.pathname)
 if (landingLanguage) {
   const landing = document.getElementById('landing')
 
-  // มีเนื้อหาอยู่แล้วแปลว่ามาจากไฟล์ที่ build ไว้ ไม่ต้องทำอะไร
+  // มีเนื้อหาอยู่แล้วแปลว่ามาจากไฟล์ที่ build ไว้ ไม่ต้องวาดใหม่
   // ว่างอยู่แปลว่ากำลังรัน vite dev ซึ่งไม่ได้ prerender จึงวาดด้วย React แทน
-  if (landing && !landing.firstElementChild) {
-    void import('./landing/mount').then(({ mountLanding }) =>
-      mountLanding(landing, landingLanguage),
-    )
-  }
+  const mounted =
+    landing && !landing.firstElementChild
+      ? import('./landing/mount').then(({ mountLanding }) =>
+          mountLanding(landing, landingLanguage),
+        )
+      : Promise.resolve()
+
+  // เติมจำนวนเครดิตฟรีลงปุ่มสมัครหลังหน้าวาดเสร็จ — แยกเป็นก้อนเล็กของตัวเอง
+  // คนที่เปิดหน้าแรกจะได้ไม่ต้องโหลดอะไรเพิ่มนอกจากคำขอเดียวนี้
+  void mounted
+    .then(() => import('./landing/freeCredits'))
+    .then(({ showFreeCredits }) => showFreeCredits())
+
+  // การ์ดแพ็กเกจในส่วนราคา ดึงจากเซิร์ฟเวอร์เหมือนกัน
+  void mounted
+    .then(() => import('./landing/plans'))
+    .then(({ showPlans }) => showPlans())
 } else {
   void import('./bootstrap')
 }

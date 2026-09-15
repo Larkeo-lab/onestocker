@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { AxiosInstance, AxiosRequestConfig } from 'axios'
 
-import i18n from '@/config/i18n'
+import i18n, { currentLanguage } from '@/config/i18n'
 import { env } from '@/lib/env'
 
 /**
@@ -56,6 +56,11 @@ export function setAuthTokenGetter(getter: TokenGetter): void {
 api.interceptors.request.use(async (config) => {
   const token = await getToken()
   if (token) config.headers.Authorization = `Bearer ${token}`
+  /*
+    บอกภาษาที่เลือกในแอปกับทุกคำขอ เซิร์ฟเวอร์เก็บไว้ตอน /auth/me ใช้ส่งอีเมลให้ตรงภาษา
+    ชื่อ header ต้องตรงกับ auth.LanguageHeader และอยู่ใน AllowHeaders ของ CORS ฝั่ง Go
+  */
+  config.headers['X-App-Language'] = currentLanguage()
   return config
 })
 

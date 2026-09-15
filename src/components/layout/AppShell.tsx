@@ -1,16 +1,19 @@
 import { useEffect, useRef } from 'react'
-import { PanelLeft } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
 import { Outlet } from 'react-router-dom'
 
+import i18n from '@/config/i18n'
+
+import { PlansDialog } from '@/components/plans/PlansDialog'
 import { QuotaDialog } from '@/components/quota/QuotaDialog'
-import { siteConfig } from '@/config/site'
-import { useAsync } from '@/hooks/useAsync'
-import { fetchMe, fetchMeta } from '@/lib/api'
+import { WelcomeDialog } from '@/components/welcome/WelcomeDialog'
+import { useMe } from '@/hooks/queries'
+import { saveLanguage } from '@/lib/api'
+import { isAppLanguage } from '@/config/languages'
 import { usePlatformsStore } from '@/store/platforms'
 import { useUiStore } from '@/store/ui'
 import { useUsageStore } from '@/store/usage'
 
+import { AppHeader } from './AppHeader'
 import { Sidebar } from './Sidebar'
 
 /**
@@ -30,14 +33,25 @@ const FOCUS_REFRESH_GAP = 10_000
  * โปรไฟล์กับค่าระบบโหลดที่นี่ที่เดียว ทุกหน้าจึงไม่ต้องยิงซ้ำ
  */
 export function AppShell() {
-  const { t } = useTranslation()
   const sidebarOpen = useUiStore((state) => state.sidebarOpen)
   const setSidebarOpen = useUiStore((state) => state.setSidebarOpen)
   const loadPlatformsFromBackend = usePlatformsStore((s) => s.loadFromBackend)
   const refreshUsage = useUsageStore((state) => state.refresh)
 
-  const profile = useAsync(fetchMe)
-  const meta = useAsync(fetchMeta)
+  const profile = useMe()
+
+  /*
+    บันทึกภาษาทุกครั้งที่ผู้ใช้เปลี่ยนในแอป อีเมลแจ้งเตือน (เช่นอนุมัติการชำระ) จะได้ตรงภาษา
+    ตอนเปิดแอปไม่ต้องยิง /auth/me ส่งภาษามากับ header อยู่แล้ว
+    บันทึกไม่สำเร็จไม่ต้องบอกผู้ใช้ ครั้งหน้าที่เปิดแอปจะถูกบันทึกผ่าน /auth/me เอง
+  */
+  useEffect(() => {
+    function onLanguageChanged(language: string) {
+      if (isAppLanguage(language)) void saveLanguage(language).catch(() => {})
+    }
+    i18n.on('languageChanged', onLanguageChanged)
+    return () => i18n.off('languageChanged', onLanguageChanged)
+  }, [])
 
   useEffect(() => {
     loadPlatformsFromBackend()
@@ -53,7 +67,7 @@ export function AppShell() {
     ถามยอดใหม่ทุกครั้งที่ผู้ใช้กลับมาที่แท็บนี้
 
     ระดับแพ็กเกจกับเพดานเปลี่ยนได้จากหน้า admin โดยที่ผู้ใช้ไม่ได้ทำอะไรเลย
-    ถ้าดึงแค่ตอนเปิดแอป ตัวเลขบน sidebar จะค้างเป็นของเก่าจนกว่าจะรีเฟรชทั้งหน้า
+    ถ้าดึงแค่ตอนเปิดแอป ตัวเลขเครดิตบน header จะค้างเป็นของเก่าจนกว่าจะรีเฟรชทั้งหน้า
     ทั้งที่แอดมินอัปเกรดให้ไปแล้ว — จังหวะกลับมาที่แท็บคือจังหวะที่ผู้ใช้จะมองจริง
   */
   const lastFocusRefresh = useRef(0)
@@ -76,37 +90,13 @@ export function AppShell() {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        profile={profile.data ?? null}
-        meta={meta.data ?? null}
-        offline={Boolean(profile.error || meta.error)}
-      />
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Mobile bar */}
-        <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-4 lg:hidden">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            aria-label={t('nav.openNavigation')}
-            className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <PanelLeft className="size-4" aria-hidden />
-          </button>
-          <span className="flex items-center gap-2">
-            <img
-              src="/logo/mark.png"
-              alt=""
-              width={24}
-              height={24}
-              className="size-6 shrink-0 object-contain"
-            />
-            <span className="text-[13px] font-semibold tracking-tight">
-              {siteConfig.name}
-            </span>
-          </span>
-        </div>
+        <AppHeader
+          profile={profile.data ?? null}
+          onOpenNavigation={() => setSidebarOpen(true)}
+        />
 
         <main className="flex min-w-0 flex-1 flex-col">
           <Outlet />
@@ -115,6 +105,8 @@ export function AppShell() {
 
       {/* อยู่นอก main เพราะเป็นชั้นลอยทับทั้งหน้าจอ ไม่ใช่เนื้อหาของหน้าไหน */}
       <QuotaDialog />
+      <PlansDialog />
+      <WelcomeDialog show={profile.data?.showWelcome === true} />
     </div>
   )
 }

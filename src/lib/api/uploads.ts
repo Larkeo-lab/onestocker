@@ -4,9 +4,16 @@ import i18n from '@/config/i18n'
 
 import { apiPost } from './client'
 
+/**
+ * preview = รูปย่อที่อยู่ถาวรให้หน้า History
+ * frame = เฟรมจากวิดีโอ ใช้แค่ตอนส่งให้โมเดลดู เก็บแยกโฟลเดอร์ให้ลบเองได้
+ */
+export type UploadPurpose = 'preview' | 'frame'
+
 export type PresignItem = {
   filename: string
   contentType: string
+  purpose: UploadPurpose
 }
 
 export type PresignedUpload = {
@@ -16,15 +23,28 @@ export type PresignedUpload = {
   url: string
 }
 
-/** ขอ presigned URL ทีเดียวหลายไฟล์ ประหยัดกว่ายิงทีละรูป */
+/**
+ * ขอ presigned URL ทีเดียวหลายไฟล์ ประหยัดกว่ายิงทีละรูป
+ *
+ * แบ่งเป็นหลายคำขอเมื่อเกินเพดานต่อคำขอของเซิร์ฟเวอร์ — วิดีโอหนึ่งคลิป
+ * ใช้หลายลิงก์ (รูปย่อหนึ่ง + ทุกเฟรม) ใส่วิดีโอไม่กี่คลิปก็เกินเพดานแล้ว
+ * ผลลัพธ์ยังเรียงตามลำดับที่ส่งไปเหมือนเดิม
+ */
 export async function requestUploadUrls(
   items: PresignItem[],
+  maxPerRequest: number,
 ): Promise<PresignedUpload[]> {
-  const result = await apiPost<{ uploads: PresignedUpload[] }>(
-    '/uploads/presign',
-    { items },
-  )
-  return result.uploads
+  // กันเพดานเป็น 0 ไม่งั้นลูปไม่ขยับและค้างตลอดไป
+  const size = Math.max(1, maxPerRequest)
+  const uploads: PresignedUpload[] = []
+  for (let start = 0; start < items.length; start += size) {
+    const result = await apiPost<{ uploads: PresignedUpload[] }>(
+      '/uploads/presign',
+      { items: items.slice(start, start + size) },
+    )
+    uploads.push(...result.uploads)
+  }
+  return uploads
 }
 
 /**

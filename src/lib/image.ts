@@ -30,28 +30,49 @@ function fitWithin(width: number, height: number, maxEdge: number) {
   };
 }
 
+/**
+ * ย่อภาพจากแหล่งใดก็ได้ที่วาดลง canvas ได้ แล้วแปลงเป็น webp
+ *
+ * ใช้ร่วมกันทั้งรูปและเฟรมจากวิดีโอ ขนาดต้นทางต้องส่งมาเอง
+ * เพราะ <video> บอกขนาดผ่าน videoWidth ไม่ใช่ width เหมือนรูป
+ */
+export async function drawToBlob(
+  source: CanvasImageSource,
+  sourceWidth: number,
+  sourceHeight: number,
+  maxEdge: number,
+): Promise<Blob> {
+  const target = fitWithin(sourceWidth, sourceHeight, maxEdge);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = target.width;
+  canvas.height = target.height;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error(i18n.t("errors.canvasUnsupported"));
+  }
+  context.drawImage(source, 0, 0, target.width, target.height);
+
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, PREVIEW_CONTENT_TYPE, PREVIEW_QUALITY),
+  );
+  if (!blob) {
+    throw new Error(i18n.t("errors.imageConvertFailed"));
+  }
+  return blob;
+}
+
 export async function processImage(file: File): Promise<ProcessedImage> {
   const bitmap = await createImageBitmap(file);
 
   try {
-    const target = fitWithin(bitmap.width, bitmap.height, PREVIEW_MAX_EDGE);
-
-    const canvas = document.createElement("canvas");
-    canvas.width = target.width;
-    canvas.height = target.height;
-
-    const context = canvas.getContext("2d");
-    if (!context) {
-      throw new Error(i18n.t("errors.canvasUnsupported"));
-    }
-    context.drawImage(bitmap, 0, 0, target.width, target.height);
-
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, PREVIEW_CONTENT_TYPE, PREVIEW_QUALITY),
+    const blob = await drawToBlob(
+      bitmap,
+      bitmap.width,
+      bitmap.height,
+      PREVIEW_MAX_EDGE,
     );
-    if (!blob) {
-      throw new Error(i18n.t("errors.imageConvertFailed"));
-    }
 
     return {
       blob,

@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
 import { CONTAINER } from '@/config/container'
-import { PageHeader } from '@/components/header/PageHeader'
 import { SettingsForm } from '@/components/settings/SettingsForm'
 import { ErrorState, Loading } from '@/components/ui/AsyncState'
 import { useAsync } from '@/hooks/useAsync'
@@ -19,13 +18,16 @@ export function SettingsPage() {
 
   return (
     <>
-      <PageHeader
-        width="narrow"
-        title={t('nav.settings')}
-        description={t('settings.description')}
-      />
-
       <div className={cn(CONTAINER.narrow, 'space-y-5 py-6')}>
+        <header>
+          <h1 className="text-[15px] leading-tight font-semibold tracking-tight">
+            {t('nav.settings')}
+          </h1>
+          <p className="mt-1 text-[12.5px] text-muted-foreground">
+            {t('settings.description')}
+          </p>
+        </header>
+
         {loading ? <Loading /> : null}
 
         {!loading && error ? (

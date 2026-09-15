@@ -1,108 +1,18 @@
-import { SignOutButton } from "@clerk/clerk-react";
-import { Check, LogOut, Settings, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 
-import { LanguageSelect } from "@/components/ui/LanguageSelect";
-import { intlLocale } from "@/config/i18n";
 import { NAV_SECTIONS } from "@/config/nav";
 import { platformName } from "@/config/platforms";
-import { env } from "@/lib/env";
 import { APP_PATH, siteConfig } from "@/config/site";
-import type { Meta } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { fullName, type Profile } from "@/types/profile";
 import { getSelectedPlatforms, usePlatformsStore } from "@/store/platforms";
-import { useUsageStore } from "@/store/usage";
 
 type PanelProps = {
   onNavigate?: () => void;
-  profile: Profile | null;
-  meta: Meta | null;
-  /** true = ต่อ API ไม่ติด แสดงสถานะให้รู้แทนที่จะโชว์ช่องว่าง */
-  offline: boolean;
 };
 
-/** เปอร์เซ็นต์ที่ทำให้แถบเปลี่ยนเป็นสีเตือน */
-const USAGE_WARN_PERCENT = 80;
-
-function formatResetDate(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat(intlLocale(), {
-    day: "numeric",
-    month: "short",
-  }).format(date);
-}
-
-/**
- * ยอดที่ใช้ไปในเดือนนี้ เทียบกับเพดานของระดับผู้ใช้
- *
- * อ่านจาก store ตรง ๆ ไม่รับเป็น prop เพราะตัวที่ทำให้ตัวเลขขยับคือ
- * GenerateProvider ซึ่งอยู่คนละกิ่งของต้นไม้ ไม่ได้เป็นพ่อของ sidebar
- *
- * ยังไม่รู้ยอดก็แสดงขีดไว้ ดีกว่าโชว์ 0 ให้เข้าใจผิดว่ายังไม่ได้ใช้เลย
- */
-function UsageCard() {
-  const { t } = useTranslation();
-  const usage = useUsageStore((state) => state.usage);
-
-  const limit = usage?.monthlyLimit ?? null;
-  const percent =
-    usage && limit !== null && limit > 0
-      ? Math.min(100, Math.round((usage.used / limit) * 100))
-      : null;
-
-  const exhausted = usage !== null && limit !== null && usage.used >= limit;
-
-  const countTone = !usage
-    ? "text-subtle-foreground"
-    : exhausted
-      ? "text-danger"
-      : percent !== null && percent >= USAGE_WARN_PERCENT
-        ? "text-warning"
-        : "text-subtle-foreground";
-
-  return (
-    <div className="rounded-lg border border-border bg-card p-3">
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-[11px] font-medium text-muted-foreground">
-          {t("sidebar.usageThisMonth")}
-        </span>
-        <span className={cn("shrink-0 font-mono text-[11px]", countTone)}>
-          {!usage ? "—" : limit === null ? t("sidebar.unlimited", { used: usage.used }) : `${usage.used}/${limit}`}
-        </span>
-      </div>
-
-      <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
-        {percent !== null ? (
-          <div
-            className={cn(
-              "h-full rounded-full transition-[width] duration-300",
-              exhausted
-                ? "bg-danger"
-                : percent >= USAGE_WARN_PERCENT
-                  ? "bg-warning"
-                  : "bg-primary",
-            )}
-            style={{ width: `${percent}%` }}
-          />
-        ) : null}
-      </div>
-
-      {usage ? (
-        <p className="mt-1.5 truncate text-[10px] text-subtle-foreground">
-          {usage.userType}
-          {usage.resetsAt
-            ? ` · ${t("sidebar.resets", { date: formatResetDate(usage.resetsAt) })}`
-            : ""}
-        </p>
-      ) : null}
-    </div>
-  );
-}
-
-function SidebarPanel({ onNavigate, profile }: PanelProps) {
+function SidebarPanel({ onNavigate }: PanelProps) {
   const { t } = useTranslation();
   const selectedIds = usePlatformsStore((s) => s.selectedIds);
   const activePlatformId = usePlatformsStore((s) => s.activePlatformId);
@@ -227,75 +137,6 @@ function SidebarPanel({ onNavigate, profile }: PanelProps) {
         ))}
       </nav>
 
-      {/* Footer */}
-      <div className="shrink-0 space-y-3 border-t border-border p-3">
-        {/* เมนู Settings ย้ายมาวางชิดล่าง */}
-        <NavLink
-          to={`${APP_PATH}/settings`}
-          onClick={onNavigate}
-          className={({ isActive }) =>
-            cn(
-              "flex h-9 items-center gap-2.5 rounded-md px-2 text-[13px] transition-colors",
-              isActive
-                ? "bg-primary-soft font-medium text-primary"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
-            )
-          }
-        >
-          <Settings className="size-4 shrink-0" aria-hidden />
-          <span>{t("nav.settings")}</span>
-        </NavLink>
-
-        <LanguageSelect />
-
-        <UsageCard />
-
-        {/* บัญชีผู้ใช้ — ปุ่มขวาคือออกจากระบบ ต่อกับ Clerk ทีหลัง */}
-        <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2.5">
-          {profile?.profileUrl ? (
-            <img
-              src={profile.profileUrl}
-              alt=""
-              className="size-7 shrink-0 rounded-full border border-border object-cover"
-            />
-          ) : (
-            <span className="size-7 shrink-0 rounded-full bg-muted" />
-          )}
-
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-[12px] leading-tight font-medium">
-              {fullName(profile) || "—"}
-            </span>
-            <span className="block truncate text-[11px] leading-tight text-subtle-foreground">
-              {profile?.email ?? ""}
-            </span>
-          </span>
-
-          {/*
-            ตอนข้ามล็อกอินไม่มี session อยู่จริง จึงไม่มีอะไรให้ออก
-            แสดงป้ายไว้แทน ไม่งั้นจะงงว่าทำไมกดออกจากระบบไม่ได้
-          */}
-          {env.authDevBypass ? (
-            <span
-              title={t("sidebar.devBypassTitle")}
-              className="shrink-0 rounded border border-warning/40 bg-warning-soft px-1.5 py-0.5 font-mono text-[9px] tracking-wide text-warning uppercase"
-            >
-              dev
-            </span>
-          ) : (
-            <SignOutButton>
-              <button
-                type="button"
-                aria-label={t("sidebar.signOut")}
-                title={t("sidebar.signOut")}
-                className="flex size-7 shrink-0 items-center justify-center rounded-md text-subtle-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <LogOut className="size-3.5" aria-hidden />
-              </button>
-            </SignOutButton>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
@@ -303,15 +144,9 @@ function SidebarPanel({ onNavigate, profile }: PanelProps) {
 export function Sidebar({
   open,
   onClose,
-  profile,
-  meta,
-  offline,
 }: {
   open: boolean;
   onClose: () => void;
-  profile: Profile | null;
-  meta: Meta | null;
-  offline: boolean;
 }) {
   const { t } = useTranslation();
 
@@ -319,7 +154,7 @@ export function Sidebar({
     <>
       {/* Desktop */}
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 border-r border-border lg:block">
-        <SidebarPanel profile={profile} meta={meta} offline={offline} />
+        <SidebarPanel />
       </aside>
 
       {/* Mobile drawer */}
@@ -350,12 +185,7 @@ export function Sidebar({
           >
             <X className="size-4" aria-hidden />
           </button>
-          <SidebarPanel
-            onNavigate={onClose}
-            profile={profile}
-            meta={meta}
-            offline={offline}
-          />
+          <SidebarPanel onNavigate={onClose} />
         </div>
       </div>
     </>

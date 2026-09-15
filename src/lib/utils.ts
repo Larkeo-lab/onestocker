@@ -1,13 +1,11 @@
-type ClassValue = string | number | null | false | undefined
-
 /**
- * รวม className แบบข้าม falsy value
- * ถ้าต้องการให้แก้ class ที่ชนกันของ Tailwind ด้วย ให้ติดตั้ง
- * `clsx` + `tailwind-merge` แล้วเปลี่ยนมาใช้ `twMerge(clsx(inputs))`
+ * รวม className และแก้ class ของ Tailwind ที่ชนกัน (ตัวหลังชนะ)
+ * เช่น cn("px-2", "px-4") → "px-4"
+ *
+ * ใช้แพ็กเกจ cn ของ shadcn (ทำงานแบบ clsx + tailwind-merge)
+ * component ที่ติดตั้งผ่าน shadcn CLI ก็ import ตัวนี้
  */
-export function cn(...classes: ClassValue[]): string {
-  return classes.filter(Boolean).join(' ')
-}
+export { cn } from "cn"
 
 /** 2026-09-10T08:30:00Z -> "10 ก.ย. 2026 15:30" */
 export function formatDateTime(value: string): string {

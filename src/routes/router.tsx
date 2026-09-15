@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { APP_PATH } from '@/config/site'
+import { CheckoutPage } from '@/pages/CheckoutPage'
 import { ExportsPage } from '@/pages/ExportsPage'
 import { GeneratePage } from '@/pages/GeneratePage'
 import { HistoryPage } from '@/pages/HistoryPage'
@@ -33,6 +34,7 @@ export const router = createBrowserRouter([
       { path: 'exports', element: <ExportsPage /> },
       { path: 'platforms', element: <PlatformsPage /> },
       { path: 'settings', element: <SettingsPage /> },
+      { path: 'checkout/:plan', element: <CheckoutPage /> },
     ],
   },
   {

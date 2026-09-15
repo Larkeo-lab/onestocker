@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { APP_PATH } from '@/config/site'
-import { PageHeader } from '@/components/header/PageHeader'
 import { HistoryCard } from '@/components/history/HistoryCard'
 import { ErrorState, Loading } from '@/components/ui/AsyncState'
 import { Button } from '@/components/ui/Button'
@@ -44,12 +43,16 @@ export function HistoryPage() {
 
   return (
     <>
-      <PageHeader
-        title={t('nav.history')}
-        description={t('history.description')}
-      />
-
       <div className={cn(CONTAINER.wide, 'py-6')}>
+        <header className="mb-6">
+          <h1 className="text-[15px] leading-tight font-semibold tracking-tight">
+            {t('nav.history')}
+          </h1>
+          <p className="mt-1 text-[12.5px] text-muted-foreground">
+            {t('history.description')}
+          </p>
+        </header>
+
         {!history.loading && !history.error ? (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3">
             <p className="text-[13px] font-semibold tracking-tight">

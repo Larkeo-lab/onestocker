@@ -2,7 +2,6 @@ import { Info } from 'lucide-react'
 import { Trans, useTranslation } from 'react-i18next'
 
 import { PlatformPicker } from '@/components/generate/PlatformPicker'
-import { PageHeader } from '@/components/header/PageHeader'
 import { CONTAINER } from '@/config/container'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { cn } from '@/lib/utils'
@@ -13,11 +12,16 @@ export function PlatformsPage() {
 
   return (
     <>
-      <PageHeader
-        title={t('nav.platforms')}
-        description={t('platforms.description')}
-      />
       <div className={cn(CONTAINER.wide, 'space-y-5 py-6')}>
+        <header>
+          <h1 className="text-[15px] leading-tight font-semibold tracking-tight">
+            {t('nav.platforms')}
+          </h1>
+          <p className="mt-1 text-[12.5px] text-muted-foreground">
+            {t('platforms.description')}
+          </p>
+        </header>
+
         <div className="flex gap-3 rounded-lg border border-border bg-muted px-4 py-3">
           <Info
             className="mt-0.5 size-4 shrink-0 text-muted-foreground"

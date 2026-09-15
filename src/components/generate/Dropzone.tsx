@@ -13,7 +13,9 @@ import { useRef, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/Button'
+import { ACCEPT_ATTRIBUTE } from '@/lib/media'
 import { cn } from '@/lib/utils'
+import { VIDEO_MAX_SECONDS } from '@/lib/video'
 
 type Format = {
   icon: LucideIcon
@@ -25,11 +27,8 @@ type Format = {
 const FORMATS: Format[] = [
   { icon: ImageIcon, label: 'JPG, PNG, WEBP', supported: true },
   { icon: Shapes, label: 'SVG, EPS', supported: false },
-  { icon: Video, label: 'MP4, MOV', supported: false },
+  { icon: Video, label: 'MP4, MOV', supported: true },
 ]
-
-/** ชนิดไฟล์ที่เบราว์เซอร์ย่อได้ */
-const ACCEPT_ATTRIBUTE = 'image/jpeg,image/png,image/webp'
 
 export function Dropzone({
   count,
@@ -159,6 +158,8 @@ export function Dropzone({
 
             <p className="mt-7 text-[13px] text-subtle-foreground">
               {t('dropzone.upTo', { max: maxAssets })}
+              {' · '}
+              {t('dropzone.videoLimit', { seconds: VIDEO_MAX_SECONDS })}
             </p>
           </>
         )}

@@ -31,6 +31,11 @@ export type Profile = {
   profileUrl: string | null
   /** ระดับแพ็กเกจ เจ้าของค่านี้คือฐานข้อมูลฝั่งเรา ไม่ใช่ Clerk */
   userType: UserType
+  /**
+   * true = ผู้ใช้ใหม่ที่ยังไม่เคยปิด popup ต้อนรับ
+   * เป็น optional เพราะเซิร์ฟเวอร์รุ่นก่อนหน้าไม่ได้ส่งมา — ไม่มีค่าถือว่าไม่แสดง
+   */
+  showWelcome?: boolean
 }
 
 export function fullName(profile: Profile | null): string {

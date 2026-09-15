@@ -1,5 +1,5 @@
 import { adobeCategoryNumber } from '@/config/adobe'
-import { PLATFORMS, type Platform } from '@/config/platforms'
+import { findPlatform, type Platform } from '@/config/platforms'
 import type { Asset } from '@/types/asset'
 
 import { downloadCsv, toCsv } from './csv'
@@ -78,14 +78,6 @@ export const EXPORT_FORMATS: ExportFormat[] = [
 
 export function findFormat(id: string): ExportFormat {
   return EXPORT_FORMATS.find((format) => format.id === id) ?? EXPORT_FORMATS[0]
-}
-
-function findPlatform(id: string): Platform {
-  return (
-    PLATFORMS.find((platform) => platform.id === id) ??
-    PLATFORMS.find((platform) => platform.id === 'general') ??
-    PLATFORMS[0]
-  )
 }
 
 /** 2026-09-11 */

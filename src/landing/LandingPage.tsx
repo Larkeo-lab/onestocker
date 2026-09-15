@@ -37,6 +37,20 @@ import { APP_PATH, siteConfig } from '@/config/site'
 const SIGN_UP_PATH = "/sign-up";
 const SIGN_IN_PATH = "/sign-in";
 
+/** ตัวคั่นตำแหน่งตัวเลขในข้อความปุ่มสมัคร ไม่มีทางซ้ำกับคำในไฟล์ภาษา */
+const CREDITS_TOKEN = "@@credits@@";
+
+/** ตัวคั่นชื่อแพ็กเกจในข้อความปุ่ม "เลือก PRO" landing/plans.ts แทนด้วยชื่อจริง */
+const PLAN_TOKEN = "@@plan@@";
+
+/**
+ * JSON ที่ฝังใน <script> ต้องไม่มี "</script>" โผล่ในเนื้อหา
+ * แทน < ด้วยรหัส unicode ซึ่ง JSON อ่านได้เหมือนเดิม
+ */
+function jsonForScript(value: unknown): string {
+  return JSON.stringify(value).replaceAll("<", "\\u003c");
+}
+
 const FEATURE_ICONS: LucideIcon[] = [
   Type,
   ListOrdered,
@@ -87,6 +101,13 @@ export function LandingPage({ language }: { language: AppLanguage }) {
     (platform) => platform.id !== "general",
   );
 
+  // แบ่งข้อความปุ่มสมัครออกเป็นก่อนและหลังตัวเลข ตัวเลขจริงถูกเติมตอนเปิดหน้า
+  // ลำดับคำต่างกันในแต่ละภาษา จึงใช้ตัวคั่นแทนการต่อคำเอง
+  const [signUpCreditsBefore, signUpCreditsAfter = ""] = t(
+    "landing.signUpCredits",
+    { credits: CREDITS_TOKEN },
+  ).split(CREDITS_TOKEN);
+
   const steps = t("landing.howItWorks.steps", { returnObjects: true as const });
   const features = t("landing.features.items", { returnObjects: true as const });
   const faqs = t("landing.faq.items", { returnObjects: true as const });
@@ -134,6 +155,12 @@ export function LandingPage({ language }: { language: AppLanguage }) {
               className="transition-colors duration-200 hover:text-foreground"
             >
               {t("landing.nav.platforms")}
+            </a>
+            <a
+              href="#pricing"
+              className="transition-colors duration-200 hover:text-foreground"
+            >
+              {t("landing.nav.pricing")}
             </a>
             <a
               href="#faq"
@@ -186,7 +213,21 @@ export function LandingPage({ language }: { language: AppLanguage }) {
               href={SIGN_UP_PATH}
               className={`${primaryButton} h-9 px-3.5 text-[13px]`}
             >
-              {t("landing.signUp")}
+              {/* จอแคบใช้คำสั้นเสมอ ข้อความยาวจะดันโลโก้กับตัวเลือกภาษาจนล้นจอ */}
+              <span className="sm:hidden">{t("landing.signUp")}</span>
+              {/*
+                จำนวนเครดิตมาจากหน้า admin เติมตอนเปิดหน้าโดย landing/freeCredits.ts
+                ยังไม่รู้ตัวเลข (หรืออ่านไม่ได้) แสดงคำสำรองไว้ก่อน ไม่เขียนตัวเลขลง HTML
+                เพราะหน้านี้ build ไว้ล่วงหน้า ตัวเลขจะเก่าทันทีที่แอดมินแก้
+              */}
+              <span className="hidden sm:inline" data-free-credits-fallback>
+                {t("landing.signUp")}
+              </span>
+              <span className="hidden sm:inline" data-free-credits-label hidden>
+                {signUpCreditsBefore}
+                <span data-free-credits-count />
+                {signUpCreditsAfter}
+              </span>
             </a>
           </div>
         </div>
@@ -416,6 +457,83 @@ export function LandingPage({ language }: { language: AppLanguage }) {
                 </li>
               ))}
             </ul>
+          </div>
+        </section>
+
+        {/* ── ราคา ───────────────────────────────────────────────
+            แพ็กเกจมาจากหน้า admin จึงเขียนลง HTML ตอน build ไม่ได้ (ราคาจะเก่าทันทีที่แอดมินแก้)
+            หน้านี้วาดการ์ดว่างไว้ก่อน แล้ว landing/plans.ts ดึงแพ็กเกจจริงมาวางแทนตอนเปิดหน้า
+            ข้อความของการ์ดฝังเป็น JSON ไว้ในหน้า จะได้ไม่ต้องโหลด i18next ทั้งก้อนมาด้วย */}
+        <section
+          id="pricing"
+          data-plans
+          className="scroll-mt-14 border-b border-border bg-sidebar"
+        >
+          <div className={`${container} py-16 md:py-20`}>
+            <h2 className="text-[26px] font-semibold tracking-tight">
+              {t("landing.pricing.title")}
+            </h2>
+            <p className="mt-2 max-w-2xl text-[14.5px] text-muted-foreground">
+              {t("landing.pricing.subtitle")}
+            </p>
+
+            <ul
+              data-plans-list
+              aria-busy="true"
+              className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+            >
+              {[0, 1, 2, 3].map((index) => (
+                <li
+                  key={index}
+                  aria-hidden
+                  className="h-96 animate-pulse rounded-xl border border-border bg-card"
+                />
+              ))}
+            </ul>
+
+            <p
+              data-plans-error
+              hidden
+              className="mt-10 rounded-xl border border-dashed border-border-strong bg-card px-6 py-10 text-center text-[13.5px] text-muted-foreground"
+            >
+              {t("landing.pricing.error")}{" "}
+              <a
+                href={SIGN_UP_PATH}
+                className="font-medium text-primary hover:underline"
+              >
+                {t("landing.signUp")}
+              </a>
+            </p>
+
+            <p className="mt-6 text-[12.5px] text-subtle-foreground">
+              {t("landing.pricing.note")}
+            </p>
+
+            <script
+              type="application/json"
+              data-plans-text
+              dangerouslySetInnerHTML={{
+                __html: jsonForScript({
+                  language,
+                  locale: APP_LANGUAGES[language].intlLocale,
+                  signUpPath: SIGN_UP_PATH,
+                  checkoutPath: `${APP_PATH}/checkout/`,
+                  appPath: APP_PATH,
+                  recommended: t("plans.recommended"),
+                  free: t("plans.free"),
+                  noPrice: t("plans.noPrice"),
+                  perPeriod: t("plans.perPeriod"),
+                  creditsFree: t("plans.creditsFree", { credits: CREDITS_TOKEN }),
+                  creditsPaid: t("plans.creditsPaid", { credits: CREDITS_TOKEN }),
+                  creditsUnlimited: t("plans.creditsUnlimited"),
+                  startFree: t("landing.signUp"),
+                  choose: t("plans.choose", { plan: PLAN_TOKEN }),
+                  contact: t("landing.pricing.contact"),
+                  creditsToken: CREDITS_TOKEN,
+                  planToken: PLAN_TOKEN,
+                }),
+              }}
+            />
           </div>
         </section>
 

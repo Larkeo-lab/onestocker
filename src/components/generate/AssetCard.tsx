@@ -8,6 +8,7 @@ import {
   RefreshCw,
   Trash2,
   TriangleAlert,
+  Video,
   X,
 } from 'lucide-react'
 import { useRef, type ReactNode } from 'react'
@@ -15,30 +16,38 @@ import { useTranslation } from 'react-i18next'
 
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import {
+  findPlatform,
+  platformName,
+  titleRecommended,
+} from '@/config/platforms'
 import { useCopy } from '@/hooks/useCopy'
 import { useLanguageName } from '@/hooks/useLanguageName'
 import { cn } from '@/lib/utils'
-import { formatFileSize, type Asset, type AssetTranslation } from '@/types/asset'
-
-/** ความยาว title ที่ Adobe Stock แนะนำ เกินกว่านี้เตือนแต่ยังส่งได้ */
-const TITLE_RECOMMENDED = 140
-const TITLE_MAX = 200
+import { usePlatformsStore } from '@/store/platforms'
+import {
+  formatDuration,
+  formatFileSize,
+  type Asset,
+  type AssetTranslation,
+} from '@/types/asset'
 
 function FieldLabel({
   label,
   count,
   max,
-  warn,
+  warning,
   action,
 }: {
   label: string
   count: number
   max: number
-  warn?: boolean
+  /** ข้อความเตือนเมื่อยาวเกินที่แนะนำ ไม่ส่งมาแปลว่าไม่ต้องเตือน */
+  warning?: string
   /** ปุ่มท้ายแถว เช่นปุ่มคัดลอกของช่องนี้ */
   action?: ReactNode
 }) {
-  const { t } = useTranslation()
+  const warn = warning !== undefined
 
   return (
     <div className="mb-1.5 flex items-center justify-between gap-3">
@@ -47,11 +56,7 @@ function FieldLabel({
       </span>
       <div className="flex items-center gap-1.5">
         <span
-          title={
-            warn
-              ? t('asset.titleRecommended', { max: TITLE_RECOMMENDED })
-              : undefined
-          }
+          title={warning}
           className={cn(
             'font-mono text-[11px] tabular-nums',
             warn ? 'text-warning' : 'text-subtle-foreground',
@@ -155,10 +160,13 @@ function TranslationBlock({
   translation,
   assetId,
   status,
+  titleMax,
 }: {
   translation: AssetTranslation
   assetId: string
   status: string
+  /** เพดาน title ของแพลตฟอร์มที่ใช้สร้าง ฉบับแปลใช้เพดานเดียวกัน */
+  titleMax: number
 }) {
   const { t } = useTranslation()
   const languageName = useLanguageName()
@@ -181,7 +189,7 @@ function TranslationBlock({
           <FieldLabel
             label={t('asset.title')}
             count={translation.title.length}
-            max={TITLE_MAX}
+            max={titleMax}
             action={<CopyButton text={titleText} label={t('asset.title')} />}
           />
           <textarea
@@ -255,6 +263,18 @@ export function AssetCard({
 
   const translations = asset.translations ?? []
 
+  /**
+   * ตัวนับและเพดานยึดแพลตฟอร์มที่ผลลัพธ์นี้ถูกสร้างตามกฎจริง
+   * ยังไม่ได้สร้างก็ยึดแพลตฟอร์มที่เลือกอยู่ ซึ่งจะถูกใช้ตอนกดสร้าง
+   */
+  const activePlatformId = usePlatformsStore((s) => s.activePlatformId)
+  const platform = findPlatform(asset.platformId ?? activePlatformId)
+  const recommended = titleRecommended(platform)
+  const platformChanged =
+    asset.status === 'generated' &&
+    asset.platformId !== undefined &&
+    asset.platformId !== activePlatformId
+
   /** รวมทุกภาษาไว้ก้อนเดียว ภาษาอังกฤษก่อน แล้วค่อยฉบับแปลตามลำดับที่เลือก */
   const everything = () =>
     [
@@ -277,7 +297,7 @@ export function AssetCard({
       <div className="flex flex-col gap-5 sm:flex-row">
         {/* รูปและข้อมูลไฟล์ของการ์ดใบนี้ */}
         <div className="sm:w-44 sm:shrink-0">
-          <div className="overflow-hidden rounded-lg border border-border bg-muted">
+          <div className="relative overflow-hidden rounded-lg border border-border bg-muted">
             {asset.previewUrl ? (
               <img
                 src={asset.previewUrl}
@@ -287,6 +307,15 @@ export function AssetCard({
             ) : (
               <div className="h-32 w-full animate-pulse bg-muted" />
             )}
+            {/* รูปย่อของวิดีโอเป็นภาพนิ่ง ต้องบอกไว้ ไม่งั้นดูไม่ออกว่าเป็นคลิป */}
+            {asset.kind === 'video' ? (
+              <span className="absolute bottom-1.5 left-1.5 inline-flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10.5px] text-white tabular-nums">
+                <Video className="size-3" aria-hidden />
+                {asset.duration !== undefined
+                  ? formatDuration(asset.duration)
+                  : null}
+              </span>
+            ) : null}
           </div>
 
           <p
@@ -312,6 +341,13 @@ export function AssetCard({
                 #{index}
               </span>{' '}
               {t('asset.result')}
+              {asset.platformId ? (
+                <span className="ml-2 font-normal text-subtle-foreground">
+                  {t('asset.forPlatform', {
+                    platform: platformName(platform, t),
+                  })}
+                </span>
+              ) : null}
               {asset.category ? (
                 <span className="ml-2 font-normal text-subtle-foreground">
                   {asset.category}
@@ -327,6 +363,17 @@ export function AssetCard({
               <Trash2 className="size-3.5" aria-hidden />
             </button>
           </div>
+
+          {/* ผลลัพธ์ไม่เปลี่ยนตามเองเมื่อสลับแพลตฟอร์ม ต้องบอกให้กดสร้างใหม่ */}
+          {platformChanged ? (
+            <p className="mb-4 flex items-start gap-2 rounded-md border border-warning/40 bg-muted px-3 py-2 text-[12.5px] text-warning">
+              <TriangleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+              {t('asset.platformChanged', {
+                from: platformName(platform, t),
+                to: platformName(findPlatform(activePlatformId), t),
+              })}
+            </p>
+          ) : null}
 
           {failed ? (
             <p className="rounded-md border border-danger/40 bg-danger-soft px-3 py-2 text-[12.5px] text-danger">
@@ -350,8 +397,15 @@ export function AssetCard({
                 <FieldLabel
                   label={t('asset.title')}
                   count={asset.title.length}
-                  max={TITLE_MAX}
-                  warn={asset.title.length > TITLE_RECOMMENDED}
+                  max={platform.limits.title}
+                  warning={
+                    asset.title.length > recommended
+                      ? t('asset.titleRecommended', {
+                          max: recommended,
+                          platform: platformName(platform, t),
+                        })
+                      : undefined
+                  }
                   action={<CopyButton text={titleText} label={t('asset.title')} />}
                 />
                 <textarea
@@ -373,7 +427,7 @@ export function AssetCard({
                     </span>
                     <div className="flex items-center gap-1.5">
                       <span className="font-mono text-[11px] text-subtle-foreground tabular-nums">
-                        {asset.keywords.length}/50
+                        {asset.keywords.length}/{platform.limits.keywords}
                       </span>
                       <CopyButton text={keywordsText} label={t('asset.keywords')} />
                     </div>
@@ -404,6 +458,7 @@ export function AssetCard({
                   translation={translation}
                   assetId={asset.id}
                   status={asset.status}
+                  titleMax={platform.limits.title}
                 />
               ))}
             </div>

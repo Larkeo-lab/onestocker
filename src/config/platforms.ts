@@ -1,8 +1,12 @@
 import type { TFunction } from 'i18next'
 
 /**
- * แพลตฟอร์มปลายทางสำหรับ export
- * `limits` คือสเปคที่ใช้ตัด/ตรวจ metadata ตอน export (ยังไม่ผูกกับ logic)
+ * แพลตฟอร์มปลายทาง
+ *
+ * `limits` ต้องตรงกับตาราง platforms ใน server/internal/feature/generate/platform.go
+ * เซิร์ฟเวอร์ใช้ชุดนั้นสั่งโมเดลและตัดผลลัพธ์ตอนสร้าง ส่วนฝั่งนี้ใช้แสดงตัวนับ
+ * บนการ์ดและตัดซ้ำตอน export ถ้าแก้ที่เดียว ตัวนับจะไม่ตรงกับผลลัพธ์จริง
+ *
  * ตัวเลขของ Adobe Stock ยืนยันจาก CSV template ทางการแล้ว
  * ที่เหลือเป็นค่าตั้งต้น ควรตรวจกับเอกสารของแต่ละเจ้าก่อนใช้จริง
  */
@@ -143,6 +147,23 @@ export const PLATFORMS: Platform[] = [
  */
 export function platformName(platform: Platform, t: TFunction): string {
   return platform.id === 'general' ? t('platforms.general') : platform.name
+}
+
+/** หาแพลตฟอร์มจาก id ไม่รู้จักได้ General ตรงกับที่เซิร์ฟเวอร์ทำ */
+export function findPlatform(id: string | undefined): Platform {
+  return (
+    PLATFORMS.find((platform) => platform.id === id) ??
+    PLATFORMS.find((platform) => platform.id === 'general') ??
+    PLATFORMS[0]
+  )
+}
+
+/**
+ * ความยาว title ที่แนะนำ ต้องตรงกับ titleTarget ฝั่งเซิร์ฟเวอร์
+ * Adobe รับได้ 200 แต่แนะนำไม่เกิน 140 แพลตฟอร์มที่เพดานสั้นกว่านั้นใช้เพดานเลย
+ */
+export function titleRecommended(platform: Platform): number {
+  return Math.min(140, platform.limits.title)
 }
 
 /** แพลตฟอร์มที่เลือกไว้ตั้งต้นเมื่อเปิดแอปครั้งแรก */
