@@ -10,7 +10,7 @@ import { queryKeys } from '@/lib/query'
 import { DOWNLOAD_LINK_CLASS, formatBytes } from '@/lib/removeBg'
 import type { BackgroundRemoval } from '@/types/removeBg'
 
-import { FormatChip, ResultPreview } from './ResultPreview'
+import { FormatChip, QualityChip, ResultPreview } from './ResultPreview'
 
 /** ปุ่มยืนยันลบกลับเป็นปุ่มลบธรรมดาเองถ้าไม่กดยืนยันภายในเวลานี้ */
 const CONFIRM_RESET_MS = 4000
@@ -73,7 +73,8 @@ export function ResultCard({ item }: { item: BackgroundRemoval }) {
           {' · '}
           {date}
         </p>
-        <div>
+        <div className="flex flex-wrap gap-1">
+          <QualityChip quality={item.quality} />
           <FormatChip format={item.format} />
         </div>
 

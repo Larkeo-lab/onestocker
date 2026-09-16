@@ -14,7 +14,6 @@ import {
   type HistoryQuery,
   type RemoveBgQuery,
 } from '@/lib/api'
-import type { CreditFeature } from '@/types/creditCost'
 import type { Checkout, Payment } from '@/types/payment'
 import type { UserType } from '@/types/profile'
 import { ADMIN_MANAGED_STALE_MS, SIGNED_URL_STALE_MS, queryKeys } from '@/lib/query'
@@ -61,15 +60,6 @@ export function useCreditCosts() {
     staleTime: ADMIN_MANAGED_STALE_MS,
     refetchOnWindowFocus: true,
   })
-}
-
-/**
- * งานนี้เปิดให้ใช้อยู่ไหม ระหว่างยังโหลดไม่เสร็จหรือโหลดไม่สำเร็จถือว่าเปิด
- * ปกติงานเปิดอยู่ ซ่อนไว้ก่อนแล้วค่อยโผล่จะทำให้เมนูกระพริบทุกครั้งที่เปิดแอป
- * ถ้าปิดจริงแล้วยังกดเข้าไปได้ เซิร์ฟเวอร์ปฏิเสธตอนตัดเครดิตอยู่แล้ว
- */
-export function useFeatureEnabled(feature: CreditFeature): boolean {
-  return useCreditCosts().data?.enabled[feature] ?? true
 }
 
 /** แพ็กเกจทุกระดับ ใช้ในป๊อปอัปอัปเกรด แอดมินแก้ราคาและรายละเอียดได้ */

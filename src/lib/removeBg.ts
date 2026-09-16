@@ -1,4 +1,6 @@
 import { intlLocale } from '@/config/i18n'
+import type { CreditCosts } from '@/types/creditCost'
+import { QUALITY_FEATURE, type RemoveBgQuality } from '@/types/removeBg'
 
 /** ต้องตรงกับ MaxUploadBytes ใน server/internal/feature/removebg/validation.go */
 export const MAX_UPLOAD_MB = 40
@@ -51,3 +53,8 @@ export const CHECKERBOARD_STYLE = {
   backgroundSize: '16px 16px',
   backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0',
 } as const
+
+/** ระดับคุณภาพที่แอดมินเปิดอยู่ เรียงจากประหยัดไปละเอียด ตัวแรกคือค่าที่เลือกไว้ให้ก่อน */
+export function enabledQualities(costs: CreditCosts): RemoveBgQuality[] {
+  return (['standard', 'hd'] as const).filter((quality) => costs.enabled[QUALITY_FEATURE[quality]])
+}

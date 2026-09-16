@@ -174,7 +174,12 @@
     "startHint_one": "Uses {{count}} credit",
     "startHint_other": "Uses {{count}} credits",
     "costPerImage_one": "{{count}} credit per image",
-    "costPerImage_other": "{{count}} credits per image"
+    "costPerImage_other": "{{count}} credits per image",
+    "qualityLabel": "Quality",
+    "qualityStandard": "Standard",
+    "qualityStandardHint": "Uses fewer credits. Best for products and objects with clear edges",
+    "qualityHd": "HD · Fine edges",
+    "qualityHdHint": "Sharper edges on hair, fur and see-through objects"
   },
   "feature": {
     "disabledTitle": "Temporarily unavailable",
@@ -271,7 +276,8 @@
     "viewPlans": "See plans",
     "costsLabel": "Credits per use",
     "costGenerate": "keywords: {{count}} per file",
-    "costRemoveBg": "background removal: {{count}} per image"
+    "costRemoveBg": "HD background removal: {{count}} per image",
+    "costRemoveBgStandard": "standard background removal: {{count}} per image"
   },
   "checkout": {
     "title": "Payment",

@@ -174,7 +174,12 @@
     "startHint_one": "ໃຊ້ {{count}} ເຄຣດິດ",
     "startHint_other": "ໃຊ້ {{count}} ເຄຣດິດ",
     "costPerImage_one": "{{count}} ເຄຣດິດຕໍ່ຮູບ",
-    "costPerImage_other": "{{count}} ເຄຣດິດຕໍ່ຮູບ"
+    "costPerImage_other": "{{count}} ເຄຣດິດຕໍ່ຮູບ",
+    "qualityLabel": "ລະດັບຄຸນນະພາບ",
+    "qualityStandard": "ມາດຕະຖານ",
+    "qualityStandardHint": "ປະຢັດເຄຣດິດ ເໝາະກັບສິນຄ້າ ແລະ ວັດຖຸທີ່ຂອບຊັດ",
+    "qualityHd": "HD · ຂອບລະອຽດ",
+    "qualityHdHint": "ຂອບຜົມ ຂົນສັດ ແລະ ວັດຖຸໂປ່ງໃສຄົມກວ່າ"
   },
   "feature": {
     "disabledTitle": "ປິດໃຫ້ບໍລິການຊົ່ວຄາວ",
@@ -271,7 +276,8 @@
     "viewPlans": "ເບິ່ງແພັກເກັດ",
     "costsLabel": "ເຄຣດິດທີ່ໃຊ້",
     "costGenerate": "ສ້າງ keyword {{count}} ຕໍ່ໄຟລ໌",
-    "costRemoveBg": "ລຶບພື້ນຫຼັງ {{count}} ຕໍ່ຮູບ"
+    "costRemoveBg": "ລຶບພື້ນຫຼັງ HD {{count}} ຕໍ່ຮູບ",
+    "costRemoveBgStandard": "ລຶບພື້ນຫຼັງມາດຕະຖານ {{count}} ຕໍ່ຮູບ"
   },
   "checkout": {
     "title": "ຊຳລະເງິນ",

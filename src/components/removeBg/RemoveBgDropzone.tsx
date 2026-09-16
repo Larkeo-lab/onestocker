@@ -14,12 +14,9 @@ import { cn } from '@/lib/utils'
  */
 export function RemoveBgDropzone({
   compact,
-  cost,
   onFiles,
 }: {
   compact: boolean
-  /** เครดิตต่อรูปที่แอดมินตั้ง undefined = ยังโหลดไม่เสร็จ ไม่แสดงดีกว่าแสดงเลขผิด */
-  cost: number | undefined
   onFiles: (files: File[]) => void
 }) {
   const { t } = useTranslation()
@@ -27,8 +24,8 @@ export function RemoveBgDropzone({
   const inputRef = useRef<HTMLInputElement>(null)
 
   const openPicker = () => inputRef.current?.click()
-  const sizeHint = t('removeBg.dropHint', { size: MAX_UPLOAD_MB })
-  const hint = cost === undefined ? sizeHint : `${sizeHint} · ${t('removeBg.costPerImage', { count: cost })}`
+  // เครดิตต่อรูปต่างกันตามระดับคุณภาพ แสดงไว้ที่ตัวเลือกระดับหลังอัปรูปแล้ว
+  const hint = t('removeBg.dropHint', { size: MAX_UPLOAD_MB })
 
   return (
     <div

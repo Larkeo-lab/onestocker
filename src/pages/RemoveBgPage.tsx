@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { FormatPicker } from '@/components/removeBg/FormatPicker'
+import { QualityPicker } from '@/components/removeBg/QualityPicker'
 import { JobCard } from '@/components/removeBg/JobCard'
 import { RemoveBgDropzone } from '@/components/removeBg/RemoveBgDropzone'
 import { Button } from '@/components/ui/Button'
@@ -11,14 +12,16 @@ import { CONTAINER } from '@/config/container'
 import { APP_PATH } from '@/config/site'
 import { useCreditCosts } from '@/hooks/queries'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import { enabledQualities } from '@/lib/removeBg'
 import { cn } from '@/lib/utils'
 import { isAwaitingStart, isUploadPending, useRemoveBgStore } from '@/store/removeBg'
-import type { RemoveBgFormat } from '@/types/removeBg'
+import { QUALITY_FEATURE, type RemoveBgFormat, type RemoveBgQuality } from '@/types/removeBg'
 
 /**
  * หน้าลบพื้นหลัง (/app/remove-bg)
  *
- * ทำสองจังหวะ: วางรูป → รูปอัปขึ้นก่อน (ยังไม่ใช้เครดิต) → เลือกรูปแบบ → กดลบพื้นหลัง (ใช้เครดิตต่อรูปตามที่แอดมินตั้ง)
+ * ทำสองจังหวะ: วางรูป → รูปอัปขึ้นก่อน (ยังไม่ใช้เครดิต) → เลือกระดับคุณภาพและรูปแบบ → กดลบพื้นหลัง
+ * (ใช้เครดิตต่อรูปตามระดับที่เลือก แอดมินตั้งราคาและเปิด/ปิดแต่ละระดับได้)
  * รายการในหน้านี้เป็นของรอบนี้เท่านั้น ผลลัพธ์ทั้งหมดเก็บถาวรอยู่ในหน้าคลังรูป
  */
 export function RemoveBgPage() {
@@ -26,9 +29,17 @@ export function RemoveBgPage() {
   useDocumentTitle(t('nav.remove-bg'))
 
   const [format, setFormat] = useState<RemoveBgFormat>('png')
+  const [preferredQuality, setQuality] = useState<RemoveBgQuality>('standard')
   const [skipped, setSkipped] = useState<string[]>([])
 
-  const cost = useCreditCosts().data?.removeBg
+  /*
+    ระดับที่เลือกได้คือระดับที่แอดมินเปิดอยู่เท่านั้น
+    ระดับที่เคยเลือกไว้ถูกปิดไประหว่างเปิดหน้าค้าง ใช้ระดับแรกที่ยังเปิดแทน ไม่ต้องให้ลูกค้ากดเลือกใหม่
+  */
+  const costs = useCreditCosts().data
+  const qualities = costs ? enabledQualities(costs) : []
+  const quality = qualities.includes(preferredQuality) ? preferredQuality : qualities[0]
+  const cost = costs && quality ? costs[QUALITY_FEATURE[quality]] : undefined
   const jobs = useRemoveBgStore((state) => state.jobs)
   const addFiles = useRemoveBgStore((state) => state.addFiles)
   const start = useRemoveBgStore((state) => state.start)
@@ -46,11 +57,7 @@ export function RemoveBgPage() {
       </header>
 
       <div className="space-y-3">
-        <RemoveBgDropzone
-          compact={jobs.length > 0}
-          cost={cost}
-          onFiles={(files) => setSkipped(addFiles(files))}
-        />
+        <RemoveBgDropzone compact={jobs.length > 0} onFiles={(files) => setSkipped(addFiles(files))} />
 
         {skipped.length > 0 ? (
           <div className="flex items-start gap-2 rounded-lg border border-warning/40 bg-warning-soft px-3 py-2.5">
@@ -81,6 +88,7 @@ export function RemoveBgPage() {
             รูปที่สั่งไปแล้วไม่เปลี่ยนตาม อยากได้อีกแบบให้เพิ่มรูปเดิมเข้ามาใหม่
           */}
           <section className="space-y-4 rounded-xl border border-border bg-card p-4">
+            {costs && quality ? <QualityPicker costs={costs} value={quality} onChange={setQuality} /> : null}
             <FormatPicker value={format} onChange={setFormat} />
 
             <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
@@ -89,7 +97,11 @@ export function RemoveBgPage() {
                   {t('removeBg.startHint', { count: awaitingCount * cost })}
                 </p>
               ) : null}
-              <Button variant="primary" onClick={() => start(format)} disabled={awaitingCount === 0}>
+              <Button
+                variant="primary"
+                onClick={() => quality && start(format, quality)}
+                disabled={awaitingCount === 0 || !quality}
+              >
                 <Eraser className="size-4" aria-hidden />
                 {awaitingCount > 0
                   ? t('removeBg.start', { count: awaitingCount })

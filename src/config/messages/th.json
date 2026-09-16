@@ -174,7 +174,12 @@
     "startHint_one": "ใช้ {{count}} เครดิต",
     "startHint_other": "ใช้ {{count}} เครดิต",
     "costPerImage_one": "{{count}} เครดิตต่อรูป",
-    "costPerImage_other": "{{count}} เครดิตต่อรูป"
+    "costPerImage_other": "{{count}} เครดิตต่อรูป",
+    "qualityLabel": "ระดับคุณภาพ",
+    "qualityStandard": "มาตรฐาน",
+    "qualityStandardHint": "ประหยัดเครดิต เหมาะกับสินค้าและวัตถุที่ขอบชัด",
+    "qualityHd": "HD · ขอบละเอียด",
+    "qualityHdHint": "ขอบผม ขนสัตว์ และวัตถุโปร่งแสงคมกว่า"
   },
   "feature": {
     "disabledTitle": "ปิดให้บริการชั่วคราว",
@@ -271,7 +276,8 @@
     "viewPlans": "ดูแพ็กเกจ",
     "costsLabel": "เครดิตที่ใช้",
     "costGenerate": "สร้าง keyword {{count}} ต่อไฟล์",
-    "costRemoveBg": "ลบพื้นหลัง {{count}} ต่อรูป"
+    "costRemoveBg": "ลบพื้นหลัง HD {{count}} ต่อรูป",
+    "costRemoveBgStandard": "ลบพื้นหลังมาตรฐาน {{count}} ต่อรูป"
   },
   "checkout": {
     "title": "ชำระเงิน",

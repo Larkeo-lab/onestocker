@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { CHECKERBOARD_STYLE } from '@/lib/removeBg'
-import type { RemoveBgFormat } from '@/types/removeBg'
+import type { RemoveBgFormat, RemoveBgQuality } from '@/types/removeBg'
 
 /**
  * กรอบรูปด้านบนของการ์ด ใช้ทั้งรายการที่กำลังทำและในคลังรูป
@@ -37,6 +37,22 @@ export function FormatChip({ format }: { format: RemoveBgFormat }) {
   return (
     <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-[10.5px] text-muted-foreground">
       {format.toUpperCase()} · {format === 'png' ? t('removeBg.transparent') : t('removeBg.whiteBackground')}
+    </span>
+  )
+}
+
+/** ป้ายระดับคุณภาพ HD มีสีให้เห็นต่างจากมาตรฐานทันที */
+export function QualityChip({ quality }: { quality: RemoveBgQuality }) {
+  const { t } = useTranslation()
+  return (
+    <span
+      className={
+        quality === 'hd'
+          ? 'shrink-0 rounded-full border border-primary/30 bg-primary-soft px-2 py-0.5 text-[10.5px] font-medium text-primary'
+          : 'shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-[10.5px] text-muted-foreground'
+      }
+    >
+      {quality === 'hd' ? 'HD' : t('removeBg.qualityStandard')}
     </span>
   )
 }

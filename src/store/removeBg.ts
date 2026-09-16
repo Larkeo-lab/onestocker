@@ -17,7 +17,7 @@ import {
   REMOVE_BG_UPLOAD_CONCURRENCY,
 } from '@/lib/removeBg'
 import { useUsageStore } from '@/store/usage'
-import type { BackgroundRemoval, RemoveBgFormat } from '@/types/removeBg'
+import { QUALITY_FEATURE, type BackgroundRemoval, type RemoveBgFormat, type RemoveBgQuality } from '@/types/removeBg'
 
 /*
   ขั้นตอนของรูปหนึ่งใบ ทำสองจังหวะตามที่ผู้ใช้กด
@@ -44,6 +44,8 @@ export type RemoveBgJob = {
   sourceUrl: string
   /** null = ยังไม่ได้กดลบพื้นหลัง ได้ค่าตอนกดตามตัวเลือกบนหน้าในตอนนั้น */
   format: RemoveBgFormat | null
+  /** ได้ค่าพร้อม format ตอนกดลบพื้นหลัง */
+  quality: RemoveBgQuality | null
   status: RemoveBgJobStatus
   /** 0–100 ระหว่างอัปโหลด */
   progress: number
@@ -60,8 +62,8 @@ type RemoveBgState = {
   jobs: RemoveBgJob[]
   /** เพิ่มรูปแล้วเริ่มอัปทันที คืนข้อความของไฟล์ที่ถูกข้าม (ชนิดไม่รองรับ ใหญ่เกิน) */
   addFiles: (files: File[]) => string[]
-  /** ลบพื้นหลังทุกรูปที่ยังไม่ได้สั่ง ด้วยรูปแบบที่เลือก */
-  start: (format: RemoveBgFormat) => void
+  /** ลบพื้นหลังทุกรูปที่ยังไม่ได้สั่ง ด้วยรูปแบบและระดับคุณภาพที่เลือก */
+  start: (format: RemoveBgFormat, quality: RemoveBgQuality) => void
   retry: (id: string) => void
   dismiss: (id: string) => void
   clearDone: () => void
@@ -139,12 +141,17 @@ export const useRemoveBgStore = create<RemoveBgState>((set, get) => {
 
   async function process(id: string) {
     const job = find(id)
-    if (!job?.key || !job.format) return
+    if (!job?.key || !job.format || !job.quality) return
     try {
-      const result = await removeBackground({ key: job.key, filename: job.file.name, format: job.format })
+      const result = await removeBackground({
+        key: job.key,
+        filename: job.file.name,
+        format: job.format,
+        quality: job.quality,
+      })
       update(id, { status: 'done', result, key: null })
 
-      useUsageStore.getState().markUsed(cachedCreditCost('removeBg'))
+      useUsageStore.getState().markUsed(cachedCreditCost(QUALITY_FEATURE[job.quality]))
       void queryClient.invalidateQueries({ queryKey: queryKeys.removeBg.all })
     } catch (error) {
       update(id, { status: 'error', ...processFailure(error, job.key) })
@@ -172,6 +179,7 @@ export const useRemoveBgStore = create<RemoveBgState>((set, get) => {
           file,
           sourceUrl: URL.createObjectURL(file),
           format: null,
+          quality: null,
           status: 'waitingUpload',
           progress: 0,
           key: null,
@@ -188,11 +196,11 @@ export const useRemoveBgStore = create<RemoveBgState>((set, get) => {
       return skipped
     },
 
-    start: (format) => {
+    start: (format, quality) => {
       set((state) => ({
         jobs: state.jobs.map((job) =>
           isAwaitingStart(job)
-            ? { ...job, format, status: job.status === 'ready' ? 'queued' : job.status }
+            ? { ...job, format, quality, status: job.status === 'ready' ? 'queued' : job.status }
             : job,
         ),
       }))
@@ -206,7 +214,7 @@ export const useRemoveBgStore = create<RemoveBgState>((set, get) => {
         มีต้นฉบับอยู่แล้ว ลบพื้นหลังซ้ำได้เลย
         ไม่มี ต้องอัปใหม่ ถ้าเคยกดลบพื้นหลังไว้แล้ว อัปเสร็จจะเข้าคิวต่อเอง
       */
-      update(id, { status: job.key && job.format ? 'queued' : 'waitingUpload', error: null })
+      update(id, { status: job.key && job.format && job.quality ? 'queued' : 'waitingUpload', error: null })
       pump()
     },
 

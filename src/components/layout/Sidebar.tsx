@@ -5,6 +5,7 @@ import { NavLink } from "react-router-dom";
 import { NAV_SECTIONS } from "@/config/nav";
 import { platformName } from "@/config/platforms";
 import { useCreditCosts } from "@/hooks/queries";
+import { isPageEnabled } from "@/types/creditCost";
 import { APP_PATH, siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { getSelectedPlatforms, usePlatformsStore } from "@/store/platforms";
@@ -19,7 +20,11 @@ function SidebarPanel({ onNavigate }: PanelProps) {
   const activePlatformId = usePlatformsStore((s) => s.activePlatformId);
   const setActivePlatformId = usePlatformsStore((s) => s.setActivePlatformId);
   const selectedPlatforms = getSelectedPlatforms(selectedIds);
-  // งานที่แอดมินปิดอยู่ไม่แสดงเมนู ระหว่างโหลดถือว่าเปิด (ดู useFeatureEnabled)
+  /*
+    งานที่แอดมินปิดอยู่ไม่แสดงเมนู ระหว่างโหลดหรือโหลดไม่สำเร็จถือว่าเปิด
+    ปกติงานเปิดอยู่ ซ่อนไว้ก่อนแล้วค่อยโผล่จะทำให้เมนูกระพริบทุกครั้งที่เปิดแอป
+    ถ้าปิดจริงแล้วยังกดเข้าไปได้ FeatureGate กับเซิร์ฟเวอร์กันไว้อีกชั้น
+  */
   const enabled = useCreditCosts().data?.enabled;
   return (
     <div className="flex h-full flex-col bg-sidebar">
@@ -52,7 +57,7 @@ function SidebarPanel({ onNavigate }: PanelProps) {
             </p>
             <ul className="space-y-0.5">
               {section.items
-                .filter((item) => !item.feature || enabled?.[item.feature] !== false)
+                .filter((item) => !item.feature || !enabled || isPageEnabled(enabled, item.feature))
                 .map((item) => {
                 const Icon = item.icon;
                 const isPlatformsItem = item.to === `${APP_PATH}/platforms`;

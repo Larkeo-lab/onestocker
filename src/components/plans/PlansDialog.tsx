@@ -49,6 +49,11 @@ function PlansDialogContent() {
         costs.data.enabled.generate
           ? t("plans.costGenerate", { count: costs.data.generate.toLocaleString(intlLocale()) })
           : null,
+        costs.data.enabled.removeBgStandard
+          ? t("plans.costRemoveBgStandard", {
+              count: costs.data.removeBgStandard.toLocaleString(intlLocale()),
+            })
+          : null,
         costs.data.enabled.removeBg
           ? t("plans.costRemoveBg", { count: costs.data.removeBg.toLocaleString(intlLocale()) })
           : null,

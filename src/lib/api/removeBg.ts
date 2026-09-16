@@ -1,4 +1,4 @@
-import type { BackgroundRemoval, RemoveBgFormat } from '@/types/removeBg'
+import type { BackgroundRemoval, RemoveBgFormat, RemoveBgQuality } from '@/types/removeBg'
 
 import { apiDelete, apiGetPaginated, apiPost, type Pagination } from './client'
 
@@ -31,12 +31,13 @@ export async function requestRemoveBgUpload(file: File): Promise<{ key: string; 
 
 /**
  * ลบพื้นหลังรูปที่อัปแล้ว ตัดหนึ่งเครดิต
- * เครดิตหมดได้ 402 · คิวเต็มได้ 429 · บริการใช้ไม่ได้ได้ 503 (สองกรณีหลังเซิร์ฟเวอร์คืนเครดิตให้แล้ว)
+ * เครดิตหมดได้ 402 · แอดมินปิดระดับนั้นได้ 403 · คิวเต็มได้ 429 · บริการใช้ไม่ได้ได้ 503 (สองกรณีหลังเซิร์ฟเวอร์คืนเครดิตให้แล้ว)
  */
 export async function removeBackground(input: {
   key: string
   filename: string
   format: RemoveBgFormat
+  quality: RemoveBgQuality
 }): Promise<BackgroundRemoval> {
   return apiPost<BackgroundRemoval>('/remove-bg', input, { timeout: PROCESS_TIMEOUT })
 }

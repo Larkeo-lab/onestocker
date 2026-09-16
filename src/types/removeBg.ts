@@ -5,6 +5,18 @@
 export type RemoveBgFormat = 'png' | 'jpg'
 
 /**
+ * standard = Cloudflare Images ประหยัดเครดิต, hd = Photoroom ขอบละเอียด
+ * ต้องตรงกับ QualityStandard / QualityHD ใน server/internal/feature/removebg/dto.go
+ */
+export type RemoveBgQuality = 'standard' | 'hd'
+
+/** งานในหน้า ตั้งค่าเครดิต ของแต่ละระดับ ใช้อ่านราคาและการเปิด/ปิด */
+export const QUALITY_FEATURE = {
+  standard: 'removeBgStandard',
+  hd: 'removeBg',
+} as const
+
+/**
  * ผลลัพธ์การลบพื้นหลังหนึ่งรูป ต้องตรงกับ Item ใน server/internal/feature/removebg/dto.go
  *
  * ลิงก์ทั้งสองหมดอายุใน 1 ชั่วโมง เป็น null เมื่อเซ็นลิงก์ไม่สำเร็จ
@@ -14,6 +26,7 @@ export type BackgroundRemoval = {
   /** ชื่อไฟล์ตอนดาวน์โหลด เช่น cat-no-bg.png */
   filename: string
   format: RemoveBgFormat
+  quality: RemoveBgQuality
   width: number
   height: number
   sizeBytes: number

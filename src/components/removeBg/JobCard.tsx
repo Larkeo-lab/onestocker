@@ -6,7 +6,7 @@ import { intlLocale } from '@/config/i18n'
 import { DOWNLOAD_LINK_CLASS, formatBytes } from '@/lib/removeBg'
 import { useRemoveBgStore, type RemoveBgJob } from '@/store/removeBg'
 
-import { FormatChip, ResultPreview } from './ResultPreview'
+import { FormatChip, QualityChip, ResultPreview } from './ResultPreview'
 
 /** รูปหนึ่งใบในรอบนี้ ตั้งแต่อัปโหลดจนได้ผลลัพธ์หรือล้มเหลว */
 export function JobCard({ job }: { job: RemoveBgJob }) {
@@ -52,7 +52,10 @@ export function JobCard({ job }: { job: RemoveBgJob }) {
           <p className="truncate text-[13px] font-medium" title={result?.filename ?? job.file.name}>
             {result?.filename ?? job.file.name}
           </p>
-          {job.format ? <FormatChip format={job.format} /> : null}
+          <span className="flex shrink-0 items-center gap-1">
+            {job.quality ? <QualityChip quality={job.quality} /> : null}
+            {job.format ? <FormatChip format={job.format} /> : null}
+          </span>
         </div>
 
         <JobStatus job={job} />
