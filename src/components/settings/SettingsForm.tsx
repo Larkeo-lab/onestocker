@@ -3,9 +3,9 @@ import { useState, type FormEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/Button'
-import { errorMessage } from '@/hooks/useAsync'
 import { useLanguageName } from '@/hooks/useLanguageName'
 import { saveSettings, type MetaLanguage } from '@/lib/api'
+import { errorMessage } from '@/lib/error'
 import { cn } from '@/lib/utils'
 import {
   KEYWORD_COUNTS,
@@ -53,7 +53,8 @@ export function SettingsForm({
   settings: UserSettings
   /** รายการภาษาที่เซิร์ฟเวอร์รองรับ มาจาก GET /meta */
   languages: MetaLanguage[]
-  onSaved?: () => void
+  /** ค่าที่เซิร์ฟเวอร์บันทึกจริง ใช้อัปเดต cache แทนการโหลดใหม่ */
+  onSaved?: (saved: UserSettings) => void
 }) {
   const { t } = useTranslation()
   const languageName = useLanguageName()
@@ -78,11 +79,11 @@ export function SettingsForm({
 
     setState({ status: 'saving' })
     try {
-      await saveSettings(next)
+      const saved = await saveSettings(next)
       setState({ status: 'saved' })
-      // โหลดค่าที่บันทึกจริงกลับมา เพราะเซิร์ฟเวอร์จัดรูปแบบให้ใหม่
+      // ใช้ค่าที่เซิร์ฟเวอร์ตอบกลับ ไม่ใช่ค่าที่ส่งไป เพราะเซิร์ฟเวอร์จัดรูปแบบให้ใหม่
       // เช่น เรียงภาษาให้ en นำหน้า และตัดคำต้องห้ามที่ซ้ำออก
-      onSaved?.()
+      onSaved?.(saved)
     } catch (error) {
       setState({ status: 'error', message: errorMessage(error) })
     }

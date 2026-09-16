@@ -5,7 +5,9 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { intlLocale } from "@/config/i18n";
 import { dismissWelcome } from "@/lib/api/auth";
+import { queryClient, queryKeys } from "@/lib/query";
 import { useUsageStore } from "@/store/usage";
+import type { Profile } from "@/types/profile";
 import type { Usage } from "@/types/usage";
 
 /**
@@ -38,6 +40,10 @@ export function WelcomeDialog({ show }: { show: boolean }) {
       ไม่คุ้มที่จะให้เขาต้องกดปิดแล้วรอ หรือเห็นข้อความ error
     */
     void dismissWelcome().catch(() => undefined);
+    // โปรไฟล์ใน cache ไม่หมดอายุ ถ้าไม่แก้ตรงนี้ป๊อปอัปจะกลับมาตอน AppShell ถูกสร้างใหม่
+    queryClient.setQueryData<Profile>(queryKeys.me, (profile) =>
+      profile ? { ...profile, showWelcome: false } : profile,
+    );
   }
 
   return <WelcomeDialogContent usage={usage} onDismiss={onDismiss} />;

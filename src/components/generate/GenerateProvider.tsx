@@ -16,6 +16,7 @@ import {
   type UploadPurpose,
 } from '@/lib/api'
 import { runWithConcurrency } from '@/lib/concurrency'
+import { cachedCreditCost } from '@/lib/creditCosts'
 import { processImage } from '@/lib/image'
 import { queryClient, queryKeys } from '@/lib/query'
 import { mediaKindOf } from '@/lib/media'
@@ -351,7 +352,7 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
 
         // นับเฉพาะรูปที่สำเร็จ ให้ตรงกับฝั่งเซิร์ฟเวอร์ซึ่งคืนโควตาให้
         // ทุกครั้งที่สร้างไม่สำเร็จ
-        useUsageStore.getState().markGenerated()
+        useUsageStore.getState().markUsed(cachedCreditCost('generate'))
 
         // หน้า History ที่ cache ไว้ยังไม่มีรายการนี้ ให้โหลดใหม่ตอนเปิดครั้งถัดไป
         void queryClient.invalidateQueries({ queryKey: queryKeys.history.all })

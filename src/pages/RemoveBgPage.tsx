@@ -1,0 +1,143 @@
+import { Eraser, Images, Info, TriangleAlert, X } from 'lucide-react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
+
+import { FormatPicker } from '@/components/removeBg/FormatPicker'
+import { JobCard } from '@/components/removeBg/JobCard'
+import { RemoveBgDropzone } from '@/components/removeBg/RemoveBgDropzone'
+import { Button } from '@/components/ui/Button'
+import { CONTAINER } from '@/config/container'
+import { APP_PATH } from '@/config/site'
+import { useCreditCosts } from '@/hooks/queries'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import { cn } from '@/lib/utils'
+import { isAwaitingStart, isUploadPending, useRemoveBgStore } from '@/store/removeBg'
+import type { RemoveBgFormat } from '@/types/removeBg'
+
+/**
+ * หน้าลบพื้นหลัง (/app/remove-bg)
+ *
+ * ทำสองจังหวะ: วางรูป → รูปอัปขึ้นก่อน (ยังไม่ใช้เครดิต) → เลือกรูปแบบ → กดลบพื้นหลัง (ใช้เครดิตต่อรูปตามที่แอดมินตั้ง)
+ * รายการในหน้านี้เป็นของรอบนี้เท่านั้น ผลลัพธ์ทั้งหมดเก็บถาวรอยู่ในหน้าคลังรูป
+ */
+export function RemoveBgPage() {
+  const { t } = useTranslation()
+  useDocumentTitle(t('nav.remove-bg'))
+
+  const [format, setFormat] = useState<RemoveBgFormat>('png')
+  const [skipped, setSkipped] = useState<string[]>([])
+
+  const cost = useCreditCosts().data?.removeBg
+  const jobs = useRemoveBgStore((state) => state.jobs)
+  const addFiles = useRemoveBgStore((state) => state.addFiles)
+  const start = useRemoveBgStore((state) => state.start)
+  const clearDone = useRemoveBgStore((state) => state.clearDone)
+
+  const awaitingCount = jobs.filter(isAwaitingStart).length
+  const doneCount = jobs.filter((job) => job.status === 'done').length
+  const uploadPending = jobs.some(isUploadPending)
+
+  return (
+    <div className={cn(CONTAINER.wide, 'space-y-6 py-6')}>
+      <header>
+        <h1 className="text-[15px] leading-tight font-semibold tracking-tight">{t('nav.remove-bg')}</h1>
+        <p className="mt-1 text-[12.5px] text-muted-foreground">{t('removeBg.description')}</p>
+      </header>
+
+      <div className="space-y-3">
+        <RemoveBgDropzone
+          compact={jobs.length > 0}
+          cost={cost}
+          onFiles={(files) => setSkipped(addFiles(files))}
+        />
+
+        {skipped.length > 0 ? (
+          <div className="flex items-start gap-2 rounded-lg border border-warning/40 bg-warning-soft px-3 py-2.5">
+            <TriangleAlert className="mt-0.5 size-3.5 shrink-0 text-warning" aria-hidden />
+            <ul className="min-w-0 flex-1 space-y-0.5 text-[12.5px] text-warning">
+              {skipped.map((message, index) => (
+                <li key={index} className="break-words">
+                  {message}
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              onClick={() => setSkipped([])}
+              aria-label={t('common.close')}
+              className="flex size-6 shrink-0 items-center justify-center rounded text-warning transition-colors hover:bg-warning/10"
+            >
+              <X className="size-3.5" aria-hidden />
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      {jobs.length > 0 ? (
+        <>
+          {/*
+            เลือกรูปแบบแล้วกดเริ่ม ใช้กับทุกรูปที่ยังไม่ได้สั่ง รวมรูปที่ยังอัปไม่เสร็จด้วย
+            รูปที่สั่งไปแล้วไม่เปลี่ยนตาม อยากได้อีกแบบให้เพิ่มรูปเดิมเข้ามาใหม่
+          */}
+          <section className="space-y-4 rounded-xl border border-border bg-card p-4">
+            <FormatPicker value={format} onChange={setFormat} />
+
+            <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
+              {awaitingCount > 0 && cost !== undefined ? (
+                <p className="mr-auto text-[12.5px] text-muted-foreground tabular-nums">
+                  {t('removeBg.startHint', { count: awaitingCount * cost })}
+                </p>
+              ) : null}
+              <Button variant="primary" onClick={() => start(format)} disabled={awaitingCount === 0}>
+                <Eraser className="size-4" aria-hidden />
+                {awaitingCount > 0
+                  ? t('removeBg.start', { count: awaitingCount })
+                  : t('removeBg.startEmpty')}
+              </Button>
+            </div>
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-[13px] font-semibold tracking-tight">
+                {t('removeBg.jobsTitle')}
+                <span className="ml-2 font-mono text-[11px] font-normal text-subtle-foreground tabular-nums">
+                  {jobs.length}
+                </span>
+              </h2>
+
+              <div className="flex items-center gap-2">
+                {doneCount > 0 ? (
+                  <Button size="sm" variant="ghost" onClick={clearDone}>
+                    {t('removeBg.clearDone')}
+                  </Button>
+                ) : null}
+                <Link
+                  to={`${APP_PATH}/library`}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-card px-2.5 text-[13px] font-medium transition-colors hover:border-border-strong hover:bg-muted"
+                >
+                  <Images className="size-3.5" aria-hidden />
+                  {t('removeBg.viewLibrary')}
+                </Link>
+              </div>
+            </div>
+
+            {uploadPending ? (
+              <p className="flex items-start gap-2 text-[12px] text-muted-foreground">
+                <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                {t('removeBg.keepOpenNote')}
+              </p>
+            ) : null}
+
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {jobs.map((job) => (
+                <JobCard key={job.id} job={job} />
+              ))}
+            </ul>
+          </section>
+        </>
+      ) : null}
+    </div>
+  )
+}

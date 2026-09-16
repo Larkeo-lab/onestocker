@@ -8,7 +8,7 @@ import { ErrorState, Loading } from "@/components/ui/AsyncState";
 import { Button } from "@/components/ui/Button";
 import { currentLanguage, intlLocale } from "@/config/i18n";
 import { APP_PATH } from "@/config/site";
-import { usePlans } from "@/hooks/queries";
+import { useCreditCosts, usePlans } from "@/hooks/queries";
 import { errorMessage } from "@/lib/error";
 import { formatUsd } from "@/lib/money";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,7 @@ function PlansDialogContent() {
   const close = useUsageStore((state) => state.closePlans);
   const usage = useUsageStore((state) => state.usage);
   const plans = usePlans();
+  const costs = useCreditCosts();
   const navigate = useNavigate();
 
   /** แพ็กเกจที่กดเลือก null = ยังอยู่ขั้นดูแพ็กเกจ */
@@ -108,6 +109,15 @@ function PlansDialogContent() {
                   {t("plans.title")}
                 </h2>
                 <p className="mt-1.5 text-[13px] text-muted-foreground">
+                  {costs.data ? (
+                    <>
+                      {t("plans.costs", {
+                        generate: costs.data.generate.toLocaleString(intlLocale()),
+                        removeBg: costs.data.removeBg.toLocaleString(intlLocale()),
+                      })}
+                      {" · "}
+                    </>
+                  ) : null}
                   {t("plans.subtitle")}
                 </p>
               </header>
