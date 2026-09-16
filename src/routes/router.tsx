@@ -10,6 +10,7 @@ import { LibraryPage } from '@/pages/LibraryPage'
 import { LandingRedirect } from '@/pages/LandingRedirect'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { PlatformsPage } from '@/pages/PlatformsPage'
+import { RemoveBgPage } from '@/pages/RemoveBgPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { SignInPage } from '@/pages/auth/SignInPage'
 import { SignUpPage } from '@/pages/auth/SignUpPage'
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <GeneratePage /> },
+      { path: 'remove-bg', element: <RemoveBgPage /> },
       { path: 'library', element: <LibraryPage /> },
       { path: 'history', element: <HistoryPage /> },
       { path: 'exports', element: <ExportsPage /> },

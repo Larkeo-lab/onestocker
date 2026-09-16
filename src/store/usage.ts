@@ -6,7 +6,7 @@ import type { Usage } from '@/types/usage'
 /**
  * หน่วงก่อนถามยอดจริงจากเซิร์ฟเวอร์ หน่วยเป็นมิลลิวินาที
  *
- * การสร้างทีละหลายรูปจะเรียก markGenerated หลายครั้งติดกัน ถ้าถามทุกครั้ง
+ * การสร้างทีละหลายรูปจะเรียก markUsed หลายครั้งติดกัน ถ้าถามทุกครั้ง
  * จะได้คำขอเท่าจำนวนรูปโดยที่คำตอบก่อนหน้ายังไม่ทันมีความหมาย
  * รอให้เงียบก่อนแล้วค่อยถามครั้งเดียว
  */
@@ -25,8 +25,8 @@ type UsageState = {
   plansOpen: boolean
 
   refresh: () => Promise<void>
-  /** เรียกทุกครั้งที่สร้าง metadata สำเร็จหนึ่งรูป */
-  markGenerated: () => void
+  /** เรียกทุกครั้งที่งานที่ใช้เครดิตสำเร็จหนึ่งครั้ง ส่งจำนวนเครดิตของงานนั้นมา */
+  markUsed: (credits: number) => void
   /** เรียกเมื่อเซิร์ฟเวอร์ตอบ 402 เพราะโควตาหมด */
   reportLimitReached: () => void
   openPlans: () => void
@@ -56,7 +56,7 @@ export const useUsageStore = create<UsageState>((set, get) => ({
     }
   },
 
-  markGenerated: () => {
+  markUsed: (credits) => {
     /*
       บวกให้เห็นทันทีโดยไม่รอเซิร์ฟเวอร์
 
@@ -71,9 +71,9 @@ export const useUsageStore = create<UsageState>((set, get) => ({
       set({
         usage: {
           ...current,
-          used: current.used + 1,
+          used: current.used + credits,
           remaining:
-            current.remaining === null ? null : Math.max(current.remaining - 1, 0),
+            current.remaining === null ? null : Math.max(current.remaining - credits, 0),
         },
       })
     }

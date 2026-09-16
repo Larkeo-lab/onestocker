@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 
 import { DEFAULT_PLATFORM_IDS, PLATFORMS, type Platform } from '@/config/platforms'
 import { fetchSettings, saveSettings } from '@/lib/api/settings'
+import { queryClient, queryKeys } from '@/lib/query'
 
 type PlatformsState = {
   selectedIds: string[]
@@ -27,7 +28,11 @@ export const usePlatformsStore = create<PlatformsState>()(
 
       loadFromBackend: async () => {
         try {
-          const settings = await fetchSettings()
+          // ใช้ cache ตัวเดียวกับหน้า Settings เปิดแอปแล้วไปหน้า Settings จะไม่ยิงซ้ำ
+          const settings = await queryClient.ensureQueryData({
+            queryKey: queryKeys.settings,
+            queryFn: fetchSettings,
+          })
           if (settings && settings.selectedPlatforms) {
             const ids = settings.selectedPlatforms
               .split(',')
@@ -64,12 +69,14 @@ export const usePlatformsStore = create<PlatformsState>()(
           if (saveTimer) clearTimeout(saveTimer)
           saveTimer = setTimeout(async () => {
             try {
+              // อ่านค่าล่าสุดจากเซิร์ฟเวอร์ก่อนรวม ไม่ใช้ cache เผื่อแก้การตั้งค่าอื่นจากอีกแท็บไว้
               const current = await fetchSettings().catch(() => null)
               if (current) {
-                await saveSettings({
+                const saved = await saveSettings({
                   ...current,
                   selectedPlatforms: finalIds.join(','),
                 })
+                queryClient.setQueryData(queryKeys.settings, saved)
               }
             } catch {
               // ละเว้น error ตอนซิงก์ฉากหลัง

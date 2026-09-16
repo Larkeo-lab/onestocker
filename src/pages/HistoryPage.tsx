@@ -10,9 +10,9 @@ import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { CONTAINER } from '@/config/container'
 import { PLATFORMS, platformName } from '@/config/platforms'
-import { useAsync } from '@/hooks/useAsync'
+import { useHistory } from '@/hooks/queries'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import { fetchHistory } from '@/lib/api'
+import { errorMessage } from '@/lib/error'
 import { cn } from '@/lib/utils'
 
 export function HistoryPage() {
@@ -24,10 +24,11 @@ export function HistoryPage() {
 
   const platformParam = selectedPlatform === 'all' ? undefined : selectedPlatform
 
-  const history = useAsync(
-    () => fetchHistory({ page, platform: platformParam }),
-    [page, selectedPlatform]
-  )
+  // แต่ละหน้าและตัวกรองมี cache ของตัวเอง กลับมาหน้าที่เคยเปิดแล้วขึ้นทันทีไม่ยิงซ้ำ
+  // สร้าง metadata เสร็จเมื่อไร GenerateProvider สั่งล้าง cache นี้ ประวัติใหม่จึงขึ้นตอนเปิดครั้งถัดไป
+  const history = useHistory({ page, platform: platformParam })
+  const loading = history.isPending
+  const error = history.isError ? errorMessage(history.error) : null
 
   const items = history.data?.items ?? []
   const pagination = history.data?.pagination
@@ -53,7 +54,7 @@ export function HistoryPage() {
           </p>
         </header>
 
-        {!history.loading && !history.error ? (
+        {!loading && !error ? (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3">
             <p className="text-[13px] font-semibold tracking-tight">
               {t('history.results')}
@@ -84,13 +85,13 @@ export function HistoryPage() {
           </div>
         ) : null}
 
-        {history.loading ? <Loading /> : null}
+        {loading ? <Loading /> : null}
 
-        {!history.loading && history.error ? (
-          <ErrorState message={history.error} onRetry={history.reload} />
+        {!loading && error ? (
+          <ErrorState message={error} onRetry={() => void history.refetch()} />
         ) : null}
 
-        {!history.loading && !history.error && items.length === 0 ? (
+        {!loading && !error && items.length === 0 ? (
           <EmptyState
             icon={History}
             title={
@@ -121,7 +122,7 @@ export function HistoryPage() {
           />
         ) : null}
 
-        {!history.loading && !history.error && items.length > 0 ? (
+        {!loading && !error && items.length > 0 ? (
           <>
             <div className="space-y-3">
               {items.map((generation) => (

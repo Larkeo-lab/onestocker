@@ -1,4 +1,5 @@
 import {
+  Eraser,
   FileSpreadsheet,
   History,
   Images,
@@ -28,13 +29,13 @@ export const NAV_SECTIONS: NavSection[] = [
     labelKey: "nav.workspace",
     items: [
       { labelKey: "nav.generate", to: APP_PATH, icon: WandSparkles },
+      { labelKey: "nav.history", to: `${APP_PATH}/history`, icon: History },
       {
         labelKey: "nav.remove-bg",
         to: `${APP_PATH}/remove-bg`,
-        icon: removeBg,
+        icon: Eraser,
       },
       { labelKey: "nav.library", to: `${APP_PATH}/library`, icon: Images },
-      { labelKey: "nav.history", to: `${APP_PATH}/history`, icon: History },
       {
         labelKey: "nav.exports",
         to: `${APP_PATH}/exports`,

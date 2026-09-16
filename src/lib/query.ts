@@ -1,21 +1,39 @@
 import { QueryClient } from '@tanstack/react-query'
 
 import type { HistoryQuery } from '@/lib/api/history'
+import type { RemoveBgQuery } from '@/lib/api/removeBg'
+
+/**
+ * ข้อมูลที่แอดมินแก้ได้ (ราคาแพ็กเกจ เครดิตต่องาน ช่องทางติดต่อ)
+ *
+ * ฝั่งลูกค้าไม่มีทางรู้ว่าแอดมินแก้เมื่อไร จึงยอมให้ถามใหม่ได้ แต่ไม่ถี่กว่านี้
+ * และถามเฉพาะตอนมีหน้าที่ใช้ข้อมูลนั้นเปิดขึ้นมา ไม่ได้ถามเป็นรอบ
+ */
+export const ADMIN_MANAGED_STALE_MS = 10 * 60 * 1000
+
+/**
+ * ข้อมูลที่มีลิงก์รูปบน R2 (รูปย่อ สลิป QR) ลิงก์พวกนี้หมดอายุใน 1 ชั่วโมง
+ *
+ * ต้องถามใหม่ก่อนลิงก์หมด ไม่งั้นกลับมาหน้าเดิมแล้วเจอรูปแตกหรือกดดาวน์โหลดไม่ได้
+ * เผื่อไว้ 15 นาทีสำหรับคนที่เปิดหน้าค้างไว้แล้วค่อยกด
+ */
+export const SIGNED_URL_STALE_MS = 45 * 60 * 1000
 
 /**
  * cache ของข้อมูลจาก API ใช้ร่วมกันทั้งแอป
  *
- * ตั้งไว้ให้ "กลับมาหน้าเดิมแล้วไม่ต้องยิง API ซ้ำ ถ้าข้อมูลยังไม่เก่า"
- * - staleTime 5 นาที → เปิดหน้าเดิมซ้ำในช่วงนี้ได้ข้อมูลจาก cache ทันทีโดยไม่ยิงคำขอ
- * - gcTime 30 นาที → ข้อมูลที่ไม่มีหน้าไหนใช้แล้วจะถูกทิ้งจากหน่วยความจำหลังผ่านไปเท่านี้
- * - refetchOnWindowFocus ปิด → แค่สลับแท็บกลับมาไม่ควรยิงใหม่
- *   ข้อมูลจะสดเพราะหมดอายุเอง หรือถูกสั่ง invalidate หลังบันทึก
+ * หลักคือ "ไม่มีอะไรเปลี่ยนก็ไม่ยิงซ้ำ" — กลับมาหน้าเดิมกี่ครั้งก็ได้ข้อมูลจาก cache ทันที
+ * - staleTime ไม่หมดอายุ → ข้อมูลของผู้ใช้เองเปลี่ยนได้ทางเดียวคือผู้ใช้กดบันทึก/สร้าง/ลบ
+ *   จุดนั้นสั่ง invalidate หรือ setQueryData ให้ query ที่เกี่ยวข้องเอง (ค้นหา queryKeys ในโค้ด)
+ *   ข้อมูลที่เปลี่ยนจากฝั่งอื่นได้ตั้งเวลาเองใน hooks/queries.ts ด้วย ADMIN_MANAGED_STALE_MS / SIGNED_URL_STALE_MS
+ * - gcTime 24 ชั่วโมง → ออกจากหน้าไปนานแค่ไหนก็ยังมี cache ให้ใช้ตอนกลับมา ข้อมูลของแอปนี้เล็ก ไม่เปลืองหน่วยความจำ
+ * - refetchOnWindowFocus ปิด → แค่สลับแท็บกลับมาไม่ยิงใหม่ ยกเว้น query ที่เปิดไว้เองเพราะรอสถานะจากแอดมิน
  */
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 30 * 60 * 1000,
+      staleTime: Infinity,
+      gcTime: 24 * 60 * 60 * 1000,
       refetchOnWindowFocus: false,
       retry: 1,
     },
@@ -34,6 +52,7 @@ export const queryKeys = {
   settings: ['settings'] as const,
   contact: ['contact'] as const,
   plans: ['plans'] as const,
+  creditCosts: ['creditCosts'] as const,
   payments: {
     mine: ['payments', 'mine'] as const,
     checkout: (userType: string) => ['payments', 'checkout', userType] as const,
@@ -41,5 +60,9 @@ export const queryKeys = {
   history: {
     all: ['history'] as const,
     page: (query: HistoryQuery) => ['history', query] as const,
+  },
+  removeBg: {
+    all: ['removeBg'] as const,
+    page: (query: RemoveBgQuery) => ['removeBg', query] as const,
   },
 }

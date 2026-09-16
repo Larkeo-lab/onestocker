@@ -10,7 +10,8 @@ import { useUsageStore } from '@/store/usage'
 import { ContactChannelList } from './ContactChannelList'
 
 /**
- * ป๊อปอัปที่ขึ้นเมื่อสร้าง metadata ไม่ได้เพราะเครดิตหมด (ฟรีครบแล้ว หรือเครดิตในรอบเสียเงินหมด)
+ * ป๊อปอัปที่ขึ้นเมื่อทำงานที่ใช้เครดิตไม่ได้เพราะเครดิตหมดหรือเหลือไม่พอ
+ * (ฟรีครบแล้ว เครดิตในรอบเสียเงินหมด หรือเหลือน้อยกว่าที่งานนั้นใช้ เช่นลบพื้นหลังใช้ 6 แต่เหลือ 3)
  *
  * ปุ่ม Upgrade บน header ไม่ได้เปิดตัวนี้ แต่เปิดป๊อปอัปแพ็กเกจ (PlansDialog)
  * ตัวนี้มีปุ่มดูแพ็กเกจให้ไปต่อได้เช่นกัน
@@ -40,6 +41,9 @@ function QuotaDialogContent() {
   }, [dismiss])
 
   const limit = usage?.limit ?? null
+  // ยังเหลืออยู่แต่ไม่พอสำหรับงานนี้ ห้ามบอกว่าหมด ตัวเลขบน header ยังไม่เป็นศูนย์
+  const remaining = usage?.remaining ?? null
+  const notEnough = remaining !== null && remaining > 0
 
   return (
     <div
@@ -68,11 +72,13 @@ function QuotaDialogContent() {
           id="quota-dialog-title"
           className="pr-8 text-[15px] font-semibold tracking-tight"
         >
-          {t('quota.title')}
+          {notEnough ? t('quota.notEnoughTitle') : t('quota.title')}
         </h2>
 
         <p className="mt-1.5 text-[13px] text-muted-foreground">
-          {usage && limit !== null ? (
+          {notEnough ? (
+            t('quota.notEnough', { count: remaining })
+          ) : usage && limit !== null ? (
             usage.expiresAt ? (
               <>
                 {t('quota.paidUsage', {

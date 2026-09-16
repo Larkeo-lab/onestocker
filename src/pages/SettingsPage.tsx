@@ -3,18 +3,20 @@ import { useTranslation } from 'react-i18next'
 import { CONTAINER } from '@/config/container'
 import { SettingsForm } from '@/components/settings/SettingsForm'
 import { ErrorState, Loading } from '@/components/ui/AsyncState'
-import { useAsync } from '@/hooks/useAsync'
-import { fetchMeta, fetchSettings } from '@/lib/api'
+import { useMeta, useSettings } from '@/hooks/queries'
+import { errorMessage } from '@/lib/error'
+import { queryClient, queryKeys } from '@/lib/query'
 import { cn } from '@/lib/utils'
 
 export function SettingsPage() {
   const { t } = useTranslation()
 
-  const settings = useAsync(fetchSettings)
-  const meta = useAsync(fetchMeta)
+  // มาจาก cache ถ้าเคยเปิดแล้ว ไม่ยิงซ้ำ — ค่าจะเปลี่ยนก็ต่อเมื่อกดบันทึก ซึ่งอัปเดต cache ให้เองด้านล่าง
+  const settings = useSettings()
+  const meta = useMeta()
 
-  const loading = settings.loading || meta.loading
-  const error = settings.error ?? meta.error
+  const loading = settings.isPending || meta.isPending
+  const failed = settings.isError ? settings.error : meta.isError ? meta.error : null
 
   return (
     <>
@@ -28,23 +30,23 @@ export function SettingsPage() {
           </p>
         </header>
 
-        {loading ? <Loading /> : null}
+        {loading && !failed ? <Loading /> : null}
 
-        {!loading && error ? (
+        {failed ? (
           <ErrorState
-            message={error}
+            message={errorMessage(failed)}
             onRetry={() => {
-              settings.reload()
-              meta.reload()
+              if (settings.isError) void settings.refetch()
+              if (meta.isError) void meta.refetch()
             }}
           />
         ) : null}
 
-        {!loading && !error && settings.data && meta.data ? (
+        {settings.data && meta.data ? (
           <SettingsForm
             settings={settings.data}
             languages={meta.data.languages}
-            onSaved={settings.reload}
+            onSaved={(saved) => queryClient.setQueryData(queryKeys.settings, saved)}
           />
         ) : null}
       </div>
