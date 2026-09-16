@@ -176,6 +176,11 @@
     "costPerImage_one": "{{count}} ເຄຣດິດຕໍ່ຮູບ",
     "costPerImage_other": "{{count}} ເຄຣດິດຕໍ່ຮູບ"
   },
+  "feature": {
+    "disabledTitle": "ປິດໃຫ້ບໍລິການຊົ່ວຄາວ",
+    "disabledBody": "{{name}} ປິດໃຫ້ບໍລິການຊົ່ວຄາວ ກະລຸນາກັບມາໃໝ່ພາຍຫຼັງ",
+    "goTo": "ໄປທີ່{{name}}"
+  },
   "library": {
     "description": "ຮູບທີ່ລຶບພື້ນຫຼັງແລ້ວ ດາວໂຫຼດຊ້ຳໄດ້ຕະຫຼອດ",
     "emptyTitle": "ຍັງບໍ່ມີຮູບໃນຄັງ",
@@ -264,7 +269,9 @@
     "contactBody": "ທັກມາທາງຊ່ອງທາງດ້ານລຸ່ມ ແຈ້ງວ່າຕ້ອງການແພັກເກັດ {{plan}} ພວກເຮົາຈະເຕີມເຄຣດິດໃຫ້",
     "back": "ກັບໄປເບິ່ງແພັກເກັດ",
     "viewPlans": "ເບິ່ງແພັກເກັດ",
-    "costs": "ເຄຣດິດທີ່ໃຊ້ — ສ້າງ keyword {{generate}} ຕໍ່ໄຟລ໌ · ລຶບພື້ນຫຼັງ {{removeBg}} ຕໍ່ຮູບ"
+    "costsLabel": "ເຄຣດິດທີ່ໃຊ້",
+    "costGenerate": "ສ້າງ keyword {{count}} ຕໍ່ໄຟລ໌",
+    "costRemoveBg": "ລຶບພື້ນຫຼັງ {{count}} ຕໍ່ຮູບ"
   },
   "checkout": {
     "title": "ຊຳລະເງິນ",

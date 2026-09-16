@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 
 import { AuthLayout } from '@/components/auth/AuthLayout'
+import { FeatureGate } from '@/components/layout/FeatureGate'
 import { APP_PATH } from '@/config/site'
 import { CheckoutPage } from '@/pages/CheckoutPage'
 import { ExportsPage } from '@/pages/ExportsPage'
@@ -29,8 +30,22 @@ export const router = createBrowserRouter([
     path: APP_PATH,
     element: <RootLayout />,
     children: [
-      { index: true, element: <GeneratePage /> },
-      { path: 'remove-bg', element: <RemoveBgPage /> },
+      {
+        index: true,
+        element: (
+          <FeatureGate feature="generate">
+            <GeneratePage />
+          </FeatureGate>
+        ),
+      },
+      {
+        path: 'remove-bg',
+        element: (
+          <FeatureGate feature="removeBg">
+            <RemoveBgPage />
+          </FeatureGate>
+        ),
+      },
       { path: 'library', element: <LibraryPage /> },
       { path: 'history', element: <HistoryPage /> },
       { path: 'exports', element: <ExportsPage /> },

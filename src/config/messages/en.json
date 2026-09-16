@@ -176,6 +176,11 @@
     "costPerImage_one": "{{count}} credit per image",
     "costPerImage_other": "{{count}} credits per image"
   },
+  "feature": {
+    "disabledTitle": "Temporarily unavailable",
+    "disabledBody": "{{name}} is turned off for now. Please check back later.",
+    "goTo": "Go to {{name}}"
+  },
   "library": {
     "description": "Images with the background removed. Download them again any time.",
     "emptyTitle": "Your library is empty",
@@ -264,7 +269,9 @@
     "contactBody": "Message us through one of the channels below and tell us you want the {{plan}} plan. We will top up your credits.",
     "back": "Back to plans",
     "viewPlans": "See plans",
-    "costs": "Credits per use — keywords: {{generate}} per file · background removal: {{removeBg}} per image"
+    "costsLabel": "Credits per use",
+    "costGenerate": "keywords: {{count}} per file",
+    "costRemoveBg": "background removal: {{count}} per image"
   },
   "checkout": {
     "title": "Payment",

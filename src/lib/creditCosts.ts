@@ -7,6 +7,6 @@ import type { CreditCosts } from '@/types/creditCost'
  * ใช้แค่บวกตัวเลขเครดิตบน header ให้ขยับทันทีระหว่างรอยอดจริง ยังไม่มีใน cache ใช้ 1
  * ค่าที่ผิดจะถูกทับด้วยยอดจริงจากเซิร์ฟเวอร์ในไม่กี่วินาที (ดู markUsed ใน store/usage.ts)
  */
-export function cachedCreditCost(action: keyof CreditCosts): number {
+export function cachedCreditCost(action: 'generate' | 'removeBg'): number {
   return queryClient.getQueryData<CreditCosts>(queryKeys.creditCosts)?.[action] ?? 1
 }

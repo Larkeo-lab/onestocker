@@ -176,6 +176,11 @@
     "costPerImage_one": "{{count}} เครดิตต่อรูป",
     "costPerImage_other": "{{count}} เครดิตต่อรูป"
   },
+  "feature": {
+    "disabledTitle": "ปิดให้บริการชั่วคราว",
+    "disabledBody": "{{name}} ปิดให้บริการชั่วคราว กรุณากลับมาใหม่ภายหลัง",
+    "goTo": "ไปที่{{name}}"
+  },
   "library": {
     "description": "รูปที่ลบพื้นหลังแล้ว ดาวน์โหลดซ้ำได้ตลอด",
     "emptyTitle": "ยังไม่มีรูปในคลัง",
@@ -264,7 +269,9 @@
     "contactBody": "ทักมาทางช่องทางด้านล่าง แจ้งว่าต้องการแพ็กเกจ {{plan}} เราจะเติมเครดิตให้",
     "back": "กลับไปดูแพ็กเกจ",
     "viewPlans": "ดูแพ็กเกจ",
-    "costs": "เครดิตที่ใช้ — สร้าง keyword {{generate}} ต่อไฟล์ · ลบพื้นหลัง {{removeBg}} ต่อรูป"
+    "costsLabel": "เครดิตที่ใช้",
+    "costGenerate": "สร้าง keyword {{count}} ต่อไฟล์",
+    "costRemoveBg": "ลบพื้นหลัง {{count}} ต่อรูป"
   },
   "checkout": {
     "title": "ชำระเงิน",

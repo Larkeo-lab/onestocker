@@ -10,6 +10,7 @@ import type { LucideIcon } from "lucide-react";
 import type { ParseKeys } from "i18next";
 
 import { APP_PATH } from "@/config/site";
+import type { CreditFeature } from "@/types/creditCost";
 
 export type NavItem = {
   /** key ของข้อความใน config/messages — แปลตอน render จะได้เปลี่ยนตามภาษาทันที */
@@ -17,6 +18,8 @@ export type NavItem = {
   /** path ต้องตรงกับที่ประกาศไว้ใน routes/router.tsx */
   to: string;
   icon: LucideIcon;
+  /** เมนูของงานที่แอดมินเปิด/ปิดได้ ปิดอยู่แล้วเมนูนี้ถูกซ่อน */
+  feature?: CreditFeature;
 };
 
 export type NavSection = {
@@ -28,12 +31,18 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     labelKey: "nav.workspace",
     items: [
-      { labelKey: "nav.generate", to: APP_PATH, icon: WandSparkles },
+      {
+        labelKey: "nav.generate",
+        to: APP_PATH,
+        icon: WandSparkles,
+        feature: "generate",
+      },
       { labelKey: "nav.history", to: `${APP_PATH}/history`, icon: History },
       {
         labelKey: "nav.remove-bg",
         to: `${APP_PATH}/remove-bg`,
         icon: Eraser,
+        feature: "removeBg",
       },
       { labelKey: "nav.library", to: `${APP_PATH}/library`, icon: Images },
       {

@@ -14,6 +14,7 @@ import {
   type HistoryQuery,
   type RemoveBgQuery,
 } from '@/lib/api'
+import type { CreditFeature } from '@/types/creditCost'
 import type { Checkout, Payment } from '@/types/payment'
 import type { UserType } from '@/types/profile'
 import { ADMIN_MANAGED_STALE_MS, SIGNED_URL_STALE_MS, queryKeys } from '@/lib/query'
@@ -47,13 +48,28 @@ export function useSettings() {
   return useQuery({ queryKey: queryKeys.settings, queryFn: fetchSettings })
 }
 
-/** เครดิตต่อหนึ่งครั้งของแต่ละงาน แอดมินแก้ได้ */
+/**
+ * เครดิตต่อหนึ่งครั้งของแต่ละงาน และงานไหนเปิดให้ใช้ แอดมินแก้ได้
+ *
+ * sidebar ใช้ตัวนี้และไม่เคยถูกถอดออก ถ้าถามใหม่แค่ตอน mount จะไม่มีวันเห็นว่าแอดมินปิดงาน
+ * จึงถามใหม่ตอนกลับมาที่แท็บด้วย แต่เฉพาะเมื่อข้อมูลเก่าเกิน ADMIN_MANAGED_STALE_MS
+ */
 export function useCreditCosts() {
   return useQuery({
     queryKey: queryKeys.creditCosts,
     queryFn: fetchCreditCosts,
     staleTime: ADMIN_MANAGED_STALE_MS,
+    refetchOnWindowFocus: true,
   })
+}
+
+/**
+ * งานนี้เปิดให้ใช้อยู่ไหม ระหว่างยังโหลดไม่เสร็จหรือโหลดไม่สำเร็จถือว่าเปิด
+ * ปกติงานเปิดอยู่ ซ่อนไว้ก่อนแล้วค่อยโผล่จะทำให้เมนูกระพริบทุกครั้งที่เปิดแอป
+ * ถ้าปิดจริงแล้วยังกดเข้าไปได้ เซิร์ฟเวอร์ปฏิเสธตอนตัดเครดิตอยู่แล้ว
+ */
+export function useFeatureEnabled(feature: CreditFeature): boolean {
+  return useCreditCosts().data?.enabled[feature] ?? true
 }
 
 /** แพ็กเกจทุกระดับ ใช้ในป๊อปอัปอัปเกรด แอดมินแก้ราคาและรายละเอียดได้ */

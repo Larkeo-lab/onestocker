@@ -239,9 +239,11 @@ function processFailure(error: unknown, key: string): Pick<RemoveBgJob, 'error' 
       // เครดิตหมด ต้นฉบับยังอยู่ เติมเครดิตแล้วกดลองใหม่ได้เลย
       useUsageStore.getState().reportLimitReached()
       return { error: error.message, key }
+    case 403:
     case 429:
     case 503:
-      // คิวเต็มหรือบริการล่มชั่วคราว เซิร์ฟเวอร์คืนเครดิตและเก็บต้นฉบับไว้ให้แล้ว
+      // แอดมินปิดงานนี้อยู่ คิวเต็ม หรือบริการล่มชั่วคราว ยังไม่ได้ตัดเครดิตหรือคืนให้แล้ว และต้นฉบับยังอยู่
+      // เปิดกลับหรือว่างเมื่อไรกดลองใหม่ได้เลยโดยไม่ต้องอัปซ้ำ
       return { error: error.message, key }
     case 0:
       /*

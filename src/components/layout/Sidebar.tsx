@@ -4,6 +4,7 @@ import { NavLink } from "react-router-dom";
 
 import { NAV_SECTIONS } from "@/config/nav";
 import { platformName } from "@/config/platforms";
+import { useCreditCosts } from "@/hooks/queries";
 import { APP_PATH, siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { getSelectedPlatforms, usePlatformsStore } from "@/store/platforms";
@@ -18,6 +19,8 @@ function SidebarPanel({ onNavigate }: PanelProps) {
   const activePlatformId = usePlatformsStore((s) => s.activePlatformId);
   const setActivePlatformId = usePlatformsStore((s) => s.setActivePlatformId);
   const selectedPlatforms = getSelectedPlatforms(selectedIds);
+  // งานที่แอดมินปิดอยู่ไม่แสดงเมนู ระหว่างโหลดถือว่าเปิด (ดู useFeatureEnabled)
+  const enabled = useCreditCosts().data?.enabled;
   return (
     <div className="flex h-full flex-col bg-sidebar">
       {/* Brand */}
@@ -48,7 +51,9 @@ function SidebarPanel({ onNavigate }: PanelProps) {
               {t(section.labelKey)}
             </p>
             <ul className="space-y-0.5">
-              {section.items.map((item) => {
+              {section.items
+                .filter((item) => !item.feature || enabled?.[item.feature] !== false)
+                .map((item) => {
                 const Icon = item.icon;
                 const isPlatformsItem = item.to === `${APP_PATH}/platforms`;
                 return (

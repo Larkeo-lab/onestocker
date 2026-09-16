@@ -43,6 +43,17 @@ function PlansDialogContent() {
   const usage = useUsageStore((state) => state.usage);
   const plans = usePlans();
   const costs = useCreditCosts();
+  // บอกเฉพาะงานที่เปิดให้ใช้อยู่ งานที่แอดมินปิดไม่ต้องโฆษณา
+  const costParts = costs.data
+    ? [
+        costs.data.enabled.generate
+          ? t("plans.costGenerate", { count: costs.data.generate.toLocaleString(intlLocale()) })
+          : null,
+        costs.data.enabled.removeBg
+          ? t("plans.costRemoveBg", { count: costs.data.removeBg.toLocaleString(intlLocale()) })
+          : null,
+      ].filter((part): part is string => part !== null)
+    : [];
   const navigate = useNavigate();
 
   /** แพ็กเกจที่กดเลือก null = ยังอยู่ขั้นดูแพ็กเกจ */
@@ -109,12 +120,9 @@ function PlansDialogContent() {
                   {t("plans.title")}
                 </h2>
                 <p className="mt-1.5 text-[13px] text-muted-foreground">
-                  {costs.data ? (
+                  {costParts.length > 0 ? (
                     <>
-                      {t("plans.costs", {
-                        generate: costs.data.generate.toLocaleString(intlLocale()),
-                        removeBg: costs.data.removeBg.toLocaleString(intlLocale()),
-                      })}
+                      {t("plans.costsLabel")} — {costParts.join(" · ")}
                       {" · "}
                     </>
                   ) : null}
