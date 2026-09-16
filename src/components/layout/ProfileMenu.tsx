@@ -1,5 +1,5 @@
 import { SignOutButton } from "@clerk/clerk-react";
-import { ChevronDown, LogOut, Settings, Zap } from "lucide-react";
+import { LogOut, Settings, Zap } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
@@ -27,13 +27,46 @@ function Avatar({ profile, className }: { profile: Profile | null; className: st
 }
 
 /**
+ * สีไล่เฉดของวงแหวนรอบรูปโปรไฟล์แพ็กเกจเสียเงิน
+ *
+ * ใช้ชั้นพื้นหลังที่ใหญ่กว่ารูปเล็กน้อยแทน ring เพราะ ring ของ Tailwind ใส่สีไล่เฉดไม่ได้
+ * ชั้นเดียวกันนี้เอาไปเบลอเป็นแสงเรืองด้านหลังด้วย สองวงจะได้เป็นสีชุดเดียวกัน
+ */
+const PAID_RING = "bg-gradient-to-br from-primary via-violet-500 to-fuchsia-500";
+
+/**
+ * ป้ายแพ็กเกจที่ใช้อยู่ ให้เห็นระดับปัจจุบันก่อนกดปุ่มอัปเกรด
+ *
+ * ยังไม่รู้ยอดก็ไม่ต้องแสดง ดีกว่าขึ้น FREE ไว้ก่อนแล้วค่อยเด้งเป็นแพ็กเกจจริง
+ */
+function PlanBadge() {
+  const usage = useUsageStore((state) => state.usage);
+  if (!usage) return null;
+
+  return (
+    <span
+      className={cn(
+        "flex h-6 items-center rounded-full border px-2 text-[10px] font-semibold tracking-wide uppercase",
+        usage.userType === "FREE"
+          ? "border-border bg-card text-muted-foreground"
+          : "border-primary/30 bg-primary-soft text-primary",
+      )}
+    >
+      {usage.userType}
+    </span>
+  );
+}
+
+/**
  * ป้ายเครดิตบน header ให้เห็นยอดโดยไม่ต้องเปิดเมนู
+ *
  * สีตามเกณฑ์เดียวกับการ์ดเครดิตใน dropdown
+ * เหลือน้อยเป็นแดงอ่อน หมดแล้วเป็นแดงเต็มใบ จะได้สะดุดตาก่อนกด Generate ไม่ผ่าน
  */
 function CreditPill() {
   const { t } = useTranslation();
   const usage = useUsageStore((state) => state.usage);
-  const { limit, exhausted, warn } = usageMeter(usage);
+  const { limit, exhausted, low, warn } = usageMeter(usage);
 
   return (
     <span
@@ -45,12 +78,14 @@ function CreditPill() {
             : t("account.creditsTitle", { used: usage.used, limit })
       }
       className={cn(
-        "flex h-6 items-center gap-1 rounded-full border px-2 font-mono text-[11px] tabular-nums",
+        "flex h-6 items-center gap-1 rounded-full border px-2 font-mono text-[11px] tabular-nums transition-colors",
         exhausted
-          ? "border-danger/40 bg-danger-soft text-danger"
-          : warn
-            ? "border-warning/40 bg-warning-soft text-warning"
-            : "border-border bg-card text-muted-foreground",
+          ? "border-danger bg-danger font-semibold text-white"
+          : low
+            ? "border-danger/40 bg-danger-soft text-danger"
+            : warn
+              ? "border-warning/40 bg-warning-soft text-warning"
+              : "border-border bg-card text-muted-foreground",
       )}
     >
       <Zap className="size-3 shrink-0" aria-hidden />
@@ -73,7 +108,10 @@ export function ProfileMenu({ profile }: { profile: Profile | null }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
 
-  const name = fullName(profile) || profile?.email || "—";
+  // แพ็กเกจเสียเงินได้วงแหวนเรืองแสงรอบรูป ระหว่างยังไม่รู้ยอดถือว่ายังไม่ใช่ จะได้ไม่วูบขึ้นมาแล้วหายไป
+  const paidPlan = useUsageStore(
+    (state) => state.usage !== null && state.usage.userType !== "FREE",
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -106,22 +144,39 @@ export function ProfileMenu({ profile }: { profile: Profile | null }) {
         aria-controls={open ? panelId : undefined}
         aria-label={t("account.menu")}
         className={cn(
-          "flex h-9 cursor-pointer items-center gap-2 rounded-lg pr-1.5 pl-1 transition-colors hover:bg-muted",
+          "flex h-9 cursor-pointer items-center gap-2 rounded-full pr-1 pl-1.5 transition-colors hover:bg-muted",
           open && "bg-muted",
         )}
       >
+        <PlanBadge />
         <CreditPill />
-        <Avatar profile={profile} className="size-7" />
-        <span className="hidden max-w-40 truncate text-[12.5px] font-medium sm:block">
-          {name}
+
+        {/* บน header เห็นแค่รูปโปรไฟล์ ชื่อกับอีเมลอยู่ในเมนูที่กดเปิด */}
+        <span className="relative flex shrink-0">
+          {/*
+            แสงเรืองรอบรูปของแพ็กเกจเสียเงิน วางเป็นชั้นเบลอไว้ใต้รูป
+            ไม่ใช้ shadow เพราะรูปมีขอบมนแล้วเงาจะไม่กลมตาม
+            เครื่องที่ตั้งค่าลดการเคลื่อนไหวจะได้แสงนิ่ง ๆ ไม่มีจังหวะหายใจ
+          */}
+          {paidPlan ? (
+            <span
+              aria-hidden
+              className={cn(
+                "absolute -inset-1 animate-pulse rounded-full opacity-60 blur-[6px] motion-reduce:animate-none",
+                PAID_RING,
+              )}
+            />
+          ) : null}
+          <span className={cn("relative rounded-full", paidPlan && `p-0.5 ${PAID_RING}`)}>
+            <Avatar
+              profile={profile}
+              className={cn(
+                "size-7 transition-shadow",
+                paidPlan ? "border-transparent" : open && "ring-2 ring-primary/30",
+              )}
+            />
+          </span>
         </span>
-        <ChevronDown
-          className={cn(
-            "size-3.5 shrink-0 text-muted-foreground transition-transform",
-            open && "rotate-180",
-          )}
-          aria-hidden
-        />
       </button>
 
       {open ? (

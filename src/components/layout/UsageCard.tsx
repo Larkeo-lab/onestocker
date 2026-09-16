@@ -25,13 +25,14 @@ function formatExpiryDate(iso: string): string {
 export function UsageCard() {
   const { t } = useTranslation();
   const usage = useUsageStore((state) => state.usage);
-  const { limit, percent, exhausted, warn } = usageMeter(usage);
+  const { limit, percent, exhausted, low, warn } = usageMeter(usage);
 
-  const countTone = exhausted
-    ? "text-danger"
-    : warn
-      ? "text-warning"
-      : "text-subtle-foreground";
+  const countTone =
+    exhausted || low
+      ? "text-danger"
+      : warn
+        ? "text-warning"
+        : "text-subtle-foreground";
 
   return (
     <div className="rounded-lg border border-border bg-card p-3">
@@ -53,7 +54,7 @@ export function UsageCard() {
           <div
             className={cn(
               "h-full rounded-full transition-[width] duration-300",
-              exhausted ? "bg-danger" : warn ? "bg-warning" : "bg-primary",
+              exhausted || low ? "bg-danger" : warn ? "bg-warning" : "bg-primary",
             )}
             style={{ width: `${percent}%` }}
           />

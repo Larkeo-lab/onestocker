@@ -25,6 +25,15 @@ import { Sidebar } from './Sidebar'
 const FOCUS_REFRESH_GAP = 10_000
 
 /**
+ * ถามยอดซ้ำทุกกี่มิลลิวินาทีระหว่างที่แท็บนี้เปิดค้างอยู่
+ *
+ * เครดิตเปลี่ยนได้โดยที่ผู้ใช้ไม่ได้ทำอะไรในแท็บนี้เลย — แอดมินอนุมัติการชำระ
+ * รอบ 30 วันหมดอายุ หรือผู้ใช้กำลังสร้างงานอยู่ในอีกแท็บ
+ * ป้ายบน header จึงต้องขยับเองโดยไม่ต้องรอให้สลับแท็บไปมา
+ */
+const USAGE_POLL_INTERVAL = 60_000
+
+/**
  * โครงหน้าจอของทุกหน้าที่ต้องล็อกอิน
  *
  * เป็น layout route ของ react-router ทำให้ sidebar ไม่ถูก unmount
@@ -80,9 +89,16 @@ export function AppShell() {
       void refreshUsage()
     }
 
+    /*
+      ถามซ้ำเป็นรอบระหว่างเปิดแท็บค้างไว้ ผู้ใช้หลายคนเปิดหน้านี้ทิ้งไว้ทั้งวัน
+      ข้ามรอบที่แท็บถูกซ่อนอยู่ ไม่ต้องยิงถามให้เปลือง เพราะตอนกลับมาจะถูกถามใหม่อยู่แล้ว
+    */
+    const timer = setInterval(refreshIfStale, USAGE_POLL_INTERVAL)
+
     document.addEventListener('visibilitychange', refreshIfStale)
     window.addEventListener('focus', refreshIfStale)
     return () => {
+      clearInterval(timer)
       document.removeEventListener('visibilitychange', refreshIfStale)
       window.removeEventListener('focus', refreshIfStale)
     }
