@@ -220,6 +220,7 @@
     "tooSmall": "Too small",
     "presetOff": "Not available",
     "planOnly": "{{plan}}+",
+    "presetLocked": "The size you picked needs the {{plan}} plan or higher — pick another size, or tap it to see plans",
     "lockedTitle": "Upscaling is available on the {{plan}} plan and above",
     "lockedDescription": "Enlarge images with AI to Full HD, 2K, 4K and 8K for stock sites. Upgrade your plan to start.",
     "lockedAction": "See plans",

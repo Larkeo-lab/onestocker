@@ -130,6 +130,13 @@ export function UpscaleJobCard({ job }: { job: UpscaleJob }) {
                 />
               ))}
             </div>
+            {/* ขนาดที่เลือกไว้เพิ่งถูกล็อก (แอดมินตั้งแพ็กเกจขั้นต่ำหลังเพิ่มรูป) ต้องเลือกใหม่ รูปนี้ยังไม่ถูกส่ง */}
+            {chosen?.unavailable === 'plan' && chosen.plan ? (
+              <p className="mt-1.5 flex items-start gap-1.5 text-[11px] font-medium text-primary">
+                <Lock className="mt-px size-3 shrink-0" aria-hidden />
+                {t('upscale.presetLocked', { plan: chosen.plan })}
+              </p>
+            ) : null}
             {/* ป้ายด้านขวาของแถวสั้น บอกเหตุผลเต็มไว้ใต้รายการ ลูกค้าจะได้รู้ว่าทำไมเลือกไม่ได้ */}
             {limited('tooSmall') ? (
               <p className="mt-1.5 flex items-start gap-1.5 text-[11px] text-muted-foreground">

@@ -19,7 +19,7 @@ import {
 } from '@/lib/api'
 import type { Checkout, Payment } from '@/types/payment'
 import type { UserType } from '@/types/profile'
-import { ADMIN_MANAGED_STALE_MS, SIGNED_URL_STALE_MS, queryKeys } from '@/lib/query'
+import { ADMIN_MANAGED_POLL_MS, ADMIN_MANAGED_STALE_MS, SIGNED_URL_STALE_MS, queryKeys } from '@/lib/query'
 
 /*
   hook อ่านข้อมูลจาก API ทุกตัวผ่าน cache ของ react-query (ดู lib/query.ts)
@@ -52,10 +52,11 @@ export function useSettings() {
 }
 
 /**
- * เครดิตต่อหนึ่งครั้งของแต่ละงาน และงานไหนเปิดให้ใช้ แอดมินแก้ได้
+ * เครดิตต่อหนึ่งครั้งของแต่ละงาน งานไหนเปิดให้ใช้ และแพ็กเกจขั้นต่ำ แอดมินแก้ได้
  *
- * sidebar ใช้ตัวนี้และไม่เคยถูกถอดออก ถ้าถามใหม่แค่ตอน mount จะไม่มีวันเห็นว่าแอดมินปิดงาน
- * จึงถามใหม่ทุกครั้งที่กลับมาที่แท็บและทุกครั้งที่เปิดหน้าที่ใช้ข้อมูลนี้
+ * แอดมินเปิด/ปิดงานหรือตั้งแพ็กเกจขั้นต่ำแล้ว ลูกค้าต้องเห็นทันทีโดยไม่ต้องรีเฟรช
+ * ถามใหม่ทุกครั้งที่เปิดหน้าที่ใช้ข้อมูลนี้ ทุกครั้งที่กลับมาที่แท็บ และทุก ADMIN_MANAGED_POLL_MS ระหว่างเปิดค้าง
+ * (sidebar ใช้ตัวนี้และไม่เคยถูกถอดออก ถ้าถามแค่ตอน mount จะไม่มีวันเห็นว่าแอดมินปิดงาน)
  */
 export function useCreditCosts() {
   return useQuery({
@@ -63,6 +64,7 @@ export function useCreditCosts() {
     queryFn: fetchCreditCosts,
     staleTime: ADMIN_MANAGED_STALE_MS,
     refetchOnWindowFocus: true,
+    refetchInterval: ADMIN_MANAGED_POLL_MS,
   })
 }
 

@@ -92,9 +92,25 @@ type UpscaleState = {
 export function isAwaitingStart(job: UpscaleJob): boolean {
   return (
     !job.started &&
-    job.preset !== null &&
+    presetUsable(job) &&
     (job.status === 'waitingUpload' || job.status === 'uploading' || job.status === 'ready')
   )
+}
+
+/**
+ * ขนาดที่เลือกไว้ยังใช้ได้ตอนนี้ไหม
+ *
+ * ขนาดถูกเลือกไว้ตอนเพิ่มรูป หลังจากนั้นแอดมินอาจตั้งแพ็กเกจขั้นต่ำหรือปิดขนาดนั้น
+ * แพ็กเกจของลูกค้าอาจหมดรอบ หรือตอนเพิ่มรูปยังไม่รู้แพ็กเกจ (ถือว่าใช้ได้ไว้ก่อน)
+ * ขนาดที่ใช้ไม่ได้แล้วไม่ถูกส่งไปอัปสเกล ลูกค้าต้องเลือกขนาดใหม่ ไม่งั้นจะไปเจอ error จากเซิร์ฟเวอร์ตอนกด
+ */
+export function presetUsable(job: UpscaleJob): boolean {
+  if (job.preset === null || job.width === null || job.height === null) return false
+  const userType = useUsageStore.getState().usage?.userType
+  const option = presetOptions(job.width, job.height, cachedCreditCosts(), userType).find(
+    (item) => item.preset === job.preset,
+  )
+  return option?.unavailable === null
 }
 
 /**
