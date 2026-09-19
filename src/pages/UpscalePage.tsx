@@ -1,4 +1,4 @@
-import { ImageUpscale, Images, Info, TriangleAlert, X } from 'lucide-react'
+import { ImageUpscale, Images, Info, Lock, TriangleAlert, X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -14,8 +14,12 @@ import { APP_PATH } from '@/config/site'
 import { useCreditCosts, useUpscaleHistory } from '@/hooks/queries'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { upscaleCost } from '@/lib/creditCosts'
+import { PAID_GRADIENT } from '@/lib/plans'
+import { upscaleLockedPlan } from '@/lib/upscale'
 import { cn } from '@/lib/utils'
 import { isAwaitingStart, isUploadPending, useUpscaleStore } from '@/store/upscale'
+import { useUsageStore } from '@/store/usage'
+import type { UserType } from '@/types/profile'
 
 /**
  * หน้าอัปสเกลรูป (/app/upscale)
@@ -32,6 +36,10 @@ export function UpscalePage() {
   const [pickerOpen, setPickerOpen] = useState(false)
 
   const costs = useCreditCosts().data
+  // แอดมินตั้งให้ทุกขนาดใช้ได้เฉพาะแพ็กเกจที่สูงกว่าของลูกค้า แสดงหน้าอัปเกรดแทนช่องเพิ่มรูป
+  const userType = useUsageStore((state) => state.usage?.userType)
+  const openPlans = useUsageStore((state) => state.openPlans)
+  const lockedPlan = upscaleLockedPlan(costs, userType)
   const jobs = useUpscaleStore((state) => state.jobs)
   const addFiles = useUpscaleStore((state) => state.addFiles)
   const addLibraryImages = useUpscaleStore((state) => state.addLibraryImages)
@@ -58,11 +66,15 @@ export function UpscalePage() {
       </header>
 
       <div className="space-y-3">
-        <UpscaleAddBar
-          compact={jobs.length > 0}
-          onFiles={(files) => setSkipped(addFiles(files))}
-          onOpenLibrary={() => setPickerOpen(true)}
-        />
+        {lockedPlan ? (
+          <UpscaleLocked plan={lockedPlan} onUpgrade={openPlans} />
+        ) : (
+          <UpscaleAddBar
+            compact={jobs.length > 0}
+            onFiles={(files) => setSkipped(addFiles(files))}
+            onOpenLibrary={() => setPickerOpen(true)}
+          />
+        )}
 
         {skipped.length > 0 ? (
           <div className="flex items-start gap-2 rounded-lg border border-warning/40 bg-warning-soft px-3 py-2.5">
@@ -156,6 +168,54 @@ export function UpscalePage() {
           }}
         />
       ) : null}
+    </div>
+  )
+}
+
+/**
+ * ทุกขนาดต้องใช้แพ็กเกจที่สูงกว่าของลูกค้า แสดงแทนช่องเพิ่มรูป กดแล้วเปิดป๊อปอัปแพ็กเกจให้อัปเกรด
+ * เรืองแสงแบบเดียวกับระดับ Pro ในหน้าลบพื้นหลัง (ดู QualityPicker) ชุดสีเดียวกับแพ็กเกจเสียเงิน
+ */
+function UpscaleLocked({ plan, onUpgrade }: { plan: UserType; onUpgrade: () => void }) {
+  const { t } = useTranslation()
+  return (
+    <div className="relative">
+      {/* แสงเรืองด้านหลัง */}
+      <span
+        aria-hidden
+        className={cn(
+          'pointer-events-none absolute -inset-1 rounded-2xl opacity-40 blur-[8px] motion-safe:animate-pulse',
+          PAID_GRADIENT,
+        )}
+      />
+      {/* ขอบไล่เฉด: ชั้นนอกเป็นสีไล่ ชั้นในเป็นพื้นการ์ด เว้นขอบไว้ 1.5px */}
+      <div className={cn('relative rounded-xl p-[1.5px]', PAID_GRADIENT)}>
+        <section className="flex flex-col items-center gap-3 rounded-[10.5px] bg-card px-6 py-10 text-center">
+          <span
+            className={cn('flex size-11 items-center justify-center rounded-full text-white shadow-sm', PAID_GRADIENT)}
+          >
+            <ImageUpscale className="size-5" aria-hidden />
+          </span>
+          <div className="space-y-1">
+            <h2 className="text-[14px] font-semibold tracking-tight">{t('upscale.lockedTitle', { plan })}</h2>
+            <p className="mx-auto max-w-md text-[12.5px] text-muted-foreground">{t('upscale.lockedDescription')}</p>
+          </div>
+          <Button variant="primary" onClick={onUpgrade}>
+            {t('upscale.lockedAction')}
+          </Button>
+        </section>
+      </div>
+      {/* ป้ายแพ็กเกจคร่อมขอบด้านบน */}
+      <span
+        className={cn(
+          'pointer-events-none absolute -top-2.5 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full px-2 py-0.5',
+          'text-[10.5px] font-semibold tracking-wide text-white shadow-sm',
+          PAID_GRADIENT,
+        )}
+      >
+        <Lock className="size-2.5" aria-hidden />
+        {t('upscale.planOnly', { plan })}
+      </span>
     </div>
   )
 }

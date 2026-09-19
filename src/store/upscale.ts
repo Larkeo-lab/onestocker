@@ -195,8 +195,7 @@ export const useUpscaleStore = create<UpscaleState>((set, get) => {
   async function measure(id: string, file: File) {
     try {
       const { width, height } = await readImageSize(file)
-      const job = find(id)
-      const preset = defaultPreset(presetOptions(width, height, cachedCreditCosts(), job?.transparent ?? false))
+      const preset = defaultPreset(presetOptions(width, height, cachedCreditCosts(), useUsageStore.getState().usage?.userType))
       update(id, {
         width,
         height,
@@ -345,7 +344,9 @@ export const useUpscaleStore = create<UpscaleState>((set, get) => {
         const tooLarge = image.sizeBytes > MAX_INPUT_MB * 1024 * 1024
         const preset = tooLarge
           ? null
-          : defaultPreset(presetOptions(image.width, image.height, cachedCreditCosts(), image.format === 'png'))
+          : defaultPreset(
+              presetOptions(image.width, image.height, cachedCreditCosts(), useUsageStore.getState().usage?.userType),
+            )
         added.push({
           id: crypto.randomUUID(),
           source: { type: 'library', kind: image.kind, libraryId: image.id },

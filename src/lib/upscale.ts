@@ -1,11 +1,16 @@
 import i18n from '@/config/i18n'
 import { upscaleCost, upscalePresetEnabled } from '@/lib/creditCosts'
 import { HEIC_ACCEPT } from '@/lib/heic'
+import { planAtLeast } from '@/lib/plans'
 import type { CreditCosts } from '@/types/creditCost'
+import { USER_TYPES, type UserType } from '@/types/profile'
 import type { UpscalePreset } from '@/types/upscale'
 
-/** ต้องตรงกับ MaxInputBytes ใน server/internal/feature/upscale/validation.go */
-export const MAX_INPUT_MB = 20
+/**
+ * ต้องตรงกับ MaxInputBytes ใน server/internal/feature/upscale/validation.go
+ * พอให้รูปลบพื้นหลัง Pro จากคลัง (PNG 4K ราว 20–30 MB) อัปสเกลต่อได้
+ */
+export const MAX_INPUT_MB = 80
 
 /** ต้องตรงกับ uploadExtensions ใน server/internal/feature/upscale/validation.go */
 export const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -19,15 +24,6 @@ export const PICKER_ACCEPT = [...ACCEPTED_TYPES, ...HEIC_ACCEPT].join(',')
  */
 const TOPAZ_FACTORS = [2, 4, 6]
 export const MAX_FACTOR = TOPAZ_FACTORS[TOPAZ_FACTORS.length - 1]
-
-/**
- * รูปโปร่งใสขยายได้ถึง 4K ต้องตรงกับ transparentMaxLongSide ใน server/internal/feature/upscale/validation.go
- * (เซิร์ฟเวอร์ต้องใส่ความโปร่งใสคืนเองทั้งรูป 8K ใช้หน่วยความจำมากเกินไป)
- *
- * transparent ในหน้านี้มาจากชนิดไฟล์ (PNG) ส่วนเซิร์ฟเวอร์ดูจากพิกเซลจริง
- * PNG ที่ทึบทั้งรูปจึงถูกกันไว้ที่ 4K ทั้งที่เซิร์ฟเวอร์ทำ 8K ให้ได้ ยอมเสียตรงนี้ ดีกว่าต้องอ่านทุกพิกเซลในเบราว์เซอร์
- */
-export const TRANSPARENT_MAX_LONG_SIDE = 3840
 
 /** อัปสเกลพร้อมกันกี่รูปจากแท็บเดียว เซิร์ฟเวอร์รับพร้อมกันได้ 2 รูปทั้งระบบ */
 export const UPSCALE_CONCURRENCY = 1
@@ -57,10 +53,12 @@ export type PresetOption = {
   /** ขยายกี่เท่าของด้านยาว */
   factor: number
   /**
-   * notLarger = รูปใหญ่เท่านี้อยู่แล้ว, tooSmall = ต้องขยายเกิน 6 เท่า,
-   * transparent = รูปโปร่งใสได้ถึง 4K, off = แอดมินปิดขนาดนี้
+   * notLarger = รูปใหญ่เท่านี้อยู่แล้ว, tooSmall = ต้องขยายเกิน 6 เท่า, off = แอดมินปิดขนาดนี้,
+   * plan = แพ็กเกจของลูกค้ายังไม่ถึง (ดู plan)
    */
-  unavailable: 'notLarger' | 'tooSmall' | 'transparent' | 'off' | null
+  unavailable: 'notLarger' | 'tooSmall' | 'off' | 'plan' | null
+  /** แพ็กเกจขั้นต่ำของขนาดนี้ null = ทุกแพ็กเกจใช้ได้ */
+  plan: UserType | null
   /** เครดิตต่อรูปของขนาดนี้ undefined = ยังไม่รู้ราคา */
   credits: number | undefined
 }
@@ -85,15 +83,53 @@ export function targetSize(width: number, height: number, longSide: number): { w
     : { width: Math.max(1, Math.round(width * scale)), height: longSide }
 }
 
+/** ชื่องานฝั่ง Go ของแต่ละขนาด ต้องตรงกับ credits.UpscaleActions */
+const PRESET_ACTION: Record<UpscalePreset, string> = {
+  fhd: 'upscale_fhd',
+  qhd: 'upscale_qhd',
+  uhd: 'upscale_uhd',
+  fuhd: 'upscale_fuhd',
+}
+
+/** แพ็กเกจขั้นต่ำของขนาดนั้น (แอดมินตั้งในหน้า ตั้งค่าเครดิต) null = ทุกแพ็กเกจใช้ได้ */
+export function requiredPlan(costs: CreditCosts | undefined, preset: UpscalePreset): UserType | null {
+  const plan = costs?.minUserTypes?.[PRESET_ACTION[preset]]
+  return plan && plan !== 'FREE' ? plan : null
+}
+
+/** แพ็กเกจของผู้ใช้ยังไม่ถึงขนาดนั้น ยังไม่รู้แพ็กเกจ (usage ยังไม่มา) ถือว่าใช้ได้ เซิร์ฟเวอร์ตรวจซ้ำอยู่แล้ว */
+export function presetLocked(
+  costs: CreditCosts | undefined,
+  preset: UpscalePreset,
+  userType: UserType | undefined,
+): boolean {
+  const plan = requiredPlan(costs, preset)
+  return plan !== null && userType !== undefined && !planAtLeast(userType, plan)
+}
+
+/**
+ * แพ็กเกจที่ต้องมีถึงจะอัปสเกลได้ ใช้เมื่อทุกขนาดที่เปิดอยู่ล็อกสำหรับผู้ใช้คนนี้
+ * (แอดมินตั้งอัปสเกลเป็น PLUS ขึ้นไป ลูกค้าแพ็กเกจฟรีเห็นหน้าอัปเกรดแทนช่องเพิ่มรูป)
+ * คืนแพ็กเกจต่ำสุดที่ปลดล็อกได้สักขนาด null = มีขนาดที่ใช้ได้ หรือยังไม่รู้ราคาหรือแพ็กเกจ
+ */
+export function upscaleLockedPlan(costs: CreditCosts | undefined, userType: UserType | undefined): UserType | null {
+  if (!costs || userType === undefined) return null
+  const enabled = PRESETS.filter(({ id }) => upscalePresetEnabled(costs, id))
+  if (enabled.length === 0 || enabled.some(({ id }) => !presetLocked(costs, id, userType))) return null
+  const plans = enabled.map(({ id }) => requiredPlan(costs, id) ?? 'FREE')
+  return plans.reduce((lowest, plan) => (USER_TYPES.indexOf(plan) < USER_TYPES.indexOf(lowest) ? plan : lowest))
+}
+
 /**
  * costs = ราคาจากแอดมิน ใช้บอกเครดิตต่อขนาดและซ่อนขนาดที่ปิดอยู่
- * transparent = ต้นฉบับอาจโปร่งใส (PNG) ขยายได้ถึง 4K
+ * userType = แพ็กเกจของลูกค้า ขนาดที่แพ็กเกจยังไม่ถึงเลือกไม่ได้ (undefined = ยังไม่รู้ ถือว่าได้)
+ * รูปโปร่งใสขยายได้ถึง 8K เหมือนรูปทั่วไป (เดิมจำกัด 4K เพราะเซิร์ฟเวอร์มี RAM 1 GB)
  */
 export function presetOptions(
   width: number,
   height: number,
   costs: CreditCosts | undefined,
-  transparent: boolean,
+  userType: UserType | undefined,
 ): PresetOption[] {
   const sourceLong = Math.max(width, height)
   return PRESETS.map(({ id, label, longSide }) => {
@@ -104,11 +140,11 @@ export function presetOptions(
         ? 'notLarger'
         : !reachable(sourceLong, longSide)
           ? 'tooSmall'
-          : transparent && longSide > TRANSPARENT_MAX_LONG_SIDE
-            ? 'transparent'
-            : upscalePresetEnabled(costs, id)
-              ? null
-              : 'off'
+          : !upscalePresetEnabled(costs, id)
+            ? 'off'
+            : presetLocked(costs, id, userType)
+              ? 'plan'
+              : null
     return {
       preset: id,
       label,
@@ -117,6 +153,7 @@ export function presetOptions(
       megapixels: Math.round(pixels / 100_000) / 10,
       factor: Math.round((longSide / sourceLong) * 10) / 10,
       unavailable,
+      plan: requiredPlan(costs, id),
     }
   })
 }

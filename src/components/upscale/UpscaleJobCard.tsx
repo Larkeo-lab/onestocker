@@ -1,4 +1,15 @@
-import { CircleCheck, Clock, CloudCheck, Download, Info, Maximize2, RotateCw, TriangleAlert, X } from 'lucide-react'
+import {
+  CircleCheck,
+  Clock,
+  CloudCheck,
+  Download,
+  Info,
+  Lock,
+  Maximize2,
+  RotateCw,
+  TriangleAlert,
+  X,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { ImageViewer } from '@/components/library/ImageViewer'
@@ -8,10 +19,12 @@ import { Button } from '@/components/ui/Button'
 import i18n, { intlLocale } from '@/config/i18n'
 import { useCreditCosts } from '@/hooks/queries'
 import { useImageViewer } from '@/hooks/useImageViewer'
+import { PAID_GRADIENT } from '@/lib/plans'
 import { DOWNLOAD_LINK_CLASS, formatBytes } from '@/lib/removeBg'
 import { MAX_FACTOR, estimateText, presetOptions, presetShortName, type PresetOption } from '@/lib/upscale'
 import { cn } from '@/lib/utils'
 import { originalUrl, useUpscaleStore, type UpscaleJob } from '@/store/upscale'
+import { useUsageStore } from '@/store/usage'
 
 import { UpscaleChips } from './UpscaleResultCard'
 
@@ -36,8 +49,9 @@ export function UpscaleJobCard({ job }: { job: UpscaleJob }) {
   // รอคิวเซิร์ฟเวอร์ยังเป็น processing แต่แสดงไอคอนรอแทนชื่อแอปที่เคลื่อนไหว และเอาออกได้
   const waiting = job.status === 'waitingUpload' || job.status === 'queued' || job.serverBusy
   const costs = useCreditCosts().data
+  const userType = useUsageStore((state) => state.usage?.userType)
   const options =
-    job.width !== null && job.height !== null ? presetOptions(job.width, job.height, costs, job.transparent) : []
+    job.width !== null && job.height !== null ? presetOptions(job.width, job.height, costs, userType) : []
   const chosen = options.find((option) => option.preset === job.preset)
   const limited = (reason: PresetOption['unavailable']) => options.some((option) => option.unavailable === reason)
 
@@ -117,12 +131,6 @@ export function UpscaleJobCard({ job }: { job: UpscaleJob }) {
               ))}
             </div>
             {/* ป้ายด้านขวาของแถวสั้น บอกเหตุผลเต็มไว้ใต้รายการ ลูกค้าจะได้รู้ว่าทำไมเลือกไม่ได้ */}
-            {limited('transparent') ? (
-              <p className="mt-1.5 flex items-start gap-1.5 text-[11px] text-muted-foreground">
-                <Info className="mt-px size-3 shrink-0" aria-hidden />
-                {t('upscale.transparentNote')}
-              </p>
-            ) : null}
             {limited('tooSmall') ? (
               <p className="mt-1.5 flex items-start gap-1.5 text-[11px] text-muted-foreground">
                 <Info className="mt-px size-3 shrink-0" aria-hidden />
@@ -200,7 +208,46 @@ function PresetRow({
 }) {
   const { t } = useTranslation()
   const locale = intlLocale()
+  const openPlans = useUsageStore((state) => state.openPlans)
   const disabled = option.unavailable !== null
+  const size = `${option.width.toLocaleString(locale)} × ${option.height.toLocaleString(locale)} · ${option.megapixels.toLocaleString(locale)} MP`
+
+  /*
+    แพ็กเกจยังไม่ถึง เรืองแสงแบบเดียวกับระดับ Pro ในหน้าลบพื้นหลัง กดแล้วเปิดป๊อปอัปแพ็กเกจให้อัปเกรด
+    ไม่ใช่ตัวเลือก (เลือกไม่ได้) จึงเป็นปุ่ม ไม่ใช่ radio
+  */
+  if (option.unavailable === 'plan' && option.plan) {
+    return (
+      <div className="relative">
+        <span
+          aria-hidden
+          className={cn(
+            'pointer-events-none absolute -inset-0.5 rounded-xl opacity-30 blur-[6px] motion-safe:animate-pulse',
+            PAID_GRADIENT,
+          )}
+        />
+        <button
+          type="button"
+          onClick={openPlans}
+          className={cn(
+            'relative block w-full rounded-lg p-[1.5px] text-left focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:outline-none',
+            PAID_GRADIENT,
+          )}
+        >
+          <span className="flex items-center gap-2 rounded-[6.5px] bg-card px-2.5 py-1.5">
+            <Lock className="size-3.5 shrink-0 text-primary" aria-hidden />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[12.5px] font-medium">{option.label}</span>
+              <span className="block text-[11px] text-muted-foreground tabular-nums">{size}</span>
+            </span>
+            <span className="shrink-0 text-[10.5px] font-semibold text-primary">
+              {t('upscale.planOnly', { plan: option.plan })}
+            </span>
+          </span>
+        </button>
+      </div>
+    )
+  }
 
   return (
     <label
@@ -226,8 +273,7 @@ function PresetRow({
       <span className="min-w-0 flex-1">
         <span className={cn('block text-[12.5px] font-medium', selected && 'text-primary')}>{option.label}</span>
         <span className="block text-[11px] text-muted-foreground tabular-nums">
-          {option.width.toLocaleString(locale)} × {option.height.toLocaleString(locale)} ·{' '}
-          {option.megapixels.toLocaleString(locale)} MP
+          {size}
           {option.credits !== undefined && option.unavailable === null ? (
             <span className={cn('font-medium', selected ? 'text-primary' : 'text-foreground')}>
               {' · '}
@@ -246,11 +292,9 @@ function PresetRow({
           ? t('upscale.notLarger')
           : option.unavailable === 'tooSmall'
             ? t('upscale.tooSmall')
-            : option.unavailable === 'transparent'
-              ? t('upscale.transparentLimit')
-              : option.unavailable === 'off'
-                ? t('upscale.presetOff')
-                : `AI ${option.factor}×`}
+            : option.unavailable === 'off'
+              ? t('upscale.presetOff')
+              : `AI ${option.factor}×`}
       </span>
     </label>
   )

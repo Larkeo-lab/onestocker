@@ -197,7 +197,8 @@ export const useRemoveBgStore = create<RemoveBgState>((set, get) => {
   async function process(id: string) {
     const job = find(id)
     if (!job?.key || !job.format || !job.quality) return
-    const input = { key: job.key, filename: job.file.name, format: job.format, quality: job.quality }
+    // id ของรูปนี้เป็น requestId ทุกรอบ รวมตอนกดลองใหม่ งานที่เซิร์ฟเวอร์ทำเสร็จไปแล้วได้ผลเดิม ไม่ตัดเครดิตซ้ำ
+    const input = { requestId: id, key: job.key, filename: job.file.name, format: job.format, quality: job.quality }
 
     for (let attempt = 1; ; attempt++) {
       try {
@@ -335,15 +336,16 @@ function processFailure(error: unknown, key: string): Pick<RemoveBgJob, 'error' 
       useUsageStore.getState().reportLimitReached()
       return { error: error.message, key }
     case 403:
+    case 404:
     case 503:
-      // แอดมินปิดงานนี้อยู่ หรือบริการใช้ไม่ได้ (เช่น key ผิด) ไม่ได้ตัดเครดิต และต้นฉบับยังอยู่
+      // แอดมินปิดงานนี้อยู่ งานหายเพราะเซิร์ฟเวอร์เริ่มใหม่กลางงาน หรือบริการใช้ไม่ได้ (ปิดปรับปรุง) ไม่ได้ตัดเครดิต และต้นฉบับยังอยู่
       // (429 ไม่มาถึงตรงนี้ process รอแล้วส่งใหม่เอง)
       // เปิดกลับหรือว่างเมื่อไรกดลองใหม่ได้เลยโดยไม่ต้องอัปซ้ำ
       return { error: error.message, key }
     case 0:
       /*
-        หมดเวลารอหรือเน็ตหลุดระหว่างประมวลผล เซิร์ฟเวอร์อาจทำเสร็จและตัดเครดิตไปแล้ว
-        ดึงคลังรูปใหม่ให้เห็น และบอกให้ตรวจก่อน กดลองใหม่เลยอาจเสียเครดิตซ้ำ
+        เน็ตหลุดนานจนไม่รู้ผล เซิร์ฟเวอร์อาจทำเสร็จและตัดเครดิตไปแล้ว อ่านคลังรูปและเครดิตใหม่ให้ตรงความจริง
+        กดลองใหม่ได้ปลอดภัย ส่ง requestId เดิม งานที่เสร็จแล้วได้ผลเดิมโดยไม่ตัดซ้ำ
       */
       void queryClient.invalidateQueries({ queryKey: queryKeys.removeBg.all })
       void useUsageStore.getState().refresh()

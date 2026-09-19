@@ -41,6 +41,13 @@ const FRAME_PADDING = 16;
  */
 const DISPLAY_MAX_SIDE = 2560;
 
+/**
+ * รูปที่ไม่เกินเท่านี้โหลดไฟล์เต็มต่อทันทีหลังไฟล์ดูบนจอ ซูมลึกเมื่อไรคมเลย
+ * ใหญ่กว่านี้ (เช่นลบพื้นหลัง Pro ขนาดเท่าต้นฉบับ 9600×7168 ไฟล์ PNG 30–70 MB) โหลดเมื่อซูมจนต้องใช้
+ * ดูพอดีจอไม่ต้องดาวน์โหลดหลายสิบ MB และมือถือไม่ต้องถอดรหัสรูปหลายร้อย MB ในหน่วยความจำ
+ */
+const EAGER_FULL_MAX_PIXELS = 25_000_000;
+
 /** ปุ่มลูกศรเลื่อนเส้นเทียบทีละเท่านี้ (%) กด Shift ค้างเลื่อนทีละ 10 */
 const SPLIT_STEP = 2;
 
@@ -150,6 +157,10 @@ export function ImageViewer({
   const [fullReady, setFullReady] = useState(
     () => files.full !== null && isPreloaded(files.full),
   );
+  // ถึงเวลาโหลดไฟล์เต็มแล้ว รูปใหญ่มากรอจนซูมถึง (ดู EAGER_FULL_MAX_PIXELS)
+  const [wantFull, setWantFull] = useState(
+    () => width * height <= EAGER_FULL_MAX_PIXELS,
+  );
   const [screenFailed, setScreenFailed] = useState(false);
   const [fullFailed, setFullFailed] = useState(false);
   const [frame, setFrame] = useState<{ width: number; height: number } | null>(
@@ -168,10 +179,11 @@ export function ImageViewer({
   const lastTap = useRef<{ time: number; point: Point } | null>(null);
   const wheelRef = useRef<(event: WheelEvent) => void>(() => {});
 
-  // โหลดครบทุกไฟล์ที่จะใช้แล้ว (ไฟล์เต็มด้วยถ้ามี) หรือโหลดไม่ได้
-  const settled = files.full
-    ? fullReady || fullFailed
-    : screenReady || screenFailed || files.screen === null;
+  // โหลดครบทุกไฟล์ที่จะใช้แล้ว (ไฟล์เต็มด้วยถ้ามีและต้องใช้) หรือโหลดไม่ได้
+  const settled =
+    files.full && wantFull
+      ? fullReady || fullFailed
+      : screenReady || screenFailed || files.screen === null;
 
   // ระหว่างยังโหลดไม่ครบ รูปนี้ได้เน็ตทั้งหมด คิวโหลดล่วงหน้าของรูปอื่นหยุดรอ
   useEffect(() => {
@@ -201,9 +213,15 @@ export function ImageViewer({
     return () => cancels.forEach((cancel) => cancel());
   }, [files, screenReady, preloadKey]);
 
-  // แล้วโหลดไฟล์เต็มต่อทันที ซูมลึกเมื่อไรจะได้คมเลย
+  // แล้วโหลดไฟล์เต็มต่อ (รูปใหญ่มากรอจนซูมถึง) ซูมลึกเมื่อไรจะได้คมเลย
   useEffect(() => {
-    if (!files.full || fullReady || !(screenReady || screenFailed)) return;
+    if (
+      !files.full ||
+      fullReady ||
+      !wantFull ||
+      !(screenReady || screenFailed)
+    )
+      return;
     const url = files.full;
     return loadImage(
       url,
@@ -213,7 +231,7 @@ export function ImageViewer({
       },
       () => setFullFailed(true),
     );
-  }, [files, fullReady, screenReady, screenFailed, preloadKey]);
+  }, [files, fullReady, wantFull, screenReady, screenFailed, preloadKey]);
 
   // เปิดแล้วล็อกการเลื่อนหน้าข้างหลัง ปิดแล้วคืนโฟกัสให้ปุ่มที่กดเปิด
   useEffect(() => {
@@ -533,6 +551,11 @@ export function ImageViewer({
     (screenFailed ||
       shown.scale * (window.devicePixelRatio || 1) > displayRatio * 1.02);
   const showFull = needsFull && fullReady;
+  /*
+    ซูมจนต้องใช้ไฟล์เต็มแล้ว เริ่มโหลด (รูปที่ไม่ใหญ่มากโหลดไว้ตั้งแต่เปิดแล้ว)
+    ตั้งระหว่าง render ได้ React วาดใหม่ทันทีก่อนแสดงผล ซูมกลับออกก็ยังโหลดต่อจนเสร็จ
+  */
+  if (needsFull && !wantFull) setWantFull(true);
   const showScreen = screenReady && !showFull;
   const loading =
     (files.screen !== null && !screenReady && !screenFailed) ||

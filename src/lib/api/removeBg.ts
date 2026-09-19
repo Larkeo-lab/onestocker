@@ -1,18 +1,12 @@
+import i18n from '@/config/i18n'
 import type { BackgroundRemoval, RemoveBgFormat, RemoveBgQuality } from '@/types/removeBg'
 
 import { apiDelete, apiGetPaginated, apiPost, type Pagination } from './client'
+import { runJob } from './jobs'
 
 /*
   เส้นทั้งหมดต้องตรงกับ server/internal/feature/removebg/router.go
 */
-
-/**
- * เวลารอคำตอบของการลบพื้นหลังหนึ่งรูป
- *
- * เซิร์ฟเวอร์อาจรอคิวได้ถึง 20 วินาที แล้วรอผู้ให้บริการ (Replicate / Cloudflare) อีกไม่เกิน 60 วินาที
- * ค่าเริ่มต้นของ api (60 วินาที) จะตัดทิ้งก่อน ทั้งที่เซิร์ฟเวอร์ยังทำอยู่และตัดเครดิตไปแล้ว
- */
-const PROCESS_TIMEOUT = 100_000
 
 export type RemoveBgQuery = {
   /** เริ่มที่ 1 */
@@ -30,16 +24,28 @@ export async function requestRemoveBgUpload(file: File): Promise<{ key: string; 
 }
 
 /**
- * ลบพื้นหลังรูปที่อัปแล้ว ตัดหนึ่งเครดิต
- * เครดิตหมดได้ 402 · แอดมินปิดระดับนั้นได้ 403 · คิวเต็มได้ 429 · บริการใช้ไม่ได้ได้ 503 (สองกรณีหลังเซิร์ฟเวอร์คืนเครดิตให้แล้ว)
+ * ลบพื้นหลังรูปที่อัปแล้ว ตัดเครดิตตามราคาของระดับนั้นเมื่อสำเร็จเท่านั้น
+ *
+ * ส่งงานแล้วเซิร์ฟเวอร์ทำเบื้องหลัง รอจนจบผ่าน runJob ไม่มีเพดานเวลาของคำขอเดียว
+ * (รูปขนาดเต็ม 9600×7168 ใช้นานเกินที่คำขอเดียวรอได้ เคยขึ้นว่ารอนานเกินไปทั้งที่ทำสำเร็จแล้ว)
+ * ใหญ่เกินหรือไม่พบต้นฉบับ 400 · เครดิตหมด 402 · แอดมินปิดระดับนั้น 403 · งานหาย (เซิร์ฟเวอร์เริ่มใหม่) 404
+ * รูปเสีย 422 · คิวเต็มหรือผู้ให้บริการแน่น 429 · ใช้ไม่ได้หรือปิดปรับปรุง 503 · เน็ตหลุดนานจนไม่รู้ผล 0
+ * requestId ใช้ id เดิมทุกครั้งที่ส่งรูปเดิม (ดู lib/api/jobs.ts) ส่งซ้ำไม่ตัดเครดิตซ้ำ
  */
 export async function removeBackground(input: {
+  requestId: string
   key: string
   filename: string
   format: RemoveBgFormat
   quality: RemoveBgQuality
 }): Promise<BackgroundRemoval> {
-  return apiPost<BackgroundRemoval>('/remove-bg', input, { timeout: PROCESS_TIMEOUT })
+  return runJob<BackgroundRemoval>({
+    startPath: '/remove-bg/jobs',
+    jobPath: (id) => `/remove-bg/jobs/${id}`,
+    body: input,
+    failedMessage: i18n.t('removeBg.failed'),
+    lostMessage: i18n.t('removeBg.timeout'),
+  })
 }
 
 export async function fetchRemoveBgResults(
