@@ -151,6 +151,47 @@
     "Liberation Mono", "Courier New", "Noto Sans Lao", monospace;
 }
 
+/*
+  โลโก้ตัวหนังสือบนหน้าเข้าสู่ระบบ (components/auth/AuthWordmark.tsx)
+  ใช้เป็น class animate-wordmark-in / animate-wordmark-wave
+*/
+@theme {
+  --animate-wordmark-in: wordmark-in 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-wordmark-wave: wordmark-wave 1.8s ease-in-out infinite;
+
+  /* ตัวอักษรลอยขึ้นจากเบลอเป็นคมชัด */
+  @keyframes wordmark-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.45em) scale(0.92);
+      filter: blur(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+
+  /*
+    คลื่นระหว่างรอ Clerk โหลด ยกตัวขึ้นพร้อมเรืองแสงแล้วกลับที่เดิม
+    ต้นรอบกับท้ายรอบอยู่ที่เดิมพอดี หยุดตอนจบรอบแล้วจึงไม่กระตุก
+  */
+  @keyframes wordmark-wave {
+    0%,
+    45%,
+    100% {
+      transform: none;
+      text-shadow: none;
+    }
+    20% {
+      transform: translateY(-0.16em);
+      text-shadow: 0 0.12em 0.5em
+        color-mix(in oklab, currentColor 45%, transparent);
+    }
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

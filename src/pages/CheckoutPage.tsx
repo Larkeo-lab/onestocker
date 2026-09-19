@@ -89,7 +89,13 @@ function CheckoutContent({ userType }: { userType: UserType }) {
 
   if (checkout.isPending) return <Loading label={t('checkout.loading')} />
   if (checkout.isError) {
-    return <ErrorState message={errorMessage(checkout.error)} onRetry={() => void checkout.refetch()} />
+    return (
+      <ErrorState
+        message={errorMessage(checkout.error)}
+        error={checkout.error}
+        onRetry={() => void checkout.refetch()}
+      />
+    )
   }
 
   return (

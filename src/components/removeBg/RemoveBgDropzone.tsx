@@ -3,7 +3,7 @@ import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/Button'
-import { ACCEPTED_TYPES, MAX_UPLOAD_MB } from '@/lib/removeBg'
+import { MAX_UPLOAD_MB, PICKER_ACCEPT } from '@/lib/removeBg'
 import { cn } from '@/lib/utils'
 
 /**
@@ -70,7 +70,7 @@ export function RemoveBgDropzone({
         ref={inputRef}
         type="file"
         multiple
-        accept={ACCEPTED_TYPES.join(',')}
+        accept={PICKER_ACCEPT}
         className="hidden"
         aria-label={t('removeBg.dropTitle')}
         onClick={(event) => event.stopPropagation()}

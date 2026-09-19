@@ -1,6 +1,7 @@
 import {
   Check,
   CircleCheck,
+  Clock,
   Copy,
   Info,
   Languages,
@@ -117,6 +118,14 @@ function StatusBadge({ asset }: { asset: Asset }) {
       <Badge tone="primary">
         <LoaderCircle className="size-3 animate-spin" aria-hidden />
         {t('asset.uploading')}
+      </Badge>
+    )
+  }
+  if (asset.status === 'generating' && asset.waiting) {
+    return (
+      <Badge tone="warning">
+        <Clock className="size-3" aria-hidden />
+        {t('asset.waiting')}
       </Badge>
     )
   }

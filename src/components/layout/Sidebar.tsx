@@ -6,7 +6,7 @@ import { NAV_SECTIONS } from "@/config/nav";
 import { platformName } from "@/config/platforms";
 import { useCreditCosts } from "@/hooks/queries";
 import { isPageEnabled } from "@/types/creditCost";
-import { APP_PATH, siteConfig } from "@/config/site";
+import { APP_PATH, APP_VERSION, siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { getSelectedPlatforms, usePlatformsStore } from "@/store/platforms";
 
@@ -20,11 +20,7 @@ function SidebarPanel({ onNavigate }: PanelProps) {
   const activePlatformId = usePlatformsStore((s) => s.activePlatformId);
   const setActivePlatformId = usePlatformsStore((s) => s.setActivePlatformId);
   const selectedPlatforms = getSelectedPlatforms(selectedIds);
-  /*
-    งานที่แอดมินปิดอยู่ไม่แสดงเมนู ระหว่างโหลดหรือโหลดไม่สำเร็จถือว่าเปิด
-    ปกติงานเปิดอยู่ ซ่อนไว้ก่อนแล้วค่อยโผล่จะทำให้เมนูกระพริบทุกครั้งที่เปิดแอป
-    ถ้าปิดจริงแล้วยังกดเข้าไปได้ FeatureGate กับเซิร์ฟเวอร์กันไว้อีกชั้น
-  */
+
   const enabled = useCreditCosts().data?.enabled;
   return (
     <div className="flex h-full flex-col bg-sidebar">
@@ -57,96 +53,112 @@ function SidebarPanel({ onNavigate }: PanelProps) {
             </p>
             <ul className="space-y-0.5">
               {section.items
-                .filter((item) => !item.feature || !enabled || isPageEnabled(enabled, item.feature))
+                .filter(
+                  (item) =>
+                    !item.feature ||
+                    !enabled ||
+                    isPageEnabled(enabled, item.feature),
+                )
                 .map((item) => {
-                const Icon = item.icon;
-                const isPlatformsItem = item.to === `${APP_PATH}/platforms`;
-                return (
-                  <li key={item.to}>
-                    <NavLink
-                      to={item.to}
-                      end
-                      onClick={onNavigate}
-                      className={({ isActive }) =>
-                        cn(
-                          "flex h-9 items-center gap-2.5 rounded-md px-2 text-[13px] transition-colors",
-                          isActive
-                            ? "bg-primary-soft font-medium text-primary"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                        )
-                      }
-                    >
-                      <Icon className="size-4 shrink-0" aria-hidden />
-                      <span className="flex-1 truncate">{t(item.labelKey)}</span>
-                      {isPlatformsItem && selectedPlatforms.length > 0 ? (
-                        <span className="font-mono text-[10.5px] font-normal text-subtle-foreground tabular-nums">
-                          {selectedPlatforms.length}
+                  const Icon = item.icon;
+                  const isPlatformsItem = item.to === `${APP_PATH}/platforms`;
+                  return (
+                    <li key={item.to}>
+                      <NavLink
+                        to={item.to}
+                        end
+                        onClick={onNavigate}
+                        className={({ isActive }) =>
+                          cn(
+                            "flex h-9 items-center gap-2.5 rounded-md px-2 text-[13px] transition-colors",
+                            isActive
+                              ? "bg-primary-soft font-medium text-primary"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                          )
+                        }
+                      >
+                        <Icon className="size-4 shrink-0" aria-hidden />
+                        <span className="flex-1 truncate">
+                          {t(item.labelKey)}
                         </span>
-                      ) : null}
-                    </NavLink>
+                        {isPlatformsItem && selectedPlatforms.length > 0 ? (
+                          <span className="font-mono text-[10.5px] font-normal text-subtle-foreground tabular-nums">
+                            {selectedPlatforms.length}
+                          </span>
+                        ) : null}
+                      </NavLink>
 
-                    {/* แสดงแพลตฟอร์มที่เลือกไว้ ถัดลงมาจากเมนู Platforms */}
-                    {isPlatformsItem && selectedPlatforms.length > 0 ? (
-                      <ul className="mt-1 ml-3.5 space-y-0.5 border-l border-border/60 pl-2.5">
-                        {selectedPlatforms.map((platform) => {
-                          const isActive =
-                            (activePlatformId || selectedPlatforms[0]?.id) ===
-                            platform.id;
-                          return (
-                            <li key={platform.id}>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setActivePlatformId(platform.id);
-                                  onNavigate?.();
-                                }}
-                                title={t("sidebar.selectPlatform", {
-                                  name: platformName(platform, t),
-                                })}
-                                className={cn(
-                                  "flex h-7 w-full cursor-pointer items-center justify-between gap-2 rounded-md px-1.5 text-[12px] transition-colors",
-                                  isActive
-                                    ? "bg-primary-soft font-medium text-primary"
-                                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground active:scale-[0.98]",
-                                )}
-                              >
-                                <span className="flex min-w-0 items-center gap-2">
-                                  {platform.icon ? (
-                                    <img
-                                      src={platform.icon}
-                                      alt=""
-                                      className="size-3.5 shrink-0 rounded-xs object-contain"
-                                    />
-                                  ) : (
-                                    <span
-                                      className="flex size-3.5 shrink-0 items-center justify-center rounded-xs text-[8px] font-bold text-white"
-                                      style={{ backgroundColor: platform.color }}
-                                    >
-                                      {platform.monogram}
-                                    </span>
+                      {/* แสดงแพลตฟอร์มที่เลือกไว้ ถัดลงมาจากเมนู Platforms */}
+                      {isPlatformsItem && selectedPlatforms.length > 0 ? (
+                        <ul className="mt-1 ml-3.5 space-y-0.5 border-l border-border/60 pl-2.5">
+                          {selectedPlatforms.map((platform) => {
+                            const isActive =
+                              (activePlatformId || selectedPlatforms[0]?.id) ===
+                              platform.id;
+                            return (
+                              <li key={platform.id}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActivePlatformId(platform.id);
+                                    onNavigate?.();
+                                  }}
+                                  title={t("sidebar.selectPlatform", {
+                                    name: platformName(platform, t),
+                                  })}
+                                  className={cn(
+                                    "flex h-7 w-full cursor-pointer items-center justify-between gap-2 rounded-md px-1.5 text-[12px] transition-colors",
+                                    isActive
+                                      ? "bg-primary-soft font-medium text-primary"
+                                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground active:scale-[0.98]",
                                   )}
-                                  <span className="truncate text-left">
-                                    {platformName(platform, t)}
+                                >
+                                  <span className="flex min-w-0 items-center gap-2">
+                                    {platform.icon ? (
+                                      <img
+                                        src={platform.icon}
+                                        alt=""
+                                        className="size-3.5 shrink-0 rounded-xs object-contain"
+                                      />
+                                    ) : (
+                                      <span
+                                        className="flex size-3.5 shrink-0 items-center justify-center rounded-xs text-[8px] font-bold text-white"
+                                        style={{
+                                          backgroundColor: platform.color,
+                                        }}
+                                      >
+                                        {platform.monogram}
+                                      </span>
+                                    )}
+                                    <span className="truncate text-left">
+                                      {platformName(platform, t)}
+                                    </span>
                                   </span>
-                                </span>
 
-                                {isActive ? (
-                                  <Check className="size-3.5 shrink-0 text-primary" aria-hidden />
-                                ) : null}
-                              </button>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    ) : null}
-                  </li>
-                );
-              })}
+                                  {isActive ? (
+                                    <Check
+                                      className="size-3.5 shrink-0 text-primary"
+                                      aria-hidden
+                                    />
+                                  ) : null}
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      ) : null}
+                    </li>
+                  );
+                })}
             </ul>
           </div>
         ))}
       </nav>
 
+      {/* nav เป็น flex-1 เวอร์ชันจึงถูกดันลงไปติดล่างสุดเสมอ */}
+      <p className="text-center shrink-0 border-t border-border px-4 py-2.5 font-mono text-[10.5px] text-subtle-foreground tabular-nums">
+        {APP_VERSION}
+      </p>
     </div>
   );
 }

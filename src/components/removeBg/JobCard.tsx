@@ -1,10 +1,14 @@
-import { CircleCheck, Clock, CloudCheck, Download, LoaderCircle, RotateCw, TriangleAlert, X } from 'lucide-react'
+import { CircleCheck, Clock, CloudCheck, Download, Maximize2, RotateCw, TriangleAlert, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import { ImageViewer } from '@/components/library/ImageViewer'
+import { BrandLoader } from '@/components/ui/BrandLoader'
 import { Button } from '@/components/ui/Button'
 import { intlLocale } from '@/config/i18n'
-import { DOWNLOAD_LINK_CLASS, formatBytes } from '@/lib/removeBg'
-import { useRemoveBgStore, type RemoveBgJob } from '@/store/removeBg'
+import { useImageViewer } from '@/hooks/useImageViewer'
+import { DOWNLOAD_LINK_CLASS, displayFiles, formatBytes, resultViewKey } from '@/lib/removeBg'
+import { isUploadPending, useRemoveBgStore, type RemoveBgJob } from '@/store/removeBg'
+import type { BackgroundRemoval } from '@/types/removeBg'
 
 import { FormatChip, QualityChip, ResultPreview } from './ResultPreview'
 
@@ -13,28 +17,44 @@ export function JobCard({ job }: { job: RemoveBgJob }) {
   const { t } = useTranslation()
   const retry = useRemoveBgStore((state) => state.retry)
   const dismiss = useRemoveBgStore((state) => state.dismiss)
+  const cancelUpload = useRemoveBgStore((state) => state.cancelUpload)
+  const viewer = useImageViewer(`job/${job.id}`)
 
   const result = job.status === 'done' ? job.result : null
-  const busy = job.status === 'uploading' || job.status === 'processing'
-  const waiting = job.status === 'waitingUpload' || job.status === 'queued'
+  const busy = job.status === 'converting' || job.status === 'uploading' || job.status === 'processing'
+  // รอคิวเซิร์ฟเวอร์ยังเป็น processing (ซ่อนปุ่มเอาออก) แต่แสดงไอคอนรอแทนชื่อแอปที่เคลื่อนไหว
+  const waiting = job.status === 'waitingUpload' || job.status === 'queued' || job.serverBusy
+  // ยังอัปไม่เสร็จ ใช้ปุ่มยกเลิกด้านล่างแทนปุ่มเอาออกมุมรูป
+  const uploadPending = isUploadPending(job)
 
   return (
     <li className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card">
       <ResultPreview
         src={result?.previewUrl ?? job.sourceUrl}
         format={result ? result.format : undefined}
+        onOpen={result ? viewer.show : undefined}
       >
         {busy || waiting ? (
           <span className="absolute inset-0 flex items-center justify-center bg-background/55">
             {waiting ? (
               <Clock className="size-6 text-muted-foreground" aria-hidden />
             ) : (
-              <LoaderCircle className="size-7 animate-spin text-primary" aria-hidden />
+              <BrandLoader
+                label={
+                  job.status === 'converting'
+                    ? t('removeBg.converting')
+                    : job.status === 'uploading'
+                      ? t('removeBg.uploading', { percent: job.progress })
+                      : t('removeBg.processing')
+                }
+                className="rounded-full bg-background/80 px-3.5 py-2 shadow-sm"
+              />
             )}
           </span>
         ) : null}
 
-        {busy ? null : (
+        {/* รอคิวอยู่เอาออกได้ ลูปรอจะเลิกส่งเอง */}
+        {(busy && !job.serverBusy) || uploadPending ? null : (
           <button
             type="button"
             onClick={() => dismiss(job.id)}
@@ -61,13 +81,50 @@ export function JobCard({ job }: { job: RemoveBgJob }) {
         <JobStatus job={job} />
 
         {result ? (
-          <div className="mt-auto flex pt-1">
+          <div className="mt-auto flex gap-2 pt-1">
             {result.url ? (
               <a href={result.url} className={DOWNLOAD_LINK_CLASS}>
                 <Download className="size-3.5" aria-hidden />
                 {t('removeBg.download')}
               </a>
             ) : null}
+            <Button size="sm" className={result.url ? undefined : 'flex-1'} onClick={viewer.show}>
+              <Maximize2 className="size-3.5" aria-hidden />
+              {t('viewer.open')}
+            </Button>
+          </div>
+        ) : null}
+
+        {result && viewer.open ? (
+          <ImageViewer
+            previewUrl={result.previewUrl}
+            fullUrl={result.url}
+            display={displayFiles(result)}
+            // key เดียวกับการ์ดในประวัติ (ResultCard) รูปที่โหลดไว้ล่วงหน้าใช้ร่วมกันได้
+            preloadKey={resultViewKey(result)}
+            // ต้นฉบับยังอยู่ในเบราว์เซอร์ (ไฟล์ที่เลือกมา) เทียบก่อน/หลังได้ ในคลังรูปไม่มีเพราะเซิร์ฟเวอร์ลบต้นฉบับแล้ว
+            beforeUrl={job.sourceUrl}
+            width={result.width}
+            height={result.height}
+            transparent={result.format === 'png'}
+            filename={result.filename}
+            details={resultSize(result)}
+            chips={
+              <>
+                <QualityChip quality={result.quality} />
+                <FormatChip format={result.format} />
+              </>
+            }
+            onClose={viewer.close}
+          />
+        ) : null}
+
+        {uploadPending ? (
+          <div className="mt-auto flex pt-1">
+            <Button size="sm" className="flex-1" onClick={() => cancelUpload(job.id)}>
+              <X className="size-3.5" aria-hidden />
+              {t('removeBg.cancelUpload')}
+            </Button>
           </div>
         ) : null}
 
@@ -88,6 +145,9 @@ function JobStatus({ job }: { job: RemoveBgJob }) {
   const { t } = useTranslation()
 
   switch (job.status) {
+    case 'converting':
+      return <p className="text-[12px] text-primary">{t('removeBg.converting')}</p>
+
     case 'waitingUpload':
       return <p className="text-[12px] text-muted-foreground">{t('removeBg.waitingUpload')}</p>
 
@@ -118,20 +178,18 @@ function JobStatus({ job }: { job: RemoveBgJob }) {
       )
 
     case 'processing':
-      return <p className="text-[12px] text-primary">{t('removeBg.processing')}</p>
+      return job.serverBusy ? (
+        <p className="text-[12px] text-muted-foreground">{t('removeBg.serverBusy')}</p>
+      ) : (
+        <p className="text-[12px] text-primary">{t('removeBg.processing')}</p>
+      )
 
     case 'done':
       return (
         <p className="flex items-center gap-1.5 text-[12px] text-muted-foreground tabular-nums">
           <CircleCheck className="size-3.5 shrink-0 text-success" aria-hidden />
           {t('removeBg.done')}
-          {job.result ? (
-            <span className="truncate text-subtle-foreground">
-              · {job.result.width.toLocaleString(intlLocale())}×{job.result.height.toLocaleString(intlLocale())}
-              {' · '}
-              {formatBytes(job.result.sizeBytes)}
-            </span>
-          ) : null}
+          {job.result ? <span className="truncate text-subtle-foreground">· {resultSize(job.result)}</span> : null}
         </p>
       )
 
@@ -143,4 +201,9 @@ function JobStatus({ job }: { job: RemoveBgJob }) {
         </p>
       )
   }
+}
+
+/** "2,880×3,840 · 8.8 MB" */
+function resultSize(result: BackgroundRemoval): string {
+  return `${result.width.toLocaleString(intlLocale())}×${result.height.toLocaleString(intlLocale())} · ${formatBytes(result.sizeBytes)}`
 }

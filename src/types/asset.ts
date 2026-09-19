@@ -42,6 +42,11 @@ export type Asset = {
    */
   frameKeys?: string[]
   error?: string
+  /**
+   * ระหว่าง generating: เซิร์ฟเวอร์ตอบว่าแน่น (Gemini จำกัดอัตรา) กำลังรอแล้วส่งใหม่เอง
+   * ไม่ได้ตัดเครดิตระหว่างรอ
+   */
+  waiting?: boolean
   /** สิ่งที่ตัวกรองแก้ไขหลังโมเดลตอบ เช่น ตัดชื่อแบรนด์ออก */
   notes?: string[]
   /**

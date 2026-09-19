@@ -18,3 +18,8 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+/** เลขเวอร์ชันจาก package.json ใส่มาตอน build (ดู define ใน vite.config.ts) */
+declare const __APP_VERSION__: string
+/** git commit แบบสั้นที่ใช้ build ว่างได้ถ้า build นอก git */
+declare const __APP_COMMIT__: string

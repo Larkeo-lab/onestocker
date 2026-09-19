@@ -2,14 +2,16 @@ import { QueryClient } from '@tanstack/react-query'
 
 import type { HistoryQuery } from '@/lib/api/history'
 import type { RemoveBgQuery } from '@/lib/api/removeBg'
+import type { UpscaleQuery } from '@/lib/api/upscale'
 
 /**
- * ข้อมูลที่แอดมินแก้ได้ (ราคาแพ็กเกจ เครดิตต่องาน ช่องทางติดต่อ)
+ * ข้อมูลที่แอดมินแก้ได้ (เปิด/ปิดงาน ราคาแพ็กเกจ เครดิตต่องาน ช่องทางติดต่อ)
  *
- * ฝั่งลูกค้าไม่มีทางรู้ว่าแอดมินแก้เมื่อไร จึงยอมให้ถามใหม่ได้ แต่ไม่ถี่กว่านี้
- * และถามเฉพาะตอนมีหน้าที่ใช้ข้อมูลนั้นเปิดขึ้นมา ไม่ได้ถามเป็นรอบ
+ * แอดมินแก้แล้วลูกค้าต้องเห็นทันที ฝั่งลูกค้าไม่มีทางรู้ว่าแก้เมื่อไร จึงถือว่าเก่าเสมอ
+ * แสดงของใน cache ทันทีแล้วถามใหม่เบื้องหลังทุกครั้งที่มีหน้าที่ใช้ข้อมูลนั้นเปิดขึ้นมา ไม่ได้ถามเป็นรอบ
+ * คำตอบเล็ก ถามบ่อยก็ไม่หนัก (เซิร์ฟเวอร์สั่งห้ามเบราว์เซอร์จำด้วย ดู adminManagedCacheControl ใน feature quota)
  */
-export const ADMIN_MANAGED_STALE_MS = 10 * 60 * 1000
+export const ADMIN_MANAGED_STALE_MS = 0
 
 /**
  * ข้อมูลที่มีลิงก์รูปบน R2 (รูปย่อ สลิป QR) ลิงก์พวกนี้หมดอายุใน 1 ชั่วโมง
@@ -64,5 +66,13 @@ export const queryKeys = {
   removeBg: {
     all: ['removeBg'] as const,
     page: (query: RemoveBgQuery) => ['removeBg', query] as const,
+    // ประวัติในหน้าลบพื้นหลัง โหลดต่อทีละหน้า ขึ้นต้นด้วย removeBg จึงถูกล้างพร้อม all
+    history: ['removeBg', 'history'] as const,
+  },
+  upscale: {
+    all: ['upscale'] as const,
+    page: (query: UpscaleQuery) => ['upscale', query] as const,
+    // ประวัติในหน้าอัปสเกล โหลดต่อทีละหน้า ขึ้นต้นด้วย upscale จึงถูกล้างพร้อม all
+    history: ['upscale', 'history'] as const,
   },
 }

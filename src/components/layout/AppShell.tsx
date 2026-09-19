@@ -14,6 +14,7 @@ import { useUiStore } from '@/store/ui'
 import { useUsageStore } from '@/store/usage'
 
 import { AppHeader } from './AppHeader'
+import { OfflineBanner } from './OfflineBanner'
 import { Sidebar } from './Sidebar'
 
 /**
@@ -123,6 +124,7 @@ export function AppShell() {
       <QuotaDialog />
       <PlansDialog />
       <WelcomeDialog show={profile.data?.showWelcome === true} />
+      <OfflineBanner />
     </div>
   )
 }

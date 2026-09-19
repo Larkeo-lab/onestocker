@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query'
 
 import {
   fetchContact,
@@ -11,8 +11,11 @@ import {
   fetchPlans,
   fetchRemoveBgResults,
   fetchSettings,
+  fetchUpscales,
   type HistoryQuery,
+  type Pagination,
   type RemoveBgQuery,
+  type UpscaleQuery,
 } from '@/lib/api'
 import type { Checkout, Payment } from '@/types/payment'
 import type { UserType } from '@/types/profile'
@@ -28,7 +31,8 @@ import { ADMIN_MANAGED_STALE_MS, SIGNED_URL_STALE_MS, queryKeys } from '@/lib/qu
   ส่วนที่เปลี่ยนเพราะผู้ใช้เองถูก invalidate จากจุดที่บันทึก:
     - settings    ← SettingsForm, store/platforms
     - history     ← GenerateProvider (สร้าง metadata เสร็จ)
-    - removeBg    ← store/removeBg (ลบพื้นหลังเสร็จ), ResultCard (ลบรูป)
+    - removeBg    ← store/removeBg (ลบพื้นหลังเสร็จ), LibraryPage (ลบรูป)
+    - upscale     ← store/upscale (อัปสเกลเสร็จ), LibraryPage (ลบรูป)
     - payments    ← CheckoutPage (แจ้งชำระ)
     - me          ← WelcomeDialog (ปิดป๊อปอัปต้อนรับ)
 */
@@ -51,7 +55,7 @@ export function useSettings() {
  * เครดิตต่อหนึ่งครั้งของแต่ละงาน และงานไหนเปิดให้ใช้ แอดมินแก้ได้
  *
  * sidebar ใช้ตัวนี้และไม่เคยถูกถอดออก ถ้าถามใหม่แค่ตอน mount จะไม่มีวันเห็นว่าแอดมินปิดงาน
- * จึงถามใหม่ตอนกลับมาที่แท็บด้วย แต่เฉพาะเมื่อข้อมูลเก่าเกิน ADMIN_MANAGED_STALE_MS
+ * จึงถามใหม่ทุกครั้งที่กลับมาที่แท็บและทุกครั้งที่เปิดหน้าที่ใช้ข้อมูลนี้
  */
 export function useCreditCosts() {
   return useQuery({
@@ -143,6 +147,51 @@ export function useRemoveBgResults(query: RemoveBgQuery) {
     placeholderData: keepPreviousData,
     staleTime: SIGNED_URL_STALE_MS,
     // เปิดคลังรูปค้างไว้แล้วค่อยกดดาวน์โหลด ลิงก์ต้องยังใช้ได้
+    refetchInterval: SIGNED_URL_STALE_MS,
+  })
+}
+
+/** ประวัติใต้หน้าลบพื้นหลังและหน้าอัปสเกล โหลดทีละเท่านี้ กดดูเพิ่มเติมแล้วต่อท้ายอีกเท่านี้ */
+export const HISTORY_PAGE_SIZE = 20
+
+/*
+  ประวัติทั้งหมด ใหม่ไปเก่า โหลดหน้าแรกก่อน หน้าถัดไปโหลดเมื่อเรียก fetchNextPage
+
+  ถูกล้างพร้อม queryKeys.removeBg.all / queryKeys.upscale.all (ทำเสร็จ หรือลบรูป)
+  ทุกหน้าที่โหลดแล้วโหลดใหม่ตามลำดับ รายการจึงต่อกันถูกต้องแม้มีรูปใหม่แทรกด้านบน
+  เปิดหน้าค้างไว้แล้วค่อยกดดาวน์โหลด ลิงก์ต้องยังใช้ได้ จึงโหลดใหม่ก่อนลิงก์หมดอายุ
+*/
+const historyOptions = {
+  initialPageParam: 1,
+  getNextPageParam: ({ pagination }: { pagination: Pagination }) =>
+    pagination.page < pagination.totalPages ? pagination.page + 1 : undefined,
+  staleTime: SIGNED_URL_STALE_MS,
+  refetchInterval: SIGNED_URL_STALE_MS,
+}
+
+export function useRemoveBgHistory() {
+  return useInfiniteQuery({
+    ...historyOptions,
+    queryKey: queryKeys.removeBg.history,
+    queryFn: ({ pageParam }) => fetchRemoveBgResults({ page: pageParam, limit: HISTORY_PAGE_SIZE }),
+  })
+}
+
+export function useUpscaleHistory() {
+  return useInfiniteQuery({
+    ...historyOptions,
+    queryKey: queryKeys.upscale.history,
+    queryFn: ({ pageParam }) => fetchUpscales({ page: pageParam, limit: HISTORY_PAGE_SIZE }),
+  })
+}
+
+/** ผลลัพธ์การอัปสเกลหนึ่งหน้า ใหม่ไปเก่า มีลิงก์ดาวน์โหลดที่หมดอายุ */
+export function useUpscales(query: UpscaleQuery) {
+  return useQuery({
+    queryKey: queryKeys.upscale.page(query),
+    queryFn: () => fetchUpscales(query),
+    placeholderData: keepPreviousData,
+    staleTime: SIGNED_URL_STALE_MS,
     refetchInterval: SIGNED_URL_STALE_MS,
   })
 }

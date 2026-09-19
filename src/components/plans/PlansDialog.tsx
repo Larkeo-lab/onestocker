@@ -57,6 +57,9 @@ function PlansDialogContent() {
         costs.data.enabled.removeBg
           ? t("plans.costRemoveBg", { count: costs.data.removeBg.toLocaleString(intlLocale()) })
           : null,
+        costs.data.enabled.upscale
+          ? t("plans.costUpscale", { count: costs.data.upscale.toLocaleString(intlLocale()) })
+          : null,
       ].filter((part): part is string => part !== null)
     : [];
   const navigate = useNavigate();
@@ -141,6 +144,7 @@ function PlansDialogContent() {
                 ) : plans.isError ? (
                   <ErrorState
                     message={errorMessage(plans.error)}
+                    error={plans.error}
                     onRetry={() => void plans.refetch()}
                   />
                 ) : plans.data.length === 0 ? (

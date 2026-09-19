@@ -3,18 +3,22 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
+import { HistorySection } from '@/components/library/HistorySection'
 import { FormatPicker } from '@/components/removeBg/FormatPicker'
 import { QualityPicker } from '@/components/removeBg/QualityPicker'
 import { JobCard } from '@/components/removeBg/JobCard'
 import { RemoveBgDropzone } from '@/components/removeBg/RemoveBgDropzone'
+import { ResultCard } from '@/components/removeBg/ResultCard'
 import { Button } from '@/components/ui/Button'
 import { CONTAINER } from '@/config/container'
 import { APP_PATH } from '@/config/site'
-import { useCreditCosts } from '@/hooks/queries'
+import { useCreditCosts, useRemoveBgHistory } from '@/hooks/queries'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import { enabledQualities } from '@/lib/removeBg'
+import { usePreloadImages } from '@/hooks/usePreloadImages'
+import { enabledQualities, preloadFiles, qualityLocked } from '@/lib/removeBg'
 import { cn } from '@/lib/utils'
 import { isAwaitingStart, isUploadPending, useRemoveBgStore } from '@/store/removeBg'
+import { useUsageStore } from '@/store/usage'
 import { QUALITY_FEATURE, type RemoveBgFormat, type RemoveBgQuality } from '@/types/removeBg'
 
 /**
@@ -22,7 +26,8 @@ import { QUALITY_FEATURE, type RemoveBgFormat, type RemoveBgQuality } from '@/ty
  *
  * ทำสองจังหวะ: วางรูป → รูปอัปขึ้นก่อน (ยังไม่ใช้เครดิต) → เลือกระดับคุณภาพและรูปแบบ → กดลบพื้นหลัง
  * (ใช้เครดิตต่อรูปตามระดับที่เลือก แอดมินตั้งราคาและเปิด/ปิดแต่ละระดับได้)
- * รายการในหน้านี้เป็นของรอบนี้เท่านั้น ผลลัพธ์ทั้งหมดเก็บถาวรอยู่ในหน้าคลังรูป
+ * รูปในรอบนี้แสดงเป็นการ์ดงานด้านบน (เทียบก่อน/หลังได้) ใต้นั้นเป็นประวัติทั้งหมดจากเซิร์ฟเวอร์
+ * โหลดครั้งละ 20 รูป กดดูเพิ่มเติมแล้วต่อท้าย (ดู HistorySection)
  */
 export function RemoveBgPage() {
   const { t } = useTranslation()
@@ -33,11 +38,12 @@ export function RemoveBgPage() {
   const [skipped, setSkipped] = useState<string[]>([])
 
   /*
-    ระดับที่เลือกได้คือระดับที่แอดมินเปิดอยู่เท่านั้น
-    ระดับที่เคยเลือกไว้ถูกปิดไประหว่างเปิดหน้าค้าง ใช้ระดับแรกที่ยังเปิดแทน ไม่ต้องให้ลูกค้ากดเลือกใหม่
+    ระดับที่เลือกได้คือระดับที่แอดมินเปิดอยู่ และแพ็กเกจของลูกค้าถึง
+    ระดับที่เคยเลือกไว้ถูกปิดหรือแพ็กเกจหมดรอบระหว่างเปิดหน้าค้าง ใช้ระดับแรกที่ยังใช้ได้แทน ไม่ต้องให้ลูกค้ากดเลือกใหม่
   */
   const costs = useCreditCosts().data
-  const qualities = costs ? enabledQualities(costs) : []
+  const userType = useUsageStore((state) => state.usage?.userType)
+  const qualities = costs ? enabledQualities(costs).filter((item) => !qualityLocked(costs, item, userType)) : []
   const quality = qualities.includes(preferredQuality) ? preferredQuality : qualities[0]
   const cost = costs && quality ? costs[QUALITY_FEATURE[quality]] : undefined
   const jobs = useRemoveBgStore((state) => state.jobs)
@@ -48,6 +54,15 @@ export function RemoveBgPage() {
   const awaitingCount = jobs.filter(isAwaitingStart).length
   const doneCount = jobs.filter((job) => job.status === 'done').length
   const uploadPending = jobs.some(isUploadPending)
+  // ผลลัพธ์ของรอบนี้แสดงในการ์ดของรอบนี้แล้ว ประวัติไม่ต้องแสดงซ้ำ (ล้างรายการที่เสร็จแล้ว รูปจะกลับไปอยู่ในประวัติ)
+  const sessionResults = new Set(jobs.flatMap((job) => (job.result ? [job.result.id] : [])))
+  const history = useRemoveBgHistory()
+
+  // โหลดไฟล์ดูบนจอของทุกรูปบนหน้าไว้ล่วงหน้า (รอบนี้ก่อน แล้วประวัติตามลำดับ) กดดูรายละเอียดแล้วขึ้นทันที
+  usePreloadImages([
+    ...jobs.flatMap((job) => (job.result ? preloadFiles(job.result) : [])),
+    ...(history.data?.pages ?? []).flatMap((page) => page.items.flatMap(preloadFiles)),
+  ])
 
   return (
     <div className={cn(CONTAINER.wide, 'space-y-6 py-6')}>
@@ -88,7 +103,10 @@ export function RemoveBgPage() {
             รูปที่สั่งไปแล้วไม่เปลี่ยนตาม อยากได้อีกแบบให้เพิ่มรูปเดิมเข้ามาใหม่
           */}
           <section className="space-y-4 rounded-xl border border-border bg-card p-4">
-            {costs && quality ? <QualityPicker costs={costs} value={quality} onChange={setQuality} /> : null}
+            {/* แสดงทุกระดับที่เปิดอยู่ รวมระดับที่แพ็กเกจยังไม่ถึง ลูกค้าจะได้เห็นและกดอัปเกรดได้ */}
+            {costs && enabledQualities(costs).length > 0 ? (
+              <QualityPicker costs={costs} value={quality ?? enabledQualities(costs)[0]} onChange={setQuality} />
+            ) : null}
             <FormatPicker value={format} onChange={setFormat} />
 
             <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
@@ -150,6 +168,13 @@ export function RemoveBgPage() {
           </section>
         </>
       ) : null}
+
+      <HistorySection
+        title={t('removeBg.historyTitle')}
+        query={history}
+        hide={sessionResults}
+        renderItem={(item) => <ResultCard key={item.id} item={item} />}
+      />
     </div>
   )
 }

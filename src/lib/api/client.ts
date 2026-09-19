@@ -1,8 +1,13 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import type { AxiosInstance, AxiosRequestConfig } from 'axios'
 
 import i18n, { currentLanguage } from '@/config/i18n'
 import { env } from '@/lib/env'
+import {
+  OFFLINE_CODE,
+  reportConnectionLost,
+  reportConnectionOk,
+} from '@/lib/network'
 
 /**
  * รูปร่างคำตอบของ Go API ทุกเส้นตอบเหมือนกันหมด
@@ -53,9 +58,24 @@ export function setAuthTokenGetter(getter: TokenGetter): void {
   getToken = getter
 }
 
+/*
+  คำขอที่ออกไปโดยไม่มี token ทั้งที่ล็อกอินอยู่
+
+  ตอนเน็ตหลุด Clerk ต่ออายุ token ไม่ได้ getToken จะคืน null หรือโยน error
+  ถ้าเซิร์ฟเวอร์ยังต่อถึง (เช่น API อยู่บน localhost ตอน dev) จะตอบ 401 กลับมา
+  ซึ่งไม่ใช่ session หมดอายุจริง — ใช้ชุดนี้แยกสองกรณีออกจากกัน
+*/
+const sentWithoutToken = new WeakSet<object>()
+
 api.interceptors.request.use(async (config) => {
-  const token = await getToken()
+  let token: string | null = null
+  try {
+    token = await getToken()
+  } catch {
+    // ปล่อยให้คำขอออกไปก่อน ถ้าเป็นเพราะเน็ตหลุดจริง ตัวดักคำตอบด้านล่างจะแปลงเป็น offline ให้
+  }
   if (token) config.headers.Authorization = `Bearer ${token}`
+  else sentWithoutToken.add(config)
   /*
     บอกภาษาที่เลือกในแอปกับทุกคำขอ เซิร์ฟเวอร์เก็บไว้ตอน /auth/me ใช้ส่งอีเมลให้ตรงภาษา
     ชื่อ header ต้องตรงกับ auth.LanguageHeader และอยู่ใน AllowHeaders ของ CORS ฝั่ง Go
@@ -63,6 +83,13 @@ api.interceptors.request.use(async (config) => {
   config.headers['X-App-Language'] = currentLanguage()
   return config
 })
+
+/**
+ * รหัสของ error เมื่อฟีเจอร์กำลังปิดปรับปรุง (เครดิตหรือ key ของผู้ให้บริการฝั่งเรามีปัญหา รอแอดมินแก้)
+ * ลูกค้าไม่ต้องรู้สาเหตุจริง แสดงข้อความปิดปรับปรุงตามภาษาของแอปแทนข้อความจากเซิร์ฟเวอร์
+ * ต้องตรงกับ apperr.CodeMaintenance ฝั่ง Go
+ */
+export const MAINTENANCE_CODE = 'OS-MAINTENANCE'
 
 /** error ที่มีทั้ง HTTP status และรหัสจากเซิร์ฟเวอร์ติดมาด้วย */
 export class ApiError extends Error {
@@ -86,12 +113,45 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * คำขอนี้ล้มเพราะเน็ตหลุดหรือเปล่า
+ *
+ * ERR_NETWORK แยกไม่ออกว่าเน็ตผู้ใช้หลุดหรือเซิร์ฟเวอร์ล่ม แต่ทั้งสองกรณี
+ * ผู้ใช้ทำอะไรไม่ได้นอกจากรอแล้วลองใหม่ จึงแสดงแบบเดียวกัน
+ * ส่วน timeout ไม่นับ เพราะแปลว่ายังต่อถึงแค่ช้า
+ */
+function isConnectionFailure(error: AxiosError): boolean {
+  if (!navigator.onLine) return true
+  if (error.code === AxiosError.ERR_NETWORK) return true
+  return (
+    error.response?.status === 401 &&
+    error.config !== undefined &&
+    sentWithoutToken.has(error.config)
+  )
+}
+
 // แปลง error ของ axios ให้เหลือข้อความเดียวที่เอาไปแสดงได้เลย
 // ฝั่ง Go ตอบ { code, message, data: null } เวลาเกิดปัญหา
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    reportConnectionOk()
+    return response
+  },
   (error: unknown) => {
     if (!axios.isAxiosError(error)) return Promise.reject(error)
+
+    if (isConnectionFailure(error)) {
+      reportConnectionLost()
+      return Promise.reject(
+        new ApiError(
+          i18n.t('errors.offline'),
+          error.response?.status ?? 0,
+          OFFLINE_CODE,
+        ),
+      )
+    }
+    // เซิร์ฟเวอร์ตอบกลับมาได้ แปลว่าเน็ตใช้ได้ ถึงคำตอบจะเป็น error ก็ตาม
+    if (error.response) reportConnectionOk()
 
     const status = error.response?.status ?? 0
     const body = error.response?.data as
@@ -99,8 +159,10 @@ api.interceptors.response.use(
       | undefined
 
     const message =
-      body?.message ??
-      (status === 0 ? i18n.t('errors.network') : error.message)
+      body?.code === MAINTENANCE_CODE
+        ? i18n.t('errors.maintenance')
+        : (body?.message ??
+          (status === 0 ? i18n.t('errors.network') : error.message))
 
     return Promise.reject(
       new ApiError(message, status, body?.code ?? '', body?.requestId),

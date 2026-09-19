@@ -13,6 +13,7 @@ import { isPageEnabled, type PageFeature } from '@/types/creditCost'
 const PATHS: Record<PageFeature, string> = {
   generate: APP_PATH,
   removeBg: `${APP_PATH}/remove-bg`,
+  upscale: `${APP_PATH}/upscale`,
 }
 
 /**
@@ -30,9 +31,12 @@ export function FeatureGate({ feature, children }: { feature: PageFeature; child
   const names: Record<PageFeature, string> = {
     generate: t('nav.generate'),
     removeBg: t('nav.remove-bg'),
+    upscale: t('nav.upscale'),
   }
   // พาไปงานอื่นที่ยังเปิดอยู่ ถ้าปิดหมดก็ไม่มีปุ่มให้ไปต่อ
-  const other: PageFeature = feature === 'generate' ? 'removeBg' : 'generate'
+  const other = (Object.keys(PATHS) as PageFeature[]).find(
+    (page) => page !== feature && isPageEnabled(enabled, page),
+  )
 
   return (
     <div className={cn(CONTAINER.wide, 'py-6')}>
@@ -41,7 +45,7 @@ export function FeatureGate({ feature, children }: { feature: PageFeature; child
         title={t('feature.disabledTitle')}
         description={t('feature.disabledBody', { name: names[feature] })}
         action={
-          isPageEnabled(enabled, other) ? (
+          other ? (
             <Link
               to={PATHS[other]}
               className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"

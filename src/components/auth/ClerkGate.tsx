@@ -2,7 +2,9 @@ import { useAuth } from '@clerk/clerk-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { ErrorState, Loading } from '@/components/ui/AsyncState'
+import { ErrorState } from '@/components/ui/AsyncState'
+
+import { AuthWordmark } from './AuthWordmark'
 
 /**
  * นานแค่ไหนถึงจะถือว่า Clerk มีปัญหา
@@ -44,7 +46,11 @@ export function ClerkGate({ children }: { children: ReactNode }) {
           onRetry={() => window.location.reload()}
         />
       ) : (
-        <Loading label={t('auth.checking')} />
+        // ชื่อแอปแบบเดียวกับหน้าเข้าสู่ระบบ คลื่นของตัวอักษรบอกว่ากำลังโหลด
+        <div role="status">
+          <AuthWordmark />
+          <span className="sr-only">{t('auth.checking')}</span>
+        </div>
       )}
     </div>
   )

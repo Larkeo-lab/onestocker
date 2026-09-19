@@ -5,7 +5,7 @@
 export type RemoveBgFormat = 'png' | 'jpg'
 
 /**
- * standard = Cloudflare Images ประหยัดเครดิต, hd = Photoroom ขอบละเอียด
+ * standard = Cloudflare Images ประหยัดเครดิต (ไม่เกิน 1,500 px), hd = Replicate (Topaz 4K + Bria) คมชัดด้วย AI
  * ต้องตรงกับ QualityStandard / QualityHD ใน server/internal/feature/removebg/dto.go
  */
 export type RemoveBgQuality = 'standard' | 'hd'
@@ -34,5 +34,12 @@ export type BackgroundRemoval = {
   url: string | null
   /** รูปย่อด้านยาวสุด 640px ไว้แสดงในหน้าเว็บ */
   previewUrl: string | null
+  /**
+   * ไฟล์ขนาดดูบนจอ (ด้านยาว 2560 px) หน้าดูรูปใช้แทนไฟล์เต็มที่ใหญ่หลายสิบ MB null = ไม่มี ใช้ไฟล์เต็ม
+   * displayUrl เป็น JPEG ของสี displayMaskUrl เป็น PNG ขาวดำของความโปร่งใส (มีเฉพาะผลลัพธ์ PNG)
+   * ไม่มีในเซิร์ฟเวอร์รุ่นก่อน
+   */
+  displayUrl?: string | null
+  displayMaskUrl?: string | null
   createdAt: string
 }

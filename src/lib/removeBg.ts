@@ -1,6 +1,11 @@
 import { intlLocale } from '@/config/i18n'
+import { HEIC_ACCEPT } from '@/lib/heic'
+import { planAtLeast } from '@/lib/plans'
 import type { CreditCosts } from '@/types/creditCost'
-import { QUALITY_FEATURE, type RemoveBgQuality } from '@/types/removeBg'
+import type { UserType } from '@/types/profile'
+import type { DisplayFiles } from '@/components/library/ImageViewer'
+import type { PreloadItem } from '@/lib/preload'
+import { QUALITY_FEATURE, type BackgroundRemoval, type RemoveBgQuality } from '@/types/removeBg'
 
 /** ต้องตรงกับ MaxUploadBytes ใน server/internal/feature/removebg/validation.go */
 export const MAX_UPLOAD_MB = 40
@@ -8,10 +13,13 @@ export const MAX_UPLOAD_MB = 40
 /** ต้องตรงกับ uploadExtensions ใน server/internal/feature/removebg/validation.go */
 export const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
+/** ช่องเลือกไฟล์รับ HEIC ด้วย ซึ่งถูกแปลงเป็น JPEG ก่อนอัป (ดู lib/heic.ts) */
+export const PICKER_ACCEPT = [...ACCEPTED_TYPES, ...HEIC_ACCEPT].join(',')
+
 /**
  * ลบพื้นหลังพร้อมกันกี่รูปจากแท็บเดียว
  *
- * เซิร์ฟเวอร์รับพร้อมกันได้ 3 รูปทั้งระบบ ถ้าแท็บเดียวยิงหมด ลูกค้าคนอื่นจะต้องรอคิว
+ * เซิร์ฟเวอร์จำกัดงานพร้อมกันทั้งระบบตามขนาดรูป ถ้าแท็บเดียวยิงหมด ลูกค้าคนอื่นจะต้องรอคิว
  * สองรูปพอให้ไม่รู้สึกว่าช้า และการอัปไฟล์ใหญ่พร้อมกันหลายไฟล์ก็กินเน็ตจนช้าลงทุกไฟล์อยู่ดี
  */
 export const REMOVE_BG_CONCURRENCY = 2
@@ -55,6 +63,51 @@ export const CHECKERBOARD_STYLE = {
 } as const
 
 /** ระดับคุณภาพที่แอดมินเปิดอยู่ เรียงจากประหยัดไปละเอียด ตัวแรกคือค่าที่เลือกไว้ให้ก่อน */
+/** ชื่องานฝั่ง Go ของแต่ละระดับ ต้องตรงกับ credits.ActionRemoveBg* */
+const QUALITY_ACTION: Record<RemoveBgQuality, string> = {
+  standard: 'remove_bg_standard',
+  hd: 'remove_bg',
+}
+
+/** แพ็กเกจขั้นต่ำของระดับนั้น null = ทุกแพ็กเกจใช้ได้ */
+export function requiredPlan(costs: CreditCosts, quality: RemoveBgQuality): UserType | null {
+  const plan = costs.minUserTypes?.[QUALITY_ACTION[quality]]
+  return plan && plan !== 'FREE' ? plan : null
+}
+
+/**
+ * แพ็กเกจของผู้ใช้ยังไม่ถึงระดับนั้น ยังไม่รู้แพ็กเกจ (usage ยังไม่มา) ถือว่าใช้ได้ เซิร์ฟเวอร์ตรวจซ้ำอยู่แล้ว
+ */
+export function qualityLocked(costs: CreditCosts, quality: RemoveBgQuality, userType: UserType | undefined): boolean {
+  const plan = requiredPlan(costs, quality)
+  return plan !== null && userType !== undefined && !planAtLeast(userType, plan)
+}
+
 export function enabledQualities(costs: CreditCosts): RemoveBgQuality[] {
   return (['standard', 'hd'] as const).filter((quality) => costs.enabled[QUALITY_FEATURE[quality]])
+}
+
+/** key ของผลลัพธ์ใน lib/preload และ id ของหน้าดูรูป การ์ดของรอบนี้กับการ์ดในประวัติใช้ร่วมกัน */
+export function resultViewKey(result: BackgroundRemoval): string {
+  return `remove_bg/${result.id}`
+}
+
+/** ไฟล์ขนาดดูบนจอของผลลัพธ์ null = ไม่มี (ผลลัพธ์เล็ก หรือรายการเก่า) หน้าดูรูปใช้ไฟล์เต็ม */
+export function displayFiles(result: BackgroundRemoval): DisplayFiles | null {
+  return result.displayUrl ? { url: result.displayUrl, maskUrl: result.displayMaskUrl ?? null } : null
+}
+
+/**
+ * ไฟล์ที่ต้องโหลดไว้ล่วงหน้าของผลลัพธ์ (ดู lib/preload)
+ * มีไฟล์ดูบนจอโหลดแค่ไฟล์นั้น (ราว 1 MB) ไฟล์เต็มโหลดตอนเปิดดู ไม่มีก็โหลดไฟล์เต็ม
+ */
+export function preloadFiles(result: BackgroundRemoval): PreloadItem[] {
+  const key = resultViewKey(result)
+  if (result.displayUrl) {
+    return [
+      { key, url: result.displayUrl },
+      ...(result.displayMaskUrl ? [{ key: `${key}#mask`, url: result.displayMaskUrl }] : []),
+    ]
+  }
+  return result.url ? [{ key, url: result.url }] : []
 }

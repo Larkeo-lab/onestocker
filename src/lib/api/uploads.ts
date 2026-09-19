@@ -53,21 +53,27 @@ export async function requestUploadUrls(
  * ใช้ axios เปล่า ไม่ใช่ instance `api` โดยตั้งใจ เพราะ presigned URL
  * จะใช้ไม่ได้ถ้ามี header Authorization ติดไปด้วย (ลายเซ็นไม่ตรง)
  * และคำตอบของ R2 ไม่ได้อยู่ในรูป envelope ของ Go API
+ *
+ * signal ใช้หยุดกลางทางเมื่อผู้ใช้กดยกเลิก ตอนนั้นโยน error เดิมของ axios ออกไป ไม่แปลงเป็นข้อความ
+ * (ไม่งั้นจะดูเหมือนโดน CORS บล็อก) ผู้เรียกดู signal.aborted เองว่าเป็นการยกเลิก
  */
 export async function uploadToR2(
   url: string,
   file: Blob,
   onProgress?: (percent: number) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   try {
     await axios.put(url, file, {
       headers: { 'Content-Type': file.type },
+      signal,
       onUploadProgress: (event) => {
         if (!onProgress || !event.total) return
         onProgress(Math.round((event.loaded / event.total) * 100))
       },
     })
   } catch (error) {
+    if (signal?.aborted) throw error
     throw new Error(uploadErrorMessage(error))
   }
 }
@@ -87,6 +93,8 @@ function uploadErrorMessage(error: unknown): string {
 
   const status = error.response?.status
   if (status === undefined) {
+    // เน็ตหลุดก็โผล่มาเป็น network error เหมือนกัน ถ้าไม่แยกไว้จะบอกผู้ใช้ผิดว่าโดน CORS
+    if (!navigator.onLine) return i18n.t('errors.offline')
     return i18n.t('errors.uploadCors', { origin: window.location.origin })
   }
   if (status === 403) {

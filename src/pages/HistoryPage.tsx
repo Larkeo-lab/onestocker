@@ -88,7 +88,11 @@ export function HistoryPage() {
         {loading ? <Loading /> : null}
 
         {!loading && error ? (
-          <ErrorState message={error} onRetry={() => void history.refetch()} />
+          <ErrorState
+            message={error}
+            error={history.error}
+            onRetry={() => void history.refetch()}
+          />
         ) : null}
 
         {!loading && !error && items.length === 0 ? (

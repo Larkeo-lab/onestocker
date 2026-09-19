@@ -35,6 +35,7 @@ export function SettingsPage() {
         {failed ? (
           <ErrorState
             message={errorMessage(failed)}
+            error={failed}
             onRetry={() => {
               if (settings.isError) void settings.refetch()
               if (meta.isError) void meta.refetch()

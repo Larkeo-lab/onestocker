@@ -2,6 +2,7 @@ import {
   Eraser,
   FileSpreadsheet,
   History,
+  ImageUpscale,
   Images,
   Store,
   WandSparkles,
@@ -13,12 +14,9 @@ import { APP_PATH } from "@/config/site";
 import type { PageFeature } from "@/types/creditCost";
 
 export type NavItem = {
-  /** key ของข้อความใน config/messages — แปลตอน render จะได้เปลี่ยนตามภาษาทันที */
   labelKey: ParseKeys;
-  /** path ต้องตรงกับที่ประกาศไว้ใน routes/router.tsx */
   to: string;
   icon: LucideIcon;
-  /** เมนูของงานที่แอดมินเปิด/ปิดได้ ปิดอยู่แล้วเมนูนี้ถูกซ่อน */
   feature?: PageFeature;
 };
 
@@ -45,6 +43,12 @@ export const NAV_SECTIONS: NavSection[] = [
         feature: "removeBg",
       },
       { labelKey: "nav.library", to: `${APP_PATH}/library`, icon: Images },
+      {
+        labelKey: "nav.upscale",
+        to: `${APP_PATH}/upscale`,
+        icon: ImageUpscale,
+        feature: "upscale",
+      },
       {
         labelKey: "nav.exports",
         to: `${APP_PATH}/exports`,

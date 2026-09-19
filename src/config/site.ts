@@ -27,6 +27,14 @@ export const siteConfig = {
   },
 } as const;
 
+/**
+ * เวอร์ชันที่แสดงท้าย sidebar เช่น "v1.2.0 · 9d700f9"
+ * เอาไว้ให้ผู้ใช้บอกได้ตอนแจ้งปัญหา ว่าเปิดเว็บรุ่นไหนอยู่
+ */
+export const APP_VERSION = __APP_COMMIT__
+  ? `v${__APP_VERSION__} `
+  : `v${__APP_VERSION__}`;
+
 /** path ของตัวแอปที่ต้องล็อกอิน หน้า / เป็นหน้า landing สาธารณะ */
 export const APP_PATH = "/app";
 

@@ -15,6 +15,7 @@ import {
   type PresignedUpload,
   type UploadPurpose,
 } from '@/lib/api'
+import { busyRetryDelay, isServerBusy, sleep } from '@/lib/busy'
 import { runWithConcurrency } from '@/lib/concurrency'
 import { cachedCreditCost } from '@/lib/creditCosts'
 import { processImage } from '@/lib/image'
@@ -330,17 +331,38 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
       const asset = assetsRef.current.find((item) => item.id === id)
       if (!asset?.previewKey) return
 
-      patch(id, { status: 'generating', error: undefined, notes: undefined })
+      patch(id, { status: 'generating', waiting: false, error: undefined, notes: undefined })
+
+      const request = {
+        previewKey: asset.previewKey,
+        filename: asset.filename,
+        frameKeys: asset.frameKeys,
+        platformIds: [activePlatformId],
+      }
 
       try {
-        const result = await generateMetadata({
-          previewKey: asset.previewKey,
-          filename: asset.filename,
-          frameKeys: asset.frameKeys,
-          platformIds: [activePlatformId],
-        })
+        /*
+          Gemini จำกัดอัตรา (เกิน RPM) หรือแน่น เซิร์ฟเวอร์ตอบ 429 และไม่ได้ตัดเครดิต
+          รอแล้วส่งใหม่เองจนกว่าจะได้ การ์ดขึ้นว่ารอคิวแทน error
+          ช่องของ runWithConcurrency ถูกถือไว้ระหว่างรอ รูปอื่นจึงไม่ส่งไปเบียดเพิ่ม
+          ผู้ใช้ลบรูปออกระหว่างรอได้ ถ้าหายไปแล้วก็เลิกส่ง
+        */
+        let result
+        for (let attempt = 1; ; attempt++) {
+          try {
+            result = await generateMetadata(request)
+            break
+          } catch (error) {
+            if (!isServerBusy(error)) throw error
+            patch(id, { waiting: true })
+            await sleep(busyRetryDelay(attempt))
+            if (!assetsRef.current.some((item) => item.id === id)) return
+          }
+        }
+
         patch(id, {
           status: 'generated',
+          waiting: false,
           // เซิร์ฟเวอร์รุ่นก่อนหน้าไม่ตอบช่องนี้ ถือว่าใช้แพลตฟอร์มที่ส่งไป
           platformId: result.platform || activePlatformId,
           title: result.title,
@@ -357,7 +379,7 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
         // หน้า History ที่ cache ไว้ยังไม่มีรายการนี้ ให้โหลดใหม่ตอนเปิดครั้งถัดไป
         void queryClient.invalidateQueries({ queryKey: queryKeys.history.all })
       } catch (error) {
-        patch(id, { status: 'error', error: errorMessage(error) })
+        patch(id, { status: 'error', waiting: false, error: errorMessage(error) })
 
         // 402 = โควตาเดือนนี้หมด รอแล้วลองใหม่ไม่ช่วย ต้องอัปเกรด
         // เปิดป๊อปอัปช่องทางติดต่อให้เลย ไม่ปล่อยให้เห็นแค่ข้อความแดงในการ์ด

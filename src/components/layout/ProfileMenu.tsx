@@ -6,6 +6,7 @@ import { NavLink } from "react-router-dom";
 
 import { LanguageSelect } from "@/components/ui/LanguageSelect";
 import { APP_PATH } from "@/config/site";
+import { PAID_GRADIENT } from "@/lib/plans";
 import { env } from "@/lib/env";
 import { usageMeter } from "@/lib/usage";
 import { cn } from "@/lib/utils";
@@ -32,7 +33,7 @@ function Avatar({ profile, className }: { profile: Profile | null; className: st
  * ใช้ชั้นพื้นหลังที่ใหญ่กว่ารูปเล็กน้อยแทน ring เพราะ ring ของ Tailwind ใส่สีไล่เฉดไม่ได้
  * ชั้นเดียวกันนี้เอาไปเบลอเป็นแสงเรืองด้านหลังด้วย สองวงจะได้เป็นสีชุดเดียวกัน
  */
-const PAID_RING = "bg-gradient-to-br from-primary via-violet-500 to-fuchsia-500";
+const PAID_RING = PAID_GRADIENT;
 
 /**
  * ป้ายแพ็กเกจที่ใช้อยู่ ให้เห็นระดับปัจจุบันก่อนกดปุ่มอัปเกรด

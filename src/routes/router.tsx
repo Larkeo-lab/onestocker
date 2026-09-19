@@ -13,6 +13,7 @@ import { NotFoundPage } from '@/pages/NotFoundPage'
 import { PlatformsPage } from '@/pages/PlatformsPage'
 import { RemoveBgPage } from '@/pages/RemoveBgPage'
 import { SettingsPage } from '@/pages/SettingsPage'
+import { UpscalePage } from '@/pages/UpscalePage'
 import { SignInPage } from '@/pages/auth/SignInPage'
 import { SignUpPage } from '@/pages/auth/SignUpPage'
 
@@ -43,6 +44,14 @@ export const router = createBrowserRouter([
         element: (
           <FeatureGate feature="removeBg">
             <RemoveBgPage />
+          </FeatureGate>
+        ),
+      },
+      {
+        path: 'upscale',
+        element: (
+          <FeatureGate feature="upscale">
+            <UpscalePage />
           </FeatureGate>
         ),
       },
