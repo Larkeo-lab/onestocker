@@ -24,6 +24,17 @@ export type GenerateResponse = {
   notes?: string[]
 }
 
+/*
+  รอคำตอบนานกว่าเวลาที่เซิร์ฟเวอร์ใช้จริง
+
+  เซิร์ฟเวอร์รอ Gemini ได้นานสุดหนึ่งนาที (requestTimeout ใน server/internal/feature/generate/gemini.go)
+  เกินกว่านั้นตอบ 429 ให้รอแล้วส่งใหม่ ค่าปกติของ axios คือหนึ่งนาทีเท่ากัน ซึ่งพอดีเกินไป
+  ถอดใจตอนที่งานสำเร็จอยู่พอดีแปลว่าเสียเครดิตฟรี ผู้ใช้เห็นแค่ว่าต่อเซิร์ฟเวอร์ไม่ได้
+
+  ต้องไม่เกิน 100 วินาที ซึ่งเป็นเพดานที่ Cloudflare ตัดคำขอทิ้งอยู่แล้ว
+*/
+const GENERATE_TIMEOUT = 90_000
+
 /**
  * ส่งแค่ previewKey ไม่ได้ส่งตัวรูป
  *
@@ -35,5 +46,8 @@ export async function generateMetadata(
   body: GenerateRequest,
   signal?: AbortSignal,
 ): Promise<GenerateResponse> {
-  return apiPost<GenerateResponse>('/generate', body, { signal })
+  return apiPost<GenerateResponse>('/generate', body, {
+    signal,
+    timeout: GENERATE_TIMEOUT,
+  })
 }

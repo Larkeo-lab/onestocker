@@ -17,6 +17,7 @@
   "errors": {
     "maintenance": "We’re doing some maintenance — please try again later. No credits were used.",
     "network": "Cannot connect to the server",
+    "timeout": "The server took too long to answer — press retry. If this image already finished, you’ll find it in History.",
     "offline": "You're offline — check your internet connection and try again",
     "canvasUnsupported": "This browser cannot resize images",
     "imageConvertFailed": "Could not convert the image",

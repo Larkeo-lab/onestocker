@@ -130,6 +130,20 @@ function isConnectionFailure(error: AxiosError): boolean {
   )
 }
 
+/**
+ * ข้อความสำหรับกรณีที่ไม่มีคำตอบจากเซิร์ฟเวอร์ให้แสดง
+ *
+ * แยกหมดเวลาออกจากต่อไม่ติด เพราะคนละเรื่องกัน หมดเวลาแปลว่าต่อถึงแล้วแต่ยังไม่ได้คำตอบ
+ * งานอาจสำเร็จอยู่บนเซิร์ฟเวอร์ก็ได้ ถ้าบอกว่า "เชื่อมต่อไม่ได้" ผู้ใช้จะไปแก้เน็ตตัวเองทั้งที่ไม่ได้ผิด
+ */
+function withoutAnswer(error: AxiosError, status: number): string {
+  const timedOut =
+    error.code === AxiosError.ECONNABORTED ||
+    error.code === AxiosError.ETIMEDOUT
+  if (timedOut) return i18n.t('errors.timeout')
+  return status === 0 ? i18n.t('errors.network') : error.message
+}
+
 // แปลง error ของ axios ให้เหลือข้อความเดียวที่เอาไปแสดงได้เลย
 // ฝั่ง Go ตอบ { code, message, data: null } เวลาเกิดปัญหา
 api.interceptors.response.use(
@@ -161,8 +175,7 @@ api.interceptors.response.use(
     const message =
       body?.code === MAINTENANCE_CODE
         ? i18n.t('errors.maintenance')
-        : (body?.message ??
-          (status === 0 ? i18n.t('errors.network') : error.message))
+        : (body?.message ?? withoutAnswer(error, status))
 
     return Promise.reject(
       new ApiError(message, status, body?.code ?? '', body?.requestId),
