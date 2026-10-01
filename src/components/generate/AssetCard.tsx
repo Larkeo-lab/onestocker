@@ -256,7 +256,7 @@ export function AssetCard({
   const languageName = useLanguageName()
   const uploading = asset.status === 'uploading'
   const generating = asset.status === 'generating'
-  // รูปที่อัปไม่สำเร็จถูกถอดออกจากรายการไปแล้ว error ที่เหลือคือพลาดตอนสร้าง metadata
+  // พลาดได้ทั้งตอนอัปขึ้น R2 และตอนสร้าง metadata ปุ่มลองใหม่จัดการให้ทั้งสองแบบ
   const failed = asset.status === 'error'
   const busy = uploading || generating
 

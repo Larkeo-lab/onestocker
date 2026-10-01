@@ -25,7 +25,7 @@
     "videoTooLong": "Video is longer than {{max}} seconds",
     "videoFrameFailed": "Could not capture frames from the video",
     "uploadFailed": "Upload failed",
-    "uploadCors": "Cannot upload to R2 from {{origin}} — check that this domain is in the bucket CORS policy",
+    "uploadLost": "Could not upload the image — the connection dropped. Please try again.",
     "uploadForbidden": "Cannot upload to R2 (403) — the link has expired or the key cannot write",
     "uploadStatus": "Upload to R2 failed ({{status}})",
     "noUploadUrl": "The server did not return an upload link",

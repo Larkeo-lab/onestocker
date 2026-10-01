@@ -105,6 +105,12 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
   /** blob URL ที่สร้างไว้ต่อรูป ต้องคืนหน่วยความจำเมื่อเลิกใช้ */
   const objectUrls = useRef(new Map<string, string>())
 
+  /**
+   * ไฟล์ที่ย่อแล้วของรูปที่ยังอัปขึ้น R2 ไม่สำเร็จ เก็บไว้เพื่อให้กดลองใหม่ได้ทันที
+   * โดยไม่ต้องลากไฟล์เข้ามาใหม่หรือย่อซ้ำ ลบทิ้งทันทีที่อัปสำเร็จ
+   */
+  const pendingUploads = useRef(new Map<string, PendingUpload[]>())
+
   /** เขียน state พร้อมอัปเดตสำเนาใน ref ให้ตรงกันเสมอ */
   const commit = useCallback((update: (prev: Asset[]) => Asset[]) => {
     setAssets((prev) => {
@@ -131,6 +137,7 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
       URL.revokeObjectURL(url)
     }
     objectUrls.current.clear()
+    pendingUploads.current.clear()
   }, [])
 
   // คืนหน่วยความจำเมื่อออกจาก layout ไปเลย ไม่ใช่ตอนสลับหน้าภายใน
@@ -143,6 +150,7 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
         URL.revokeObjectURL(url)
         objectUrls.current.delete(id)
       }
+      pendingUploads.current.delete(id)
       commit((prev) => prev.filter((asset) => asset.id !== id))
     },
     [commit],
@@ -185,6 +193,14 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
         remove(id)
         skipped.push({ filename, reason })
         setNotice(describeSkipped(skipped))
+      }
+
+      /**
+       * อัปขึ้น R2 ไม่สำเร็จ เก็บรูปไว้ในรายการพร้อมเหตุผล ไม่ถอดออกเหมือนไฟล์ที่ย่อไม่ได้
+       * ไฟล์ที่ย่อแล้วยังอยู่ กดลองใหม่ในการ์ดแล้วอัปต่อได้เลย
+       */
+      const failUpload = (id: string, reason: string) => {
+        patch(id, { status: 'error', error: reason })
       }
 
       /** แสดงรูปย่อในการ์ดทันทีที่ได้ ไม่ต้องรอให้อัปเสร็จ */
@@ -262,6 +278,10 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
 
       if (processed.length === 0) return
 
+      for (const item of processed) {
+        pendingUploads.current.set(item.id, item.uploads)
+      }
+
       // เพดานต่อคำขอของ /uploads/presign คือค่าเดียวกับ maxAssets ที่ /meta บอกมา
       let links: PresignedUpload[]
       try {
@@ -277,7 +297,7 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
         )
       } catch (error) {
         for (const item of processed) {
-          drop(item.id, item.filename, errorMessage(error))
+          failUpload(item.id, errorMessage(error))
         }
         return
       }
@@ -293,7 +313,7 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
       await runWithConcurrency(
         assigned.map(({ item, itemLinks }) => async () => {
           if (itemLinks.length !== item.uploads.length) {
-            drop(item.id, item.filename, i18n.t('errors.noUploadUrl'))
+            failUpload(item.id, i18n.t('errors.noUploadUrl'))
             return
           }
           try {
@@ -310,8 +330,9 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
               frameKeys:
                 frames.length > 0 ? frames.map((frame) => frame.key) : undefined,
             })
+            pendingUploads.current.delete(item.id)
           } catch (error) {
-            drop(item.id, item.filename, errorMessage(error))
+            failUpload(item.id, errorMessage(error))
           }
         }),
         UPLOAD_CONCURRENCY,
@@ -326,10 +347,61 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
     commit(() => [])
   }, [commit, releaseAll])
 
+  /**
+   * อัปไฟล์ของรูปนี้ขึ้น R2 ใหม่ หลังรอบแรกไม่สำเร็จ คืน true เมื่ออัปผ่าน
+   *
+   * ขอลิงก์ใหม่ทุกครั้ง ไม่ใช้ลิงก์เดิมซ้ำ เพราะลิงก์มีอายุ 15 นาที
+   * รูปที่อัปไม่สำเร็จอาจค้างอยู่นานกว่านั้นก่อนผู้ใช้จะกดลองใหม่
+   */
+  const retryUpload = useCallback(
+    async (id: string): Promise<boolean> => {
+      const uploads = pendingUploads.current.get(id)
+      const asset = assetsRef.current.find((item) => item.id === id)
+      if (!uploads || !asset) return false
+
+      patch(id, { status: 'uploading', error: undefined })
+      try {
+        const links = await requestUploadUrls(
+          uploads.map(({ blob, purpose }) => ({
+            filename: asset.filename,
+            contentType: blob.type,
+            purpose,
+          })),
+          uploads.length,
+        )
+        if (links.length !== uploads.length) {
+          throw new Error(i18n.t('errors.noUploadUrl'))
+        }
+        await Promise.all(
+          uploads.map((upload, index) => uploadToR2(links[index].url, upload.blob)),
+        )
+        const [preview, ...frames] = links
+        patch(id, {
+          status: 'ready',
+          previewKey: preview.key,
+          frameKeys: frames.length > 0 ? frames.map((frame) => frame.key) : undefined,
+        })
+        pendingUploads.current.delete(id)
+        return true
+      } catch (error) {
+        patch(id, { status: 'error', error: errorMessage(error) })
+        return false
+      }
+    },
+    [patch],
+  )
+
   const regenerate = useCallback(
     async (id: string) => {
-      const asset = assetsRef.current.find((item) => item.id === id)
-      if (!asset?.previewKey) return
+      let asset = assetsRef.current.find((item) => item.id === id)
+      if (!asset) return
+
+      // รอบก่อนอัปไม่สำเร็จ อัปให้ใหม่เลย ผู้ใช้ไม่ต้องลากไฟล์เข้ามาอีกรอบ
+      if (!asset.previewKey) {
+        if (!(await retryUpload(id))) return
+        asset = assetsRef.current.find((item) => item.id === id)
+        if (!asset?.previewKey) return
+      }
 
       patch(id, { status: 'generating', waiting: false, error: undefined, notes: undefined })
 
@@ -388,7 +460,7 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
         }
       }
     },
-    [patch, activePlatformId],
+    [patch, activePlatformId, retryUpload],
   )
 
   const generate = useCallback(async () => {

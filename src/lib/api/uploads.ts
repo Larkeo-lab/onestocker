@@ -47,12 +47,17 @@ export async function requestUploadUrls(
   return uploads
 }
 
+/** เน็ตสะดุดกลางทางเกิดได้เสมอ โดยเฉพาะบนมือถือ อัปใหม่เองก่อนจะไปบอกผู้ใช้ว่าไม่สำเร็จ */
+const UPLOAD_ATTEMPTS = 3
+
 /**
  * อัปขึ้น R2 ตรง ๆ ไม่ผ่าน Go API
  *
  * ใช้ axios เปล่า ไม่ใช่ instance `api` โดยตั้งใจ เพราะ presigned URL
  * จะใช้ไม่ได้ถ้ามี header Authorization ติดไปด้วย (ลายเซ็นไม่ตรง)
  * และคำตอบของ R2 ไม่ได้อยู่ในรูป envelope ของ Go API
+ *
+ * ลิงก์เดิมอัปซ้ำได้ ไฟล์ถูกเขียนทับที่ key เดิม จึงลองใหม่ได้โดยไม่เกิดไฟล์ซ้ำ
  *
  * signal ใช้หยุดกลางทางเมื่อผู้ใช้กดยกเลิก ตอนนั้นโยน error เดิมของ axios ออกไป ไม่แปลงเป็นข้อความ
  * (ไม่งั้นจะดูเหมือนโดน CORS บล็อก) ผู้เรียกดู signal.aborted เองว่าเป็นการยกเลิก
@@ -63,28 +68,49 @@ export async function uploadToR2(
   onProgress?: (percent: number) => void,
   signal?: AbortSignal,
 ): Promise<void> {
-  try {
-    await axios.put(url, file, {
-      headers: { 'Content-Type': file.type },
-      signal,
-      onUploadProgress: (event) => {
-        if (!onProgress || !event.total) return
-        onProgress(Math.round((event.loaded / event.total) * 100))
-      },
-    })
-  } catch (error) {
-    if (signal?.aborted) throw error
-    throw new Error(uploadErrorMessage(error))
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await axios.put(url, file, {
+        headers: { 'Content-Type': file.type },
+        signal,
+        onUploadProgress: (event) => {
+          if (!onProgress || !event.total) return
+          onProgress(Math.round((event.loaded / event.total) * 100))
+        },
+      })
+      return
+    } catch (error) {
+      if (signal?.aborted) throw error
+      if (attempt >= UPLOAD_ATTEMPTS || !worthRetrying(error)) {
+        throw new Error(uploadErrorMessage(error))
+      }
+      // เริ่มนับใหม่จากศูนย์ ไม่งั้นแถบความคืบหน้าเดินถอยหลังตอนอัปรอบใหม่
+      onProgress?.(0)
+      await sleep(1_000 * attempt)
+    }
   }
+}
+
+/**
+ * ลองใหม่เฉพาะตอนที่ยังไม่รู้ผล (เน็ตสะดุด หมดเวลา) หรือ R2 พลาดชั่วคราว
+ * ไฟล์ที่ R2 ปฏิเสธ (ลิงก์หมดอายุ ลายเซ็นไม่ตรง) อัปใหม่ด้วยลิงก์เดิมก็ไม่ผ่าน
+ */
+function worthRetrying(error: unknown): boolean {
+  if (!axios.isAxiosError(error)) return false
+  const status = error.response?.status
+  return status === undefined || status >= 500
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 /**
  * แปลงความล้มเหลวตอนอัปให้เป็นข้อความที่บอกทางแก้ได้
  *
- * เบราว์เซอร์ไม่ยอมบอก JS ว่าคำขอถูกบล็อกเพราะ CORS มันโผล่มาเป็น
- * network error เปล่า ๆ แยกไม่ออกจากเน็ตหลุด แต่ในทางปฏิบัติ
- * สาเหตุที่พบบ่อยที่สุดคือโดเมนที่เปิดอยู่ไม่ได้อยู่ใน CORS policy ของ bucket
- * ถ้าไม่บอกไว้ ผู้ใช้จะเห็นแค่รูปหายไปเฉย ๆ โดยไม่รู้ว่าต้องไปแก้ตรงไหน
+ * เบราว์เซอร์ไม่ยอมบอก JS ว่าคำขอถูกบล็อกเพราะ CORS มันโผล่มาเป็น network error เปล่า ๆ
+ * แยกไม่ออกจากเน็ตหลุด สำหรับลูกค้าสาเหตุที่เจอจริงเกือบทั้งหมดคือเน็ตสะดุด (อัปใหม่แล้วผ่าน)
+ * จึงบอกแบบนั้น ส่วนกรณีตั้งค่าโดเมนผิดเขียนไว้ใน console ให้คนดูแลระบบเห็นแทน
  */
 function uploadErrorMessage(error: unknown): string {
   if (!axios.isAxiosError(error)) {
@@ -93,9 +119,11 @@ function uploadErrorMessage(error: unknown): string {
 
   const status = error.response?.status
   if (status === undefined) {
-    // เน็ตหลุดก็โผล่มาเป็น network error เหมือนกัน ถ้าไม่แยกไว้จะบอกผู้ใช้ผิดว่าโดน CORS
     if (!navigator.onLine) return i18n.t('errors.offline')
-    return i18n.t('errors.uploadCors', { origin: window.location.origin })
+    console.warn(
+      `อัปขึ้น R2 ไม่สำเร็จจาก ${window.location.origin} — ถ้าไม่ผ่านทุกไฟล์ทุกครั้ง ให้ตรวจว่าโดเมนนี้อยู่ใน CORS policy ของ bucket`,
+    )
+    return i18n.t('errors.uploadLost')
   }
   if (status === 403) {
     return i18n.t('errors.uploadForbidden')

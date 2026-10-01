@@ -3,15 +3,14 @@ import { createContext, use } from 'react'
 import type { Asset } from '@/types/asset'
 
 /**
- * รูปที่อัปขึ้นแล้วและยังไม่มีผลลัพธ์ — เป็นเป้าหมายของปุ่ม Generate
- * รวมรูปที่สร้าง metadata พลาดไว้ด้วย กดซ้ำแล้วลองใหม่ให้เอง
+ * รูปที่ยังไม่มีผลลัพธ์ — เป็นเป้าหมายของปุ่ม Generate
+ *
+ * รวมรูปที่สร้าง metadata พลาด และรูปที่อัปขึ้น R2 ไม่สำเร็จไว้ด้วย
+ * กดซ้ำแล้วอัปใหม่และสร้างใหม่ให้เอง (ดู regenerate ใน GenerateProvider)
  */
 export function isPending(asset: Asset): boolean {
-  return (
-    Boolean(asset.previewKey) &&
-    asset.status !== 'generating' &&
-    asset.status !== 'generated'
-  )
+  if (asset.status === 'generating' || asset.status === 'generated') return false
+  return Boolean(asset.previewKey) || asset.status === 'error'
 }
 
 export type GenerateContextValue = {
