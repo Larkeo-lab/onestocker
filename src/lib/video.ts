@@ -8,7 +8,7 @@
  * เบราว์เซอร์อ่านไฟล์จากดิสก์ทีละส่วนตอน seek ไม่ได้โหลดทั้งไฟล์เข้าหน่วยความจำ
  */
 import i18n from '@/config/i18n'
-import { drawToBlob, PREVIEW_CONTENT_TYPE, PREVIEW_MAX_EDGE } from '@/lib/image'
+import { drawToBlob, PREVIEW_MAX_EDGE } from '@/lib/image'
 
 /** ความยาวสูงสุดที่รับ */
 export const VIDEO_MAX_SECONDS = 60
@@ -150,7 +150,7 @@ export async function processVideo(file: File): Promise<ProcessedVideo> {
     return {
       preview,
       frames,
-      contentType: PREVIEW_CONTENT_TYPE,
+      contentType: preview.type,
       width: videoWidth,
       height: videoHeight,
       duration,

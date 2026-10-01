@@ -12,6 +12,14 @@ export const PREVIEW_MAX_EDGE = 1600;
 export const PREVIEW_QUALITY = 0.85;
 export const PREVIEW_CONTENT_TYPE = "image/webp";
 
+/**
+ * ใช้แทนเมื่อเบราว์เซอร์ย่อเป็น webp ไม่ได้ (Safari รุ่นเก่า)
+ *
+ * canvas จะถอยไปใช้ PNG ให้เองโดยไม่บอก ซึ่งไฟล์ใหญ่กว่าหลายเท่าและอัปช้ามากบนมือถือ
+ * จึงสั่งเป็น JPEG เองดีกว่า และต้องส่งชนิดจริงไปขอลิงก์อัป ไม่งั้น R2 ปฏิเสธด้วย 403
+ */
+export const FALLBACK_CONTENT_TYPE = "image/jpeg";
+
 export type ProcessedImage = {
   /** รูปที่ย่อแล้ว ใช้ทั้งอัปขึ้น S3 และแสดงตัวอย่าง */
   blob: Blob;
@@ -54,8 +62,15 @@ export async function drawToBlob(
   }
   context.drawImage(source, 0, 0, target.width, target.height);
 
+  const blob = await encode(canvas, PREVIEW_CONTENT_TYPE);
+  // toBlob คืน PNG เงียบ ๆ เมื่อไม่รองรับชนิดที่ขอ ดูจาก type ของผลลัพธ์เท่านั้นถึงจะรู้
+  if (blob.type === PREVIEW_CONTENT_TYPE) return blob;
+  return encode(canvas, FALLBACK_CONTENT_TYPE);
+}
+
+async function encode(canvas: HTMLCanvasElement, type: string): Promise<Blob> {
   const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, PREVIEW_CONTENT_TYPE, PREVIEW_QUALITY),
+    canvas.toBlob(resolve, type, PREVIEW_QUALITY),
   );
   if (!blob) {
     throw new Error(i18n.t("errors.imageConvertFailed"));
@@ -75,8 +90,9 @@ export async function processImage(file: File): Promise<ProcessedImage> {
     );
 
     return {
+      // ชนิดจริงที่ได้ ไม่ใช่ชนิดที่ขอไป เบราว์เซอร์บางรุ่นให้ JPEG แทน
       blob,
-      contentType: PREVIEW_CONTENT_TYPE,
+      contentType: blob.type,
       width: bitmap.width,
       height: bitmap.height,
     };
