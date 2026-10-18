@@ -7,6 +7,7 @@ import {
   Languages,
   LoaderCircle,
   RefreshCw,
+  Shapes,
   Trash2,
   TriangleAlert,
   Video,
@@ -316,6 +317,13 @@ export function AssetCard({
             ) : (
               <div className="h-32 w-full animate-pulse bg-muted" />
             )}
+            {/* รูปที่เห็นถูกแปลงมาจากไฟล์เวกเตอร์ บอกไว้ให้รู้ว่าต้นฉบับเป็น EPS */}
+            {asset.kind === 'vector' ? (
+              <span className="absolute bottom-1.5 left-1.5 inline-flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10.5px] text-white">
+                <Shapes className="size-3" aria-hidden />
+                EPS
+              </span>
+            ) : null}
             {/* รูปย่อของวิดีโอเป็นภาพนิ่ง ต้องบอกไว้ ไม่งั้นดูไม่ออกว่าเป็นคลิป */}
             {asset.kind === 'video' ? (
               <span className="absolute bottom-1.5 left-1.5 inline-flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10.5px] text-white tabular-nums">

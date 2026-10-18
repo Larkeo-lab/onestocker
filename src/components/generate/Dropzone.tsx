@@ -26,8 +26,9 @@ type Format = {
 
 const FORMATS: Format[] = [
   { icon: ImageIcon, label: 'JPG, PNG, WEBP', supported: true },
-  { icon: Shapes, label: 'SVG, EPS', supported: false },
+  { icon: Shapes, label: 'EPS', supported: true },
   { icon: Video, label: 'MP4, MOV', supported: true },
+  { icon: Shapes, label: 'SVG', supported: false },
 ]
 
 export function Dropzone({
@@ -191,6 +192,11 @@ export function Dropzone({
       <p className="mt-4 flex items-center justify-center gap-2 text-center text-[13px] text-muted-foreground">
         <Lock className="size-3.5 shrink-0" aria-hidden />
         {t('dropzone.privacy')}
+      </p>
+
+      {/* EPS เป็นข้อยกเว้นเดียวที่ไฟล์ต้นฉบับออกจากเครื่องผู้ใช้ ต้องบอกไว้ตรงนี้ด้วย */}
+      <p className="mt-1.5 text-center text-[12px] text-subtle-foreground">
+        {t('dropzone.vectorNote')}
       </p>
     </section>
   )

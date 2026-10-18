@@ -12,7 +12,11 @@ export type AssetTranslation = {
   keywords: string[]
 }
 
-export type MediaKind = 'image' | 'video'
+/**
+ * vector = ไฟล์ EPS ซึ่งเบราว์เซอร์เปิดเองไม่ได้
+ * เซิร์ฟเวอร์แปลงให้เป็นรูปก่อน (ดู uploadVector ใน lib/api/uploads.ts)
+ */
+export type MediaKind = 'image' | 'video' | 'vector'
 
 export type Asset = {
   id: string

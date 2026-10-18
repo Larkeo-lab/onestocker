@@ -12,6 +12,7 @@ import {
   generateMetadata,
   requestUploadUrls,
   uploadToR2,
+  uploadVector,
   type PresignedUpload,
   type UploadPurpose,
 } from '@/lib/api'
@@ -238,6 +239,28 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
 
       await runWithConcurrency(
         queued.map(({ id, file, kind }) => async () => {
+          /*
+            EPS แปลงบนเซิร์ฟเวอร์ จึงอัปจบตั้งแต่ขั้นนี้ ไม่ต้องเข้าคิวขอลิงก์รอบที่สอง
+            เก็บไฟล์ต้นฉบับไว้เหมือนที่รูปกับวิดีโอเก็บไฟล์ที่ย่อแล้ว ปุ่มลองใหม่จะได้ใช้ได้
+          */
+          if (kind === 'vector') {
+            pendingUploads.current.set(id, [{ blob: file, purpose: 'source' }])
+            try {
+              const preview = await uploadVector(file, file.name)
+              patch(id, {
+                status: 'ready',
+                previewKey: preview.previewKey,
+                previewUrl: preview.previewUrl,
+                width: preview.width,
+                height: preview.height,
+              })
+              pendingUploads.current.delete(id)
+            } catch (error) {
+              failUpload(id, errorMessage(error))
+            }
+            return
+          }
+
           try {
             if (kind === 'video') {
               const video = await processVideo(file)
@@ -357,10 +380,24 @@ export function GenerateProvider({ children }: { children: ReactNode }) {
     async (id: string): Promise<boolean> => {
       const uploads = pendingUploads.current.get(id)
       const asset = assetsRef.current.find((item) => item.id === id)
-      if (!uploads || !asset) return false
+      if (!uploads || uploads.length === 0 || !asset) return false
 
       patch(id, { status: 'uploading', error: undefined })
       try {
+        // ไฟล์เวกเตอร์ไปอีกทาง — อัปต้นฉบับขึ้นไปใหม่แล้วให้เซิร์ฟเวอร์แปลงอีกรอบ
+        if (asset.kind === 'vector') {
+          const preview = await uploadVector(uploads[0].blob, asset.filename)
+          patch(id, {
+            status: 'ready',
+            previewKey: preview.previewKey,
+            previewUrl: preview.previewUrl,
+            width: preview.width,
+            height: preview.height,
+          })
+          pendingUploads.current.delete(id)
+          return true
+        }
+
         const links = await requestUploadUrls(
           uploads.map(({ blob, purpose }) => ({
             filename: asset.filename,

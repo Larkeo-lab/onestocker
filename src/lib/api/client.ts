@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios'
 import type { AxiosInstance, AxiosRequestConfig } from 'axios'
 
 import i18n, { currentLanguage } from '@/config/i18n'
+import { deviceID, deviceSignature } from '@/lib/device'
 import { env } from '@/lib/env'
 import {
   OFFLINE_CODE,
@@ -81,6 +82,13 @@ api.interceptors.request.use(async (config) => {
     ชื่อ header ต้องตรงกับ auth.LanguageHeader และอยู่ใน AllowHeaders ของ CORS ฝั่ง Go
   */
   config.headers['X-App-Language'] = currentLanguage()
+  /*
+    บอกด้วยว่าคำขอนี้มาจากเครื่องไหน เซิร์ฟเวอร์เก็บไว้ตอน /auth/me
+    ให้แอดมินเห็นว่าหลายบัญชีมาจากเครื่องเดียวกันหรือเปล่า (ดู lib/device.ts)
+    ชื่อ header ต้องตรงกับ auth.DeviceIDHeader / auth.DeviceHashHeader และอยู่ใน AllowHeaders ของ CORS
+  */
+  config.headers['X-Device-Id'] = deviceID()
+  config.headers['X-Device-Hash'] = deviceSignature()
   return config
 })
 
