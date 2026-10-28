@@ -20,6 +20,21 @@ export const PREVIEW_CONTENT_TYPE = "image/webp";
  */
 export const FALLBACK_CONTENT_TYPE = "image/jpeg";
 
+/**
+ * สีที่เทลงไปใต้รูปก่อนวาด แทนส่วนที่โปร่งใส
+ *
+ * PNG ที่ตัดพื้นหลังออกแล้วมีช่อง alpha ซึ่งโมเดลมองเห็นเป็นสีดำ (ช่อง alpha ถูกทิ้ง
+ * ตอนแปลงเป็น RGB) คีย์เวิร์ดที่ได้จึงเป็น "black background" ทุกรูป ทั้งที่ควรเป็นขาว
+ * และถ้าเบราว์เซอร์ถอยไปใช้ JPEG ซึ่งเก็บความโปร่งใสไม่ได้ ก็ได้พื้นดำเหมือนกัน
+ *
+ * ใช้สีขาวเพราะเป็นสิ่งที่เว็บสต็อกคาดหวังจากภาพตัดพื้นหลัง — prompt ฝั่งเซิร์ฟเวอร์
+ * สั่งให้เขียนว่า "isolated on white background" อยู่แล้ว (ดู server/internal/feature/generate/prompt.go)
+ *
+ * มีผลเฉพาะรูปย่อที่ส่งให้โมเดลดูและที่แสดงในหน้าประวัติ
+ * ไฟล์ต้นฉบับที่ลูกค้าเอาไปส่งเข้าเว็บสต็อกจริงยังโปร่งใสเหมือนเดิม ไม่ถูกแตะเลย
+ */
+const PREVIEW_BACKGROUND = "#ffffff";
+
 export type ProcessedImage = {
   /** รูปที่ย่อแล้ว ใช้ทั้งอัปขึ้น S3 และแสดงตัวอย่าง */
   blob: Blob;
@@ -60,6 +75,8 @@ export async function drawToBlob(
   if (!context) {
     throw new Error(i18n.t("errors.canvasUnsupported"));
   }
+  context.fillStyle = PREVIEW_BACKGROUND;
+  context.fillRect(0, 0, target.width, target.height);
   context.drawImage(source, 0, 0, target.width, target.height);
 
   const blob = await encode(canvas, PREVIEW_CONTENT_TYPE);
