@@ -2,6 +2,7 @@ import { PanelLeft, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/ui/ThemeSelect";
 import { siteConfig } from "@/config/site";
 import { useUsageStore } from "@/store/usage";
 import type { Profile } from "@/types/profile";
@@ -65,6 +66,8 @@ export function AppHeader({
           <Sparkles className="size-3.5" aria-hidden />
           <span className="hidden sm:inline">{t("account.upgrade")}</span>
         </Button>
+
+        <ThemeToggle />
 
         <ProfileMenu profile={profile} />
       </div>

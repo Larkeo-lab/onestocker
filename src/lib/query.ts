@@ -78,6 +78,13 @@ export const queryKeys = {
     // ประวัติในหน้าลบพื้นหลัง โหลดต่อทีละหน้า ขึ้นต้นด้วย removeBg จึงถูกล้างพร้อม all
     history: ['removeBg', 'history'] as const,
   },
+  // ประวัติในหน้าแอนิเมชัน ถูกล้างเมื่อสร้างเสร็จหรือลบ (store/animation, AnimationHistoryCard)
+  animation: {
+    all: ['animation'] as const,
+    history: ['animation', 'history'] as const,
+    // หน้ารายการเดียว (/animation/:id) มีโค้ดด้วย ขึ้นต้นด้วย animation จึงถูกล้างพร้อม all
+    item: (id: string) => ['animation', 'item', id] as const,
+  },
   upscale: {
     all: ['upscale'] as const,
     page: (query: UpscaleQuery) => ['upscale', query] as const,

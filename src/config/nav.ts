@@ -1,4 +1,5 @@
 import {
+  Clapperboard,
   Eraser,
   FileSpreadsheet,
   History,
@@ -36,6 +37,11 @@ export const NAV_SECTIONS: NavSection[] = [
         feature: "generate",
       },
       { labelKey: "nav.history", to: `${APP_PATH}/history`, icon: History },
+      {
+        labelKey: "nav.animation",
+        to: `${APP_PATH}/animation`,
+        icon: Clapperboard,
+      },
       {
         labelKey: "nav.remove-bg",
         to: `${APP_PATH}/remove-bg`,

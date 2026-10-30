@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react'
+import { useTheme } from '@/hooks/useTheme'
 
 /**
  * ธีมของกล่อง Clerk
@@ -36,19 +36,9 @@ const DARK = {
   colorWarning: '#f59e0b',
 } as const
 
-const DARK_QUERY = '(prefers-color-scheme: dark)'
-
-function subscribe(onChange: () => void) {
-  const query = window.matchMedia(DARK_QUERY)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
-}
-
-const getSnapshot = () => window.matchMedia(DARK_QUERY).matches
-
-/** เปลี่ยนธีมตามค่าที่ผู้ใช้ตั้งไว้ในระบบปฏิบัติการ */
+/** เปลี่ยนธีมตามที่ผู้ใช้เลือกในแอป (หรือตามระบบปฏิบัติการถ้าไม่ได้เลือก) */
 export function useClerkAppearance() {
-  const dark = useSyncExternalStore(subscribe, getSnapshot)
+  const dark = useTheme().theme === 'dark'
 
   return {
     variables: dark ? DARK : LIGHT,

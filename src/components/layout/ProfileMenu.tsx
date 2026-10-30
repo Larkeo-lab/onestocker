@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 
 import { LanguageSelect } from "@/components/ui/LanguageSelect";
+import { ThemeSelect } from "@/components/ui/ThemeSelect";
 import { APP_PATH } from "@/config/site";
 import { PAID_GRADIENT } from "@/lib/plans";
 import { env } from "@/lib/env";
@@ -96,7 +97,7 @@ function CreditPill() {
 }
 
 /**
- * โปรไฟล์มุมขวาบน กดแล้วเปิดเมนูที่มีเครดิต ตั้งค่า ภาษา และออกจากระบบ
+ * โปรไฟล์มุมขวาบน กดแล้วเปิดเมนูที่มีเครดิต ตั้งค่า ภาษา ธีม และออกจากระบบ
  *
  * ปิดเมนูด้วยการฟัง pointerdown ทั้งหน้าแทนการวางชั้นใส fixed ทับจอ
  * เพราะ header ใช้ backdrop-blur ซึ่งทำให้ลูกที่เป็น fixed วางตำแหน่งเทียบกับ header
@@ -219,6 +220,7 @@ export function ProfileMenu({ profile }: { profile: Profile | null }) {
             </NavLink>
 
             <LanguageSelect />
+            <ThemeSelect />
           </div>
 
           <div className="border-t border-border pt-3">

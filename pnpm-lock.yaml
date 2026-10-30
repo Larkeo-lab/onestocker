@@ -32,6 +32,9 @@ importers:
       heic-to:
         specifier: 1.5.2
         version: 1.5.2
+      highlight.js:
+        specifier: 11.11.1
+        version: 11.11.1
       i18next:
         specifier: ^26.4.2
         version: 26.4.2(typescript@6.0.3)
@@ -2248,6 +2251,10 @@ packages:
 
   heic-to@1.5.2:
     resolution: {integrity: sha512-8Fns+lZHAWmz5U5IUxDeXKwIf3foBoKNPLxxFY4B0MkLjNuomEIHCoDbDE+x/llFK3NCEO1cu4+n3iUKY+Svmw==}
+
+  highlight.js@11.11.1:
+    resolution: {integrity: sha512-Xwwo44whKBVCYoliBQwaPvtd/2tYFkRQtXDWj1nackaV2JPXx3L0+Jvd8/qCJ2p+ML0/XVkJ2q+Mr+UVdpJK5w==}
+    engines: {node: '>=12.0.0'}
 
   hono@4.13.8:
     resolution: {integrity: sha512-/Gng7NfoykZl2pjukW5Z6+8Yxm3BPRf86GTbQnt0SbySkvax4fyL4H3HhY1cCpBGmiW9XDRFzRV+CXK2W8QudQ==}
@@ -5389,6 +5396,8 @@ snapshots:
       function-bind: 1.1.2
 
   heic-to@1.5.2: {}
+
+  highlight.js@11.11.1: {}
 
   hono@4.13.8: {}
 

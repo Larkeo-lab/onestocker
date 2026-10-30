@@ -2,12 +2,18 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* คลาส dark:* ตามธีมที่ผู้ใช้เลือก ไม่ใช่ตามระบบอย่างเดียว */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* ─── Design tokens ───────────────────────────────────────────────
-   Light เป็นค่าเริ่มต้น, dark override ผ่าน prefers-color-scheme
+   Light เป็นค่าเริ่มต้น, dark override ผ่าน <html data-theme="dark">
+   ผู้ใช้เลือกสว่าง / มืด / ตามระบบได้ (hooks/useTheme.ts) script ใน index.html ตั้งค่าก่อนวาดหน้า
    ปรับสีทั้งแอปได้จากบล็อกนี้ที่เดียว
    ชุดสีเดียวกับ my-app เพื่อให้สองแอปหน้าตาเหมือนกัน
    ──────────────────────────────────────────────────────────────── */
 :root {
+  color-scheme: light;
+
   --background: #ffffff;
   --foreground: #18181b;
 
@@ -62,32 +68,33 @@
   --sidebar-ring: var(--primary);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0b;
-    --foreground: #fafafa;
+:root[data-theme="dark"] {
+  /* scrollbar, ช่องกรอก, ปฏิทิน ของเบราว์เซอร์เป็นโทนมืดตาม */
+  color-scheme: dark;
 
-    --card: #121215;
-    --sidebar: #0f0f11;
-    --muted: #1a1a1e;
-    --muted-foreground: #a1a1aa;
-    --subtle-foreground: #71717a;
+  --background: #0a0a0b;
+  --foreground: #fafafa;
 
-    --border: #26262b;
-    --border-strong: #35353c;
+  --card: #121215;
+  --sidebar: #0f0f11;
+  --muted: #1a1a1e;
+  --muted-foreground: #a1a1aa;
+  --subtle-foreground: #71717a;
 
-    --primary: #278bf5;
-    --primary-foreground: #ffffff;
-    --primary-hover: #4a9ff7;
-    --primary-soft: rgba(39, 139, 245, 0.16);
+  --border: #26262b;
+  --border-strong: #35353c;
 
-    --success: #22c55e;
-    --success-soft: rgba(34, 197, 94, 0.14);
-    --warning: #f59e0b;
-    --warning-soft: rgba(245, 158, 11, 0.14);
-    --danger: #ef4444;
-    --danger-soft: rgba(239, 68, 68, 0.14);
-  }
+  --primary: #278bf5;
+  --primary-foreground: #ffffff;
+  --primary-hover: #4a9ff7;
+  --primary-soft: rgba(39, 139, 245, 0.16);
+
+  --success: #22c55e;
+  --success-soft: rgba(34, 197, 94, 0.14);
+  --warning: #f59e0b;
+  --warning-soft: rgba(245, 158, 11, 0.14);
+  --danger: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.14);
 }
 
 /* เปิดให้ใช้เป็น utility ได้ เช่น bg-card, text-muted-foreground */
@@ -149,6 +156,111 @@
   /* ฟอนต์ mono ไม่มีอักษรลาว ใส่ Noto Sans Lao ไว้รับช่วงต่อ เช่น "ຂັ້ນທີ 1" บนหน้า landing */
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", "Noto Sans Lao", monospace;
+}
+
+/*
+  กล่องโค้ดแบบ IDE (components/animation/AnimationCode.tsx) สีตามธีม Dark+ ของ VS Code
+  พื้นมืดทั้งโหมดสว่างและมืด เหมือนตัวแก้โค้ดที่คนคุ้นตา class มาจาก highlight.js
+*/
+.code-ide {
+  background: #1e1e1e;
+  color: #d4d4d4;
+}
+.code-ide-gutter {
+  background: #1e1e1e;
+  color: #6e7681;
+  border-right: 1px solid #2d2d2d;
+}
+.code-ide .hljs-tag,
+.code-ide .hljs-meta {
+  color: #808080;
+}
+.code-ide .hljs-name,
+.code-ide .hljs-keyword,
+.code-ide .hljs-literal {
+  color: #569cd6;
+}
+.code-ide .hljs-attr,
+.code-ide .hljs-attribute,
+.code-ide .hljs-property,
+.code-ide .hljs-variable,
+.code-ide .hljs-params {
+  color: #9cdcfe;
+}
+.code-ide .hljs-string,
+.code-ide .hljs-template-string {
+  color: #ce9178;
+}
+.code-ide .hljs-number {
+  color: #b5cea8;
+}
+.code-ide .hljs-comment {
+  color: #6a9955;
+  font-style: italic;
+}
+.code-ide .hljs-title,
+.code-ide .hljs-title.function_ {
+  color: #dcdcaa;
+}
+.code-ide .hljs-built_in,
+.code-ide .hljs-title.class_ {
+  color: #4ec9b0;
+}
+.code-ide .hljs-selector-class,
+.code-ide .hljs-selector-id,
+.code-ide .hljs-selector-tag,
+.code-ide .hljs-selector-pseudo {
+  color: #d7ba7d;
+}
+.code-ide .hljs-subst {
+  color: #d4d4d4;
+}
+
+/*
+  ฉากระหว่างรอสร้างแอนิเมชัน (components/animation/AnimationGenerating.tsx)
+  ใช้เป็น class animate-stage-drift / animate-stage-ripple / animate-stage-scan
+*/
+@theme {
+  --animate-stage-drift: stage-drift 9s ease-in-out infinite;
+  --animate-stage-ripple: stage-ripple 3s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  --animate-stage-scan: stage-scan 2.4s ease-in-out infinite;
+
+  /* แสงสีลอยวนช้า ๆ ต้นรอบกับท้ายรอบที่เดิม */
+  @keyframes stage-drift {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(12%, -10%) scale(1.15);
+    }
+    66% {
+      transform: translate(-10%, 8%) scale(0.9);
+    }
+  }
+
+  /* วงคลื่นขยายออกจากกลางแล้วจางหาย */
+  @keyframes stage-ripple {
+    from {
+      transform: scale(0.6);
+      opacity: 0.7;
+    }
+    to {
+      transform: scale(2.4);
+      opacity: 0;
+    }
+  }
+
+  /* เส้นสแกนกวาดลงแล้วขึ้น */
+  @keyframes stage-scan {
+    0%,
+    100% {
+      top: 10%;
+    }
+    50% {
+      top: 90%;
+    }
+  }
 }
 
 /*

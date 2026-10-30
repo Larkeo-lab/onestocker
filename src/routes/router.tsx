@@ -3,6 +3,8 @@ import { createBrowserRouter } from 'react-router-dom'
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { FeatureGate } from '@/components/layout/FeatureGate'
 import { APP_PATH } from '@/config/site'
+import { AnimationPage } from '@/pages/AnimationPage'
+import { AnimationDetailPage } from '@/pages/AnimationDetailPage'
 import { CheckoutPage } from '@/pages/CheckoutPage'
 import { ExportsPage } from '@/pages/ExportsPage'
 import { GeneratePage } from '@/pages/GeneratePage'
@@ -57,6 +59,8 @@ export const router = createBrowserRouter([
       },
       { path: 'library', element: <LibraryPage /> },
       { path: 'history', element: <HistoryPage /> },
+      { path: 'animation', element: <AnimationPage /> },
+      { path: 'animation/:id', element: <AnimationDetailPage /> },
       { path: 'exports', element: <ExportsPage /> },
       { path: 'platforms', element: <PlatformsPage /> },
       { path: 'settings', element: <SettingsPage /> },

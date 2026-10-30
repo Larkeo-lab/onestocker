@@ -48,21 +48,33 @@ export async function runJob<T, J extends BackgroundJob<T> = BackgroundJob<T>>(o
   /** เส้นที่ GET ถามสถานะงาน */
   jobPath: (id: string) => string
   body: { requestId: string }
+  /**
+   * true = งานนี้ส่งไปแล้วก่อนหน้า (เช่นก่อนรีเฟรชหน้า) ถามสถานะต่อเลย ไม่ส่งงานใหม่
+   * งานหาย (เกินเวลาที่เซิร์ฟเวอร์จำ หรือเซิร์ฟเวอร์เริ่มใหม่) ได้ 404 แบบเดียวกับตอนรอผล
+   */
+  resume?: boolean
   /** เซิร์ฟเวอร์รับงานแล้ว ต่อจากนี้คือรอผล */
   onStarted?: (job: J) => void
+  /** ได้สถานะใหม่ทุกครั้งที่ถาม ใช้กับงานที่รายงานความคืบหน้าระหว่างทาง (แอนิเมชัน) */
+  onProgress?: (job: J) => void
+  /** รอผลนานสุดเท่านี้ ไม่ใส่ = MAX_WAIT */
+  maxWait?: number
   /** งานล้มเหลวโดยเซิร์ฟเวอร์ไม่ได้บอกข้อความ */
   failedMessage: string
   /** เน็ตหลุดนานจนไม่รู้ผล */
   lostMessage: string
 }): Promise<T> {
-  let job = await start<J>(options.startPath, options.body)
+  let job = options.resume
+    ? await apiGet<J>(options.jobPath(options.body.requestId))
+    : await start<J>(options.startPath, options.body)
   options.onStarted?.(job)
-  const deadline = Date.now() + MAX_WAIT
+  const deadline = Date.now() + (options.maxWait ?? MAX_WAIT)
   while (job.status === 'processing') {
     if (Date.now() >= deadline) throw new ApiError(options.lostMessage, 0)
     await wait(POLL_INTERVAL)
     try {
       job = await apiGet<J>(options.jobPath(job.id))
+      options.onProgress?.(job)
     } catch (error) {
       /*
         404 = เซิร์ฟเวอร์เริ่มใหม่กลางงาน งานหายและไม่ได้ตัดเครดิต (งานที่สำเร็จแล้วเซิร์ฟเวอร์ยังหาเจอ)

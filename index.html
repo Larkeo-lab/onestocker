@@ -32,6 +32,24 @@
     <!--seo-head-->
 
     <!--
+      ธีมสว่าง / มืด ต้องตั้งก่อนวาด <body> ไม่งั้นคนที่เลือกโหมดมืดจะเห็นหน้าขาวแวบก่อน
+      ไม่ได้เลือกไว้ก็ตามระบบ STORAGE_KEY ต้องตรงกับ src/hooks/useTheme.ts
+    -->
+    <script>
+      ;(() => {
+        const STORAGE_KEY = 'theme'
+        let saved = null
+        try {
+          saved = localStorage.getItem(STORAGE_KEY)
+        } catch {}
+        const dark =
+          saved === 'dark' ||
+          (saved !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+      })()
+    </script>
+
+    <!--
       ไฟล์ HTML นี้ถูกส่งให้ทุก path ของเว็บ ทั้งหน้าแรกและตัวแอป
       เพราะตัวแอปจัดการเส้นทางเองในเบราว์เซอร์
 

@@ -12,6 +12,7 @@ import {
   fetchRemoveBgResults,
   fetchSettings,
   fetchUpscales,
+  fetchAnimations,
   type HistoryQuery,
   type Pagination,
   type RemoveBgQuery,
@@ -33,6 +34,7 @@ import { ADMIN_MANAGED_POLL_MS, ADMIN_MANAGED_STALE_MS, SIGNED_URL_STALE_MS, que
     - history     ← GenerateProvider (สร้าง metadata เสร็จ)
     - removeBg    ← store/removeBg (ลบพื้นหลังเสร็จ), LibraryPage (ลบรูป)
     - upscale     ← store/upscale (อัปสเกลเสร็จ), LibraryPage (ลบรูป)
+    - animation   ← store/animation (สร้างเสร็จ), AnimationHistoryCard (ลบ)
     - payments    ← CheckoutPage (แจ้งชำระ)
     - me          ← WelcomeDialog (ปิดป๊อปอัปต้อนรับ)
 */
@@ -184,6 +186,14 @@ export function useUpscaleHistory() {
     ...historyOptions,
     queryKey: queryKeys.upscale.history,
     queryFn: ({ pageParam }) => fetchUpscales({ page: pageParam, limit: HISTORY_PAGE_SIZE }),
+  })
+}
+
+export function useAnimationHistory() {
+  return useInfiniteQuery({
+    ...historyOptions,
+    queryKey: queryKeys.animation.history,
+    queryFn: ({ pageParam }) => fetchAnimations({ page: pageParam, limit: HISTORY_PAGE_SIZE }),
   })
 }
 
