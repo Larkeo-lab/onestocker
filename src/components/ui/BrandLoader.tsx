@@ -13,13 +13,22 @@ const WAVE_STEP_MS = 80
  * ใช้ keyframe wordmark-wave ตัวเดียวกับโลโก้หน้าเข้าสู่ระบบ (ดู index.css)
  * ผู้ใช้ที่ตั้งลดการเคลื่อนไหวไว้เห็นเป็นตัวหนังสือนิ่ง
  */
-export function BrandLoader({ label, className }: { label: string; className?: string }) {
+export function BrandLoader({
+  label,
+  className,
+  textClassName = 'text-[18px]',
+}: {
+  label: string
+  className?: string
+  /** ขนาดตัวอักษร ค่าเริ่มต้นเท่ากับในการ์ดของลบพื้นหลังและอัปสเกล กรอบใหญ่ (เช่นตอนสร้างแอนิเมชัน) ใส่ใหญ่ขึ้นได้ */
+  textClassName?: string
+}) {
   const letters = Array.from(`${siteConfig.name}...`)
 
   return (
     <span role="status" className={cn('inline-flex select-none', className)}>
       <span className="sr-only">{label}</span>
-      <span aria-hidden className="text-[18px] leading-none font-extrabold tracking-tight whitespace-nowrap">
+      <span aria-hidden className={cn('leading-none font-extrabold tracking-tight whitespace-nowrap', textClassName)}>
         {letters.map((letter, index) => (
           <span
             // ตัวอักษรซ้ำกันได้ (s และ .) ใช้ตำแหน่งเป็น key ซึ่งไม่เปลี่ยนอยู่แล้ว

@@ -47,7 +47,8 @@ export async function runJob<T, J extends BackgroundJob<T> = BackgroundJob<T>>(o
   startPath: string
   /** เส้นที่ GET ถามสถานะงาน */
   jobPath: (id: string) => string
-  body: { requestId: string }
+  /** ใส่ค่าอื่นของงานได้ เช่นชนิดไฟล์ */
+  body: { requestId: string; [field: string]: unknown }
   /**
    * true = งานนี้ส่งไปแล้วก่อนหน้า (เช่นก่อนรีเฟรชหน้า) ถามสถานะต่อเลย ไม่ส่งงานใหม่
    * งานหาย (เกินเวลาที่เซิร์ฟเวอร์จำ หรือเซิร์ฟเวอร์เริ่มใหม่) ได้ 404 แบบเดียวกับตอนรอผล

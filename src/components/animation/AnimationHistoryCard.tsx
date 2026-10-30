@@ -81,7 +81,7 @@ export function AnimationHistoryCard({ item: original }: { item: AnimationResult
           {item.filename}
         </p>
         <p className="truncate text-[11.5px] text-subtle-foreground tabular-nums">
-          {`${item.height}p ${item.fps}fps · ${date}`}
+          {`${item.height}p · ${item.seconds}s · ${date}`}
         </p>
 
         {error ? (

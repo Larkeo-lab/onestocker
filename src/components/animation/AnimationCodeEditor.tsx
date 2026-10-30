@@ -33,12 +33,15 @@ export function AnimationCodeEditor({
   placeholder,
   ariaLabel,
   disabled,
+  className,
 }: {
   value: string
   onChange: (value: string) => void
   placeholder?: string
   ariaLabel?: string
   disabled?: boolean
+  /** แทนขนาดตั้งต้น (สูง 32rem ลากปรับความสูงได้) เช่นให้สูงเท่าคอลัมน์ข้าง ๆ */
+  className?: string
 }) {
   const [highlight, setHighlight] = useState<(code: string) => string>()
   const colored = useMemo(() => highlight?.(value), [highlight, value])
@@ -131,6 +134,7 @@ export function AnimationCodeEditor({
       className={cn(
         'code-ide h-[32rem] resize-y overflow-auto rounded-lg border border-border focus-within:border-primary focus-within:ring-1 focus-within:ring-primary',
         disabled && 'opacity-60',
+        className,
       )}
     >
       <div className="flex min-h-full min-w-max font-mono text-[12px] leading-[1.6]">

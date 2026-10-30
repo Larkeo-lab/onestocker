@@ -19,18 +19,31 @@ export type AnimationResult = {
   width: number
   height: number
   fps: number
+  /** ความยาวลูปของคลิป (วินาที) ไฟล์ที่ดาวน์โหลดยาวเป็นผลคูณของค่านี้ (ดู downloadLengths) */
+  seconds: number
   /**
    * ลิงก์ชั่วคราวอายุ 1 ชั่วโมง ไม่มีลิงก์วิดีโอ = ยังไม่ได้ render MP4
    * (สร้างแล้วดูตัวอย่างจากโค้ดก่อน render เมื่อกดดาวน์โหลด ดู store/animationVideo)
    */
   videoUrl?: string
   videoDownloadUrl?: string
-  /** ลิงก์ดาวน์โหลดของแต่ละแบบที่ render แล้ว (MP4 อยู่ใน videoDownloadUrl ด้วย) */
-  downloads?: Partial<Record<VideoFormat, string>>
+  /** ลิงก์ดาวน์โหลดของทุกไฟล์ที่ render แล้ว (ชนิดไฟล์ × fps × ความยาว) ดูด้วย videoUrlFor */
+  videos?: AnimationVideo[]
   htmlDownloadUrl: string
   /** ภาพปกที่ถ่ายจากโค้ด ไม่มี = ถ่ายไม่สำเร็จ */
   thumbUrl?: string
   createdAt: string
+}
+
+/** วิดีโอหนึ่งไฟล์ของคลิป ต้องตรงกับ VideoLink ใน dto.go */
+export type AnimationVideo = {
+  format: VideoFormat
+  fps: number
+  seconds: number
+  resolution?: number
+  background?: string
+  quality?: string
+  url: string
 }
 
 /** ผลของงานหนึ่ง ต้องตรงกับ Batch ใน dto.go อาจได้น้อยกว่าที่ขอถ้าบางคลิปล้มเหลว */
@@ -46,4 +59,8 @@ export type AnimationJob = BackgroundJob<AnimationBatch> & {
   html?: string
   framesDone?: number
   framesTotal?: number
+  /** งานเดิมที่ยังทำอยู่ ไม่ใช่งานที่เพิ่งส่ง (ทำได้ทีละงาน) หน้าเว็บติดตามงานนี้ต่อ */
+  attached?: boolean
+  /** เหตุที่ช้ากว่าปกติ 'gemini_busy' = Gemini แน่น กำลังลองรุ่นสำรอง */
+  notice?: string
 }

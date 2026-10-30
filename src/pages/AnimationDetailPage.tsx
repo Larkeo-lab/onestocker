@@ -6,6 +6,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { AnimationCode } from '@/components/animation/AnimationCode'
 import { AnimationPreview } from '@/components/animation/AnimationPreview'
+import { FormatSelect } from '@/components/animation/FormatSelect'
 import { VideoDownloadButton } from '@/components/animation/VideoDownloadButton'
 import { ErrorState, Loading } from '@/components/ui/AsyncState'
 import { Button } from '@/components/ui/Button'
@@ -17,6 +18,7 @@ import { MANUAL_MODEL, deleteAnimation, fetchAnimation } from '@/lib/api/animati
 import { errorMessage } from '@/lib/error'
 import { SIGNED_URL_STALE_MS, queryKeys } from '@/lib/query'
 import { cn } from '@/lib/utils'
+import { effectiveOptions, useVideoChoice } from '@/lib/videoFormats'
 import { useClipVideo, useVideoStore } from '@/store/animationVideo'
 import type { AnimationResult } from '@/types/animation'
 
@@ -46,6 +48,7 @@ export function AnimationDetailPage() {
     refetchInterval: SIGNED_URL_STALE_MS,
   })
   const item = query.data
+  const [choice, setChoice] = useVideoChoice()
   // render MP4 ที่กดไว้ก่อนรีเฟรชหน้า
   const resumeVideos = useVideoStore((store) => store.resume)
   useEffect(resumeVideos, [resumeVideos])
@@ -130,8 +133,9 @@ export function AnimationDetailPage() {
             </section>
 
             <aside className="min-w-0 space-y-2 lg:sticky lg:top-20">
-              <ClipMedia item={item} />
-              <VideoDownloadButton item={item} />
+              <ClipMedia item={item} transparent={choice.format === 'prores_alpha'} background={effectiveOptions(choice).background} />
+              <FormatSelect value={choice} onChange={setChoice} clipSeconds={item.seconds} />
+              <VideoDownloadButton item={item} choice={choice} />
               <a href={item.htmlDownloadUrl} className={SECONDARY_LINK_CLASS}>
                 <FileCode2 className="size-4" aria-hidden />
                 {t('animation.downloadHtml')}
@@ -161,11 +165,20 @@ export function AnimationDetailPage() {
   )
 }
 
-/** render แล้วเล่นวิดีโอ ยังไม่ render เล่นตัวอย่างสดจากโค้ด (ภาพเดียวกับที่จะได้ใน MP4) */
-function ClipMedia({ item: original }: { item: AnimationResult }) {
+/** render MP4 แล้วเล่นวิดีโอ ยังไม่ render เล่นตัวอย่างสดจากโค้ด (ภาพเดียวกับที่จะได้ในวิดีโอ) */
+function ClipMedia({
+  item: original,
+  transparent,
+  background,
+}: {
+  item: AnimationResult
+  transparent: boolean
+  background: string
+}) {
   const { t } = useTranslation()
   const { item } = useClipVideo(original)
-  if (item.videoUrl) {
+  // แบบโปร่งใสหรือเปลี่ยนสีพื้นแสดงจากโค้ดเสมอ วิดีโอที่เล่นในหน้าเว็บเป็น MP4 พื้นหลังตามโค้ด
+  if (item.videoUrl && !transparent && !background) {
     return (
       <video
         src={item.videoUrl}
@@ -180,7 +193,7 @@ function ClipMedia({ item: original }: { item: AnimationResult }) {
   }
   return item.html ? (
     <div className="mb-3 space-y-1.5">
-      <AnimationPreview html={item.html} title={t('animation.previewTitle')} />
+      <AnimationPreview html={item.html} title={t('animation.previewTitle')} transparent={transparent} background={background} />
       <p className="text-[12px] text-subtle-foreground">{t('animation.previewDone')}</p>
     </div>
   ) : null
