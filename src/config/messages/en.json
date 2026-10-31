@@ -673,6 +673,8 @@
     "notice": {
       "geminiBusy": "Gemini is busy — trying a backup model. Still working, this can take a few extra minutes."
     },
+    "credits_one": "{{count}} credit",
+    "credits_other": "{{count}} credits",
     "step": {
       "upload": "Upload video",
       "uploadPercent": "Uploading video {{percent}}%",

@@ -1,6 +1,19 @@
 import type { UserType } from '@/types/profile'
 import type { UpscalePreset } from '@/types/upscale'
 
+/** รายการเครดิตของแอนิเมชัน ต้องตรงกับ credits.AnimationActions ฝั่ง Go */
+export type AnimationCreditAction =
+  | 'animation_generate'
+  | 'animation_mp4'
+  | 'animation_prores'
+  | 'animation_prores_alpha'
+  | 'animation_1440'
+  | 'animation_2160'
+  | 'animation_quality_max'
+  | 'animation_quality_lossless'
+  | 'animation_fps_120'
+  | 'animation_extra_10s'
+
 /** งานที่ใช้เครดิตและแอดมินเปิด/ปิดได้ ต้องตรงกับ CreditFeatures ฝั่ง Go */
 export type CreditFeature = 'generate' | 'removeBg' | 'removeBgStandard' | 'upscale'
 
@@ -30,10 +43,19 @@ export type CreditCosts = {
   /** ราคาถูกสุดของขนาดที่เปิดอยู่ ใช้เมื่อไม่มี upscalePresets เท่านั้น */
   upscale: number
   /**
+   * ราคาแต่ละรายการของแอนิเมชัน key คือ AnimationCreditAction ไฟล์หนึ่งราคาประกอบจากหลายรายการ
+   * (ดู videoChoiceActions) ไม่มี = เซิร์ฟเวอร์รุ่นก่อนที่ยังไม่คิดเครดิตแอนิเมชัน
+   */
+  animation?: Partial<Record<AnimationCreditAction, number>>
+  /**
    * false = แอดมินปิดงานนั้นอยู่ ซ่อนตัวเลือก เมนู หรือหน้าของงานนั้น
    * upscale = มีสักขนาดที่เปิด upscalePresets = เปิดทีละขนาด
    */
-  enabled: Record<CreditFeature, boolean> & { upscalePresets?: Record<UpscalePreset, boolean> }
+  enabled: Record<CreditFeature, boolean> & {
+    upscalePresets?: Record<UpscalePreset, boolean>
+    /** รายการของแอนิเมชันที่ปิดอยู่ ลูกค้าเลือกตัวเลือกนั้นไม่ได้ */
+    animation?: Partial<Record<AnimationCreditAction, boolean>>
+  }
   /**
    * แพ็กเกจขั้นต่ำของแต่ละงาน key คือชื่องานฝั่ง Go (credits.Action) เช่น remove_bg
    * แพ็กเกจต่ำกว่าเห็นตัวเลือกแต่กดแล้วเปิดป๊อปอัปเลือกแพ็กเกจแทน ไม่มี = เซิร์ฟเวอร์รุ่นก่อน ใช้ได้ทุกแพ็กเกจ

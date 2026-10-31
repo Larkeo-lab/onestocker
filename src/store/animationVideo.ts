@@ -5,6 +5,7 @@ import { ApiError, cancelAnimationJob, CANCELLED_CODE, renderAnimationVideo } fr
 import { queryClient, queryKeys } from '@/lib/query'
 import { effectiveOptions, videoUrlFor, type VideoChoice } from '@/lib/videoFormats'
 import { useAnimationStore } from '@/store/animation'
+import { useUsageStore } from '@/store/usage'
 import type { AnimationJob, AnimationResult } from '@/types/animation'
 
 /*
@@ -74,6 +75,8 @@ export const useVideoStore = create<VideoStore>()((set, get) => {
       set(({ ready }) => ({ ready: { ...ready, [result.id]: result } }))
       useAnimationStore.getState().replaceResult(result)
       void queryClient.invalidateQueries({ queryKey: queryKeys.animation.all })
+      // ตัดเครดิตไปแล้วบนเซิร์ฟเวอร์ อ่านยอดใหม่
+      void useUsageStore.getState().refresh()
       const url = videoUrlFor(result, pending.choice)
       if (!resume && url) download(url)
     } catch (error) {

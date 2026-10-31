@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { ANIMATION_MAX_SECONDS, ANIMATION_MIN_SECONDS } from '@/lib/api/animation'
+import { useCreditCosts } from '@/hooks/queries'
+import { animationActionEnabled } from '@/lib/creditCosts'
 import { cn } from '@/lib/utils'
 import {
   BACKGROUND_PRESETS,
@@ -18,11 +20,18 @@ import {
   type VideoQuality,
   type VideoResolution,
 } from '@/lib/videoFormats'
+import type { AnimationCreditAction } from '@/types/creditCost'
 
 const SELECT_CLASS =
   'h-9 w-full rounded-md border border-border bg-background px-2.5 text-[13px] font-medium text-foreground shadow-xs transition-colors focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none disabled:opacity-60'
 
 const LABEL_CLASS = 'text-[12.5px] font-medium'
+
+const FORMAT_ACTION: Record<VideoFormat, AnimationCreditAction> = {
+  mp4: 'animation_mp4',
+  prores: 'animation_prores',
+  prores_alpha: 'animation_prores_alpha',
+}
 
 const BACKGROUND_LABELS = {
   '': 'animation.format.backgroundSource',
@@ -62,6 +71,9 @@ export function FormatSelect({
   actions?: ReactNode
 }) {
   const { t } = useTranslation()
+  // รายการที่แอดมินปิดอยู่ (ตั้งค่าเครดิต) ตัวเลือกนั้นเห็นแต่กดไม่ได้
+  const { data: costs } = useCreditCosts()
+  const off = (action: AnimationCreditAction) => !animationActionEnabled(costs, action)
   const formatHint = [
     t(`animation.format.${value.format}Hint`),
     clipSeconds ? t('animation.seconds.loopHint', { seconds: clipSeconds }) : '',
@@ -79,7 +91,7 @@ export function FormatSelect({
         className={SELECT_CLASS}
       >
         {VIDEO_FORMATS.map((format) => (
-          <option key={format} value={format}>
+          <option key={format} value={format} disabled={off(FORMAT_ACTION[format])}>
             {t(`animation.format.${format}`)}
           </option>
         ))}
@@ -97,7 +109,7 @@ export function FormatSelect({
         className={SELECT_CLASS}
       >
         {VIDEO_FPS.map((fps) => (
-          <option key={fps} value={fps}>
+          <option key={fps} value={fps} disabled={fps === 120 && off('animation_fps_120')}>
             {t('animation.format.fps', { fps })}
           </option>
         ))}
@@ -118,7 +130,11 @@ export function FormatSelect({
         className={SELECT_CLASS}
       >
         {VIDEO_RESOLUTIONS.map((resolution) => (
-          <option key={resolution} value={resolution}>
+          <option
+            key={resolution}
+            value={resolution}
+            disabled={(resolution === 1440 && off('animation_1440')) || (resolution === 2160 && off('animation_2160'))}
+          >
             {t(`animation.format.resolution${resolution}`)}
           </option>
         ))}
@@ -176,7 +192,11 @@ export function FormatSelect({
       >
         {value.format === 'mp4' ? (
           VIDEO_QUALITIES.map((quality) => (
-            <option key={quality} value={quality}>
+            <option
+              key={quality}
+              value={quality}
+              disabled={(quality === 'max' && off('animation_quality_max')) || (quality === 'lossless' && off('animation_quality_lossless'))}
+            >
               {t(`animation.format.quality_${quality}`)}
             </option>
           ))
@@ -198,7 +218,7 @@ export function FormatSelect({
         className={SELECT_CLASS}
       >
         {downloadLengths(clipSeconds).map((length) => (
-          <option key={length} value={length}>
+          <option key={length} value={length} disabled={length > 10 && off('animation_extra_10s')}>
             {t('animation.seconds.value', { seconds: length })}
           </option>
         ))}

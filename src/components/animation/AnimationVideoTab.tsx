@@ -13,6 +13,8 @@ import { APP_PATH } from '@/config/site'
 import { ANIMATION_ACCEPT, ANIMATION_MAX_CLIPS, ANIMATION_MAX_MB } from '@/lib/api/animation'
 import { formatBytes } from '@/lib/removeBg'
 import { cn } from '@/lib/utils'
+import { useCreditCosts } from '@/hooks/queries'
+import { animationCost } from '@/lib/creditCosts'
 import { effectiveOptions, useVideoChoice } from '@/lib/videoFormats'
 import { useAnimationStore, type AnimationPhase as Phase } from '@/store/animation'
 import type { AnimationStage } from '@/types/animation'
@@ -47,6 +49,9 @@ export function AnimationVideoTab() {
   const [count, setCount] = useState(1)
   const [picked, setPicked] = useState(0)
   const [choice, setChoice] = useVideoChoice()
+  const { data: costs } = useCreditCosts()
+  // ราคาต่อคลิป ตัดทีละคลิปเมื่อคลิปนั้นเสร็จ
+  const generatePrice = animationCost(costs, ['animation_generate'])
   const inputRef = useRef<HTMLInputElement>(null)
   const busy = phase.kind === 'uploading' || phase.kind === 'working'
 
@@ -173,7 +178,9 @@ export function AnimationVideoTab() {
               disabled={phase.kind !== 'ready'}
             >
               <Sparkles className="size-4" aria-hidden />
-              {t('animation.generate')}
+              {generatePrice === undefined
+                ? t('animation.generate')
+                : `${t('animation.generate')} · ${t('animation.credits', { count: generatePrice * count })}`}
             </Button>
             <Button variant="ghost" className="w-full" onClick={() => inputRef.current?.click()}>
               <RefreshCw className="size-4" aria-hidden />

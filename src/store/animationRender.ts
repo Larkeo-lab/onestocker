@@ -4,6 +4,7 @@ import i18n from '@/config/i18n'
 import { ANIMATION_DEFAULT_SECONDS, ANIMATION_MAX_CODE_KB, ApiError, cancelAnimationJob, CANCELLED_CODE, renderAnimationCode } from '@/lib/api'
 import { queryClient, queryKeys } from '@/lib/query'
 import { videoUrlFor, type VideoChoice } from '@/lib/videoFormats'
+import { useUsageStore } from '@/store/usage'
 import type { AnimationJob, AnimationResult } from '@/types/animation'
 
 /*
@@ -82,6 +83,8 @@ export const useRenderStore = create<RenderState>()((set, get) => {
       }
       set({ phase: { kind: 'done', result, choice } })
       void queryClient.invalidateQueries({ queryKey: queryKeys.animation.all })
+      // ตัดเครดิตไปแล้วบนเซิร์ฟเวอร์ อ่านยอดใหม่
+      void useUsageStore.getState().refresh()
       // ปุ่มคือ "ดาวน์โหลด" เสร็จแล้วดาวน์โหลดให้เลย (ไม่ทำตอนกลับมาถามต่อหลังรีเฟรช)
       const url = videoUrlFor(result, choice)
       if (!resume && url) download(url)

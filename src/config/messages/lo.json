@@ -673,6 +673,8 @@
     "notice": {
       "geminiBusy": "Gemini ຫຍຸ້ງຢູ່ ກຳລັງລອງລຸ້ນສຳຮອງ ວຽກຍັງເຮັດຢູ່ ອາດຊ້າກວ່າປົກກະຕິຫຼາຍນາທີ"
     },
+    "credits_one": "{{count}} ເຄຣດິດ",
+    "credits_other": "{{count}} ເຄຣດິດ",
     "step": {
       "upload": "ອັບໂຫຼດວິດີໂອ",
       "uploadPercent": "ກຳລັງອັບໂຫຼດວິດີໂອ {{percent}}%",

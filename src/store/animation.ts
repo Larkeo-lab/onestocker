@@ -3,6 +3,7 @@ import { create } from 'zustand'
 import i18n from '@/config/i18n'
 import { ANIMATION_ACCEPT, ANIMATION_MAX_MB, ApiError, cancelAnimationJob, CANCELLED_CODE, makeAnimation, requestAnimationUpload, uploadToR2 } from '@/lib/api'
 import { queryClient, queryKeys } from '@/lib/query'
+import { useUsageStore } from '@/store/usage'
 import type { AnimationJob, AnimationResult } from '@/types/animation'
 
 /*
@@ -98,6 +99,8 @@ export const useAnimationStore = create<AnimationState>()((set, get) => {
       )
       set({ phase: { kind: 'done', results: batch.items } })
       void queryClient.invalidateQueries({ queryKey: queryKeys.animation.all })
+      // ตัดเครดิตไปแล้วบนเซิร์ฟเวอร์ (ทีละคลิป) อ่านยอดใหม่
+      void useUsageStore.getState().refresh()
     } catch (error) {
       if (error instanceof ApiError && error.code === CANCELLED_CODE) {
         // สั่งหยุดเอง ไม่ใช่ความผิดพลาด กลับไปหน้าเริ่ม (สร้างใหม่จากไฟล์เดิมได้ถ้ายังจำไฟล์ไว้)

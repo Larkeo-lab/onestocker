@@ -2,6 +2,8 @@ import { Download, LoaderCircle, RotateCcw, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/Button'
+import { useCreditCosts } from '@/hooks/queries'
+import { animationCost, videoChoiceActions } from '@/lib/creditCosts'
 import { DOWNLOAD_LINK_CLASS } from '@/lib/removeBg'
 import { cn } from '@/lib/utils'
 import { lengthFor, videoUrlFor, type VideoChoice } from '@/lib/videoFormats'
@@ -32,7 +34,11 @@ export function VideoDownloadButton({
   const selected: VideoChoice = { ...picked, seconds: lengthFor(original, picked) }
   const { item, state } = useClipVideo(original, selected)
   const url = videoUrlFor(item, selected)
+  const { data: costs } = useCreditCosts()
+  // ราคาแสดงเฉพาะตอนยังไม่ render render แล้วโหลดซ้ำไม่เสียเครดิต
+  const price = animationCost(costs, videoChoiceActions(selected, selected.seconds ?? original.seconds))
   const label = compact ? 'MP4' : t('animation.download')
+  const priced = price === undefined ? label : `${label} · ${t('animation.credits', { count: price })}`
   const icon = compact ? 'size-3.5' : 'size-4'
 
   if (url) {
@@ -77,7 +83,7 @@ export function VideoDownloadButton({
         title={t('animation.video.hint')}
       >
         {state?.kind === 'failed' ? <RotateCcw className={icon} aria-hidden /> : <Download className={icon} aria-hidden />}
-        {label}
+        {priced}
       </Button>
       {state?.kind === 'failed' && !compact ? <p className="text-[12px] text-danger">{state.message}</p> : null}
     </div>

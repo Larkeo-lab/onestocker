@@ -673,6 +673,8 @@
     "notice": {
       "geminiBusy": "Gemini แน่นอยู่ กำลังลองรุ่นสำรอง งานยังทำอยู่ อาจช้ากว่าปกติหลายนาที"
     },
+    "credits_one": "{{count}} เครดิต",
+    "credits_other": "{{count}} เครดิต",
     "step": {
       "upload": "อัปโหลดวิดีโอ",
       "uploadPercent": "กำลังอัปโหลดวิดีโอ {{percent}}%",

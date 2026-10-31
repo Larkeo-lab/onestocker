@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/Button'
 import { APP_PATH } from '@/config/site'
 import { DOWNLOAD_LINK_CLASS } from '@/lib/removeBg'
 import { cn } from '@/lib/utils'
+import { useCreditCosts } from '@/hooks/queries'
+import { animationCost, videoChoiceActions } from '@/lib/creditCosts'
 import { effectiveOptions, useVideoChoice, videoUrlFor, type VideoChoice } from '@/lib/videoFormats'
 import { useRenderStore, type RenderPhase } from '@/store/animationRender'
 
@@ -35,6 +37,9 @@ export function AnimationRenderTab() {
     useRenderStore()
   const [preview, setPreview] = useState(html)
   const [choice, setChoice] = useVideoChoice()
+  const { data: costs } = useCreditCosts()
+  // ราคาเดียวกับดาวน์โหลดไฟล์แบบเดียวกันของคลิปที่ AI สร้าง ความยาวไฟล์ = ความยาวที่เลือก
+  const renderPrice = animationCost(costs, videoChoiceActions(choice, seconds))
   const working = phase.kind === 'working'
 
   useEffect(resume, [resume])
@@ -103,7 +108,9 @@ export function AnimationRenderTab() {
               <div className="flex gap-2">
                 <Button variant="primary" className="flex-1" onClick={() => render(choice)} disabled={!html.trim()}>
                   <Download className="size-4" aria-hidden />
-                  {t('animation.download')}
+                  {renderPrice === undefined
+                    ? t('animation.download')
+                    : `${t('animation.download')} · ${t('animation.credits', { count: renderPrice })}`}
                 </Button>
                 <Button onClick={() => setHtml('')} disabled={!html} title={t('animation.render.clear')}>
                   <Trash2 className="size-4" aria-hidden />
