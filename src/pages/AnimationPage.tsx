@@ -19,7 +19,7 @@ import { useVideoStore } from '@/store/animationVideo'
  * แท็บแรกสร้างจากวิดีโอตัวอย่างด้วย AI (AnimationVideoTab)
  * แท็บที่สอง (?tab=render) วางโค้ด HTML เองแล้ว render ไม่ผ่าน AI (AnimationRenderTab)
  * งานอยู่ใน store ไปหน้าอื่นหรือสลับแท็บแล้วกลับมายังเห็นงานเดิม รีเฟรชหน้าก็ถามสถานะต่อ
- * ด้านล่างเป็นประวัติ กดรายการไหนไปหน้าของรายการนั้น (AnimationDetailPage)
+ * ด้านล่างเป็นประวัติของแท็บที่เลือก กดรายการไหนไปหน้าของรายการนั้น (AnimationDetailPage)
  */
 
 const NO_HIDDEN: ReadonlySet<string> = new Set()
@@ -28,9 +28,10 @@ export function AnimationPage() {
   const { t } = useTranslation()
   useDocumentTitle(t('nav.animation'))
   const resume = useAnimationStore((store) => store.resume)
-  const history = useAnimationHistory()
   const [searchParams, setSearchParams] = useSearchParams()
   const tab = searchParams.get('tab') === 'render' ? 'render' : 'video'
+  // ประวัติแยกตามแท็บ แท็บวิดีโอเห็นแต่ที่ AI สร้าง แท็บ render เห็นแต่โค้ดที่วางเอง
+  const history = useAnimationHistory(tab)
   const tabs = [
     { id: 'video', label: t('animation.tabVideo') },
     { id: 'render', label: t('animation.tabRender') },
@@ -71,7 +72,8 @@ export function AnimationPage() {
       {tab === 'render' ? <AnimationRenderTab /> : <AnimationVideoTab />}
 
       <HistorySection
-        title={t('animation.historyTitle')}
+        key={tab}
+        title={tab === 'render' ? t('animation.historyRenderTitle') : t('animation.historyTitle')}
         query={history}
         hide={NO_HIDDEN}
         renderItem={(item) => <AnimationHistoryCard key={item.id} item={item} />}

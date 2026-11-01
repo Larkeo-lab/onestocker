@@ -125,8 +125,11 @@ export async function renderAnimationVideo(
 }
 
 /** ประวัติ ใหม่ไปเก่า ไม่มีโค้ด (html) ขอทีละรายการด้วย fetchAnimation */
+/** แท็บที่สร้างรายการ ต้องตรงกับ SourceVideo / SourceRender ใน service.go */
+export type AnimationSource = 'video' | 'render'
+
 export async function fetchAnimations(
-  query: { page?: number; limit?: number } = {},
+  query: { page?: number; limit?: number; source?: AnimationSource } = {},
 ): Promise<{ items: AnimationResult[]; pagination: Pagination }> {
   return apiGetPaginated<AnimationResult[]>('/animation', { params: query })
 }

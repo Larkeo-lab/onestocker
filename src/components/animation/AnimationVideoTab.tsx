@@ -1,4 +1,4 @@
-import { Check, Clapperboard, ExternalLink, FileCode2, LoaderCircle, RefreshCw, RotateCcw, Sparkles, X } from 'lucide-react'
+import { Check, Clapperboard, ExternalLink, FileCode2, LoaderCircle, Play, RefreshCw, RotateCcw, Sparkles, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -190,30 +190,123 @@ export function AnimationVideoTab() {
           </aside>
         </div>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        // เรียงบนลงล่าง: ขั้นตอน (แนวนอน) → วิดีโอที่ได้ → เลือกไฟล์แล้วดาวน์โหลด → โค้ด
+        <div className="space-y-5">
+          {phase.kind === 'failed' ? (
+            <div className="rounded-xl border border-danger bg-danger-soft p-4 text-[13px] text-danger">
+              {phase.message}
+            </div>
+          ) : (
+            <div className="space-y-2 rounded-xl border border-border bg-card p-4">
+              {/* จอแคบชื่อขั้นยาวเกินแถว เลื่อนดูในแถวแทนการขึ้นบรรทัดใหม่ */}
+              <ol className="flex items-center gap-2 overflow-x-auto">
+                {STEPS.map((step, index) => {
+                  const active = STEPS.indexOf(currentStep(phase))
+                  const done = phase.kind === 'done' || index < active
+                  const running = !done && index === active
+                  return (
+                    <li key={step} className="flex flex-1 items-center gap-2 text-[13px] last:flex-none">
+                      <span
+                        className={cn(
+                          'flex size-5 shrink-0 items-center justify-center rounded-full',
+                          done ? 'bg-success text-white' : running ? 'bg-primary-soft text-primary' : 'bg-muted',
+                        )}
+                      >
+                        {done ? (
+                          <Check className="size-3" aria-hidden />
+                        ) : running ? (
+                          <span className="relative flex size-2">
+                            <span className="absolute inset-0 rounded-full bg-primary opacity-75 motion-safe:animate-ping" />
+                            <span className="relative size-2 rounded-full bg-primary" />
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className={cn('whitespace-nowrap', !done && !running && 'text-subtle-foreground')}>
+                        {stepLabel(t, step, phase)}
+                      </span>
+                      {index < STEPS.length - 1 ? (
+                        <span className={cn('h-px min-w-4 flex-1', done ? 'bg-success' : 'bg-border')} aria-hidden />
+                      ) : null}
+                    </li>
+                  )
+                })}
+              </ol>
+              {(phase.kind === 'working' && (phase.job?.attached || phase.job?.notice)) || clipLabel ? (
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px]">
+                  {clipLabel ? <span className="font-semibold text-primary">{clipLabel}</span> : null}
+                  {phase.kind === 'working' && phase.job?.attached ? (
+                    <span className="rounded-md bg-primary-soft px-2.5 py-1 text-primary">{t('animation.attached')}</span>
+                  ) : null}
+                  {phase.kind === 'working' && phase.job?.notice ? (
+                    <span className="text-warning">{t('animation.notice.geminiBusy')}</span>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          )}
+
           <section className="min-w-0">
             {phase.kind === 'done' && phase.results.length > 1 ? (
-              <div className="mb-3 flex flex-wrap gap-1.5" role="tablist">
-                {phase.results.map((item, index) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={result?.id === item.id}
-                    onClick={() => setPicked(index)}
-                    className={cn(
-                      'h-8 rounded-md border px-3 text-[12.5px] font-medium transition-colors',
-                      result?.id === item.id
-                        ? 'border-primary bg-primary-soft text-primary'
-                        : 'border-border bg-card hover:border-border-strong hover:bg-muted',
-                    )}
-                  >
-                    {t('animation.clipTab', { number: item.variant })}
-                  </button>
-                ))}
+              // หลายคลิป แสดงทุกคลิปเป็นกล่องเรียงกัน กดกล่องไหนเลือกคลิปนั้น (ดาวน์โหลดกับโค้ดด้านล่างเป็นของคลิปที่เลือก)
+              <div className="grid gap-4 sm:grid-cols-2" role="radiogroup" aria-label={t('animation.previewTitle')}>
+                {phase.results.map((item, index) => {
+                  const selected = result?.id === item.id
+                  return (
+                    <div
+                      key={item.id}
+                      className={cn(
+                        'relative min-w-0 rounded-xl border bg-card p-2 transition-colors',
+                        selected ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-border-strong',
+                      )}
+                    >
+                      {/*
+                        เล่นเฉพาะคลิปที่เลือก (กดแล้วเริ่มเล่นจากต้น) คลิปอื่นแสดงภาพปกนิ่งไว้
+                        ไม่มีภาพปก (ถ่ายไม่สำเร็จ) ก็เล่นตัวอย่างแทน ไม่ให้กล่องว่าง
+                      */}
+                      {selected || !item.thumbUrl ? (
+                        <AnimationPreview
+                          html={item.html ?? ''}
+                          title={t('animation.clipTab', { number: item.variant })}
+                          transparent={choice.format === 'prores_alpha'}
+                          background={effectiveOptions(choice).background}
+                        />
+                      ) : (
+                        <div className="relative">
+                          <img
+                            src={item.thumbUrl}
+                            alt={t('animation.clipTab', { number: item.variant })}
+                            className="aspect-video w-full rounded-xl border border-border bg-black object-contain"
+                          />
+                          <span className="absolute inset-0 flex items-center justify-center" aria-hidden>
+                            <span className="flex size-11 items-center justify-center rounded-full bg-black/60 text-white">
+                              <Play className="size-5 translate-x-px fill-current" />
+                            </span>
+                          </span>
+                        </div>
+                      )}
+                      <p
+                        className={cn(
+                          'mt-2 flex items-center gap-1.5 px-1 text-[12.5px] font-medium',
+                          selected ? 'text-primary' : 'text-muted-foreground',
+                        )}
+                      >
+                        {selected ? <Check className="size-3.5" aria-hidden /> : null}
+                        {t('animation.clipTab', { number: item.variant })}
+                      </p>
+                      {/* ทับทั้งกล่อง iframe ของตัวอย่างไม่ส่งคลิกออกมา */}
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        aria-label={t('animation.clipTab', { number: item.variant })}
+                        onClick={() => setPicked(index)}
+                        className="absolute inset-0 cursor-pointer rounded-xl"
+                      />
+                    </div>
+                  )
+                })}
               </div>
-            ) : null}
-            {html ? (
+            ) : html ? (
               <AnimationPreview
                 key={result?.id}
                 html={html}
@@ -234,69 +327,25 @@ export function AnimationVideoTab() {
                 {t(result ? 'animation.previewDone' : 'animation.previewNote')}
               </p>
             )}
-
-            {html && (
-              <div className="mt-5">
-                <AnimationCode html={html} />
-              </div>
-            )}
           </section>
 
-          <aside className="space-y-4">
-            {phase.kind === 'failed' ? (
-              <div className="rounded-xl border border-danger bg-danger-soft p-4 text-[13px] text-danger">
-                {phase.message}
-              </div>
-            ) : (
-              <ol className="space-y-2.5 rounded-xl border border-border bg-card p-4">
-                {phase.kind === 'working' && phase.job?.attached ? (
-                  <li className="rounded-md bg-primary-soft px-2.5 py-1.5 text-[12px] text-primary">{t('animation.attached')}</li>
-                ) : null}
-                {clipLabel ? <li className="text-[12px] font-semibold text-primary">{clipLabel}</li> : null}
-                {STEPS.map((step, index) => {
-                  const active = STEPS.indexOf(currentStep(phase))
-                  const done = phase.kind === 'done' || index < active
-                  const running = !done && index === active
-                  return (
-                    <li key={step} className="flex items-center gap-2.5 text-[13px]">
-                      <span
-                        className={cn(
-                          'flex size-5 shrink-0 items-center justify-center rounded-full',
-                          done ? 'bg-success text-white' : running ? 'bg-primary-soft text-primary' : 'bg-muted',
-                        )}
-                      >
-                        {done ? (
-                          <Check className="size-3" aria-hidden />
-                        ) : running ? (
-                          <span className="relative flex size-2">
-                            <span className="absolute inset-0 rounded-full bg-primary opacity-75 motion-safe:animate-ping" />
-                            <span className="relative size-2 rounded-full bg-primary" />
-                          </span>
-                        ) : null}
-                      </span>
-                      <span className={cn(!done && !running && 'text-subtle-foreground')}>
-                        {stepLabel(t, step, phase)}
-                      </span>
-                    </li>
-                  )
-                })}
-                {phase.kind === 'working' && phase.job?.notice ? (
-                  <li className="text-[12px] text-warning">{t('animation.notice.geminiBusy')}</li>
-                ) : null}
-              </ol>
-            )}
+          {phase.kind === 'working' ? (
+            <Button variant="danger" className="w-full sm:w-auto" onClick={cancel} disabled={cancelling}>
+              {cancelling ? <LoaderCircle className="size-4 animate-spin" aria-hidden /> : <X className="size-4" aria-hidden />}
+              {cancelling ? t('animation.cancelling') : t('animation.cancel')}
+            </Button>
+          ) : null}
 
-            {phase.kind === 'working' ? (
-              <Button variant="danger" className="w-full" onClick={cancel} disabled={cancelling}>
-                {cancelling ? <LoaderCircle className="size-4 animate-spin" aria-hidden /> : <X className="size-4" aria-hidden />}
-                {cancelling ? t('animation.cancelling') : t('animation.cancel')}
-              </Button>
-            ) : null}
-
-            {result && (
-              <div className="space-y-2">
-                <FormatSelect value={choice} onChange={setChoice} clipSeconds={result.seconds} />
-                <VideoDownloadButton item={result} choice={choice} />
+          {result && (
+            <section className="space-y-3 border-t border-border pt-4">
+              <FormatSelect
+                value={choice}
+                onChange={setChoice}
+                clipSeconds={result.seconds}
+                inline
+                actions={<VideoDownloadButton item={result} choice={choice} />}
+              />
+              <div className="grid gap-2 sm:grid-cols-2">
                 <a href={result.htmlDownloadUrl} className={SECONDARY_LINK_CLASS}>
                   <FileCode2 className="size-4" aria-hidden />
                   {t('animation.downloadHtml')}
@@ -305,35 +354,34 @@ export function AnimationVideoTab() {
                   <ExternalLink className="size-4" aria-hidden />
                   {t('animation.open')}
                 </Link>
-                <p className="text-[11.5px] text-subtle-foreground">
-                  {t('animation.model', { model: result.model })}
-                </p>
               </div>
-            )}
+              <p className="text-[11.5px] text-subtle-foreground">{t('animation.model', { model: result.model })}</p>
+            </section>
+          )}
 
-            {(phase.kind === 'done' || phase.kind === 'failed') && (
-              <div className="space-y-2 border-t border-border pt-4">
-                {/* ไฟล์เดิมยังอยู่ในเบราว์เซอร์ (ไม่ได้รีเฟรช) สร้างใหม่ได้เลย AI เขียนโค้ดใหม่ ได้ผลต่างจากเดิม */}
-                {canRegenerate ? (
-                  <Button
-                    variant="primary"
-                    className="w-full"
-                    onClick={() => {
-                      setPicked(0)
-                      regenerate()
-                    }}
-                  >
-                    <Sparkles className="size-4" aria-hidden />
-                    {t('animation.regenerate')}
-                  </Button>
-                ) : null}
-                <Button variant="ghost" className="w-full" onClick={reset}>
-                  <RotateCcw className="size-4" aria-hidden />
-                  {t('animation.again')}
+          {(phase.kind === 'done' || phase.kind === 'failed') && (
+            <div className="flex flex-wrap gap-2">
+              {/* ไฟล์เดิมยังอยู่ในเบราว์เซอร์ (ไม่ได้รีเฟรช) สร้างใหม่ได้เลย AI เขียนโค้ดใหม่ ได้ผลต่างจากเดิม */}
+              {canRegenerate ? (
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setPicked(0)
+                    regenerate()
+                  }}
+                >
+                  <Sparkles className="size-4" aria-hidden />
+                  {t('animation.regenerate')}
                 </Button>
-              </div>
-            )}
-          </aside>
+              ) : null}
+              <Button variant="ghost" onClick={reset}>
+                <RotateCcw className="size-4" aria-hidden />
+                {t('animation.again')}
+              </Button>
+            </div>
+          )}
+
+          {html && <AnimationCode html={html} />}
         </div>
       )}
     </>

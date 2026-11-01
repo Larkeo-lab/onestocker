@@ -597,6 +597,7 @@
     "copyCode": "Copy code",
     "copied": "Copied",
     "historyTitle": "Your animations",
+    "historyRenderTitle": "Your rendered code",
     "open": "Open animation",
     "uploaded": "Uploaded — ready to generate",
     "generate": "Generate animation",

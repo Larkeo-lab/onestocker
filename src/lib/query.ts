@@ -82,6 +82,8 @@ export const queryKeys = {
   animation: {
     all: ['animation'] as const,
     history: ['animation', 'history'] as const,
+    // ประวัติของแต่ละแท็บ ขึ้นต้นด้วย history จึงถูกล้างพร้อมกัน
+    historyOf: (source: string) => ['animation', 'history', source] as const,
     // หน้ารายการเดียว (/animation/:id) มีโค้ดด้วย ขึ้นต้นด้วย animation จึงถูกล้างพร้อม all
     item: (id: string) => ['animation', 'item', id] as const,
   },

@@ -13,6 +13,7 @@ import {
   fetchSettings,
   fetchUpscales,
   fetchAnimations,
+  type AnimationSource,
   type HistoryQuery,
   type Pagination,
   type RemoveBgQuery,
@@ -189,11 +190,11 @@ export function useUpscaleHistory() {
   })
 }
 
-export function useAnimationHistory() {
+export function useAnimationHistory(source: AnimationSource) {
   return useInfiniteQuery({
     ...historyOptions,
-    queryKey: queryKeys.animation.history,
-    queryFn: ({ pageParam }) => fetchAnimations({ page: pageParam, limit: HISTORY_PAGE_SIZE }),
+    queryKey: queryKeys.animation.historyOf(source),
+    queryFn: ({ pageParam }) => fetchAnimations({ page: pageParam, limit: HISTORY_PAGE_SIZE, source }),
   })
 }
 

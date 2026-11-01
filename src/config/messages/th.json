@@ -597,6 +597,7 @@
     "copyCode": "คัดลอกโค้ด",
     "copied": "คัดลอกแล้ว",
     "historyTitle": "แอนิเมชันของคุณ",
+    "historyRenderTitle": "โค้ดที่ render ของคุณ",
     "open": "เปิดดูแอนิเมชัน",
     "uploaded": "อัปโหลดเสร็จแล้ว พร้อมสร้าง",
     "generate": "สร้างแอนิเมชัน",
