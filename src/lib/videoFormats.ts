@@ -101,7 +101,7 @@ export function useVideoChoice(): [VideoChoice, (choice: VideoChoice) => void] {
 
 /**
  * ความยาวที่ดาวน์โหลดได้ของคลิปที่ลูปยาว clipSeconds วินาที: ผลคูณของลูปไม่เกิน ANIMATION_MAX_SECONDS
- * ลูปซ้ำจึงต่อกันสนิท เช่นลูป 10 วินาทีได้ 10 / 20 / 30 ต้องตรงกับ loopSeconds ใน service.go
+ * ลูปซ้ำจึงต่อกันสนิท เช่นลูป 5 วินาทีได้ 5 / 10 ต้องตรงกับ loopSeconds ใน service.go
  */
 export function downloadLengths(clipSeconds: number): number[] {
   const lengths = [clipSeconds]

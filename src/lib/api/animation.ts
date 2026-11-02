@@ -18,7 +18,7 @@ export const ANIMATION_MAX_CLIPS = 4
 
 /** ความยาวคลิปที่เลือกได้ (วินาที) ต้องตรงกับ MinSeconds / MaxSeconds ใน service.go */
 export const ANIMATION_MIN_SECONDS = 5
-export const ANIMATION_MAX_SECONDS = 30
+export const ANIMATION_MAX_SECONDS = 10
 export const ANIMATION_DEFAULT_SECONDS = 10
 
 /**
