@@ -2,6 +2,7 @@ import { RedirectToSignIn, SignedIn, SignedOut } from '@clerk/clerk-react'
 
 import { AuthBridge } from '@/components/auth/AuthBridge'
 import { ClerkGate } from '@/components/auth/ClerkGate'
+import { RequirePassword } from '@/components/auth/RequirePassword'
 import { GenerateProvider } from '@/components/generate/GenerateProvider'
 import { AppShell } from '@/components/layout/AppShell'
 import { env } from '@/lib/env'
@@ -36,9 +37,12 @@ export function RootLayout() {
     <ClerkGate>
       <SignedIn>
         <AuthBridge>
-          <GenerateProvider>
-            <AppShell />
-          </GenerateProvider>
+          {/* ตรวจกับเซิร์ฟเวอร์ก่อน (เครื่องสมัครเกินเพดาน) แล้วค่อยให้บัญชีที่สมัครด้วย Google ตั้งรหัสผ่าน */}
+          <RequirePassword>
+            <GenerateProvider>
+              <AppShell />
+            </GenerateProvider>
+          </RequirePassword>
         </AuthBridge>
       </SignedIn>
 

@@ -7,7 +7,7 @@ import { PlansDialog } from '@/components/plans/PlansDialog'
 import { QuotaDialog } from '@/components/quota/QuotaDialog'
 import { WelcomeDialog } from '@/components/welcome/WelcomeDialog'
 import { useMe } from '@/hooks/queries'
-import { saveLanguage } from '@/lib/api'
+import { ApiError, saveLanguage } from '@/lib/api'
 import { isAppLanguage } from '@/config/languages'
 import { usePlatformsStore } from '@/store/platforms'
 import { useUiStore } from '@/store/ui'
@@ -15,6 +15,7 @@ import { useUsageStore } from '@/store/usage'
 
 import { AppHeader } from './AppHeader'
 import { OfflineBanner } from './OfflineBanner'
+import { PlatformBlocked } from './PlatformBlocked'
 import { Sidebar } from './Sidebar'
 
 /**
@@ -104,6 +105,10 @@ export function AppShell() {
       window.removeEventListener('focus', refreshIfStale)
     }
   }, [refreshUsage])
+
+  if (profile.error instanceof ApiError && profile.error.status === 403) {
+    return <PlatformBlocked />
+  }
 
   return (
     <div className="flex min-h-screen">

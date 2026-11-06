@@ -14,6 +14,7 @@ import { PlatformsPage } from '@/pages/PlatformsPage'
 import { RemoveBgPage } from '@/pages/RemoveBgPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { UpscalePage } from '@/pages/UpscalePage'
+import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { SignInPage } from '@/pages/auth/SignInPage'
 import { SignUpPage } from '@/pages/auth/SignUpPage'
 
@@ -70,6 +71,7 @@ export const router = createBrowserRouter([
       // เช่น /sign-in/factor-one ตอนยืนยันสองขั้นตอน
       { path: 'sign-in/*', element: <SignInPage /> },
       { path: 'sign-up/*', element: <SignUpPage /> },
+      { path: 'forgot-password', element: <ForgotPasswordPage /> },
     ],
   },
   { path: '*', element: <NotFoundPage /> },

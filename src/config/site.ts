@@ -38,6 +38,9 @@ export const APP_VERSION = __APP_COMMIT__
 /** path ของตัวแอปที่ต้องล็อกอิน หน้า / เป็นหน้า landing สาธารณะ */
 export const APP_PATH = "/app";
 
+/** หน้าเข้าสู่ระบบ ต้องตรงกับ route ใน routes/router.tsx */
+export const SIGN_IN_PATH = "/sign-in";
+
 /**
  * ค่าสำรองระหว่างรอคำตอบจาก GET /meta
  *

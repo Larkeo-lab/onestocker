@@ -2,6 +2,7 @@
 export {
   api,
   ApiError,
+  SIGNUP_DEVICE_LIMIT_CODE,
   setAuthTokenGetter,
   apiGet,
   apiPost,

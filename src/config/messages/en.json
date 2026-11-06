@@ -58,6 +58,8 @@
     "selectPlatform": "Select {{name}} for generate"
   },
   "account": {
+    "platformBlockedTitle": "The web app isn't enabled for this account",
+    "platformBlockedText": "An administrator has turned off OneStock Metadata for this account. Contact them to turn it back on.",
     "menu": "Account menu",
     "creditsTitle": "Used {{used}} of {{limit}} credits",
     "upgrade": "Upgrade",
@@ -74,7 +76,42 @@
     "checking": "Checking your session",
     "bypassTitle": "Sign-in is bypassed",
     "bypassBody": "Set <code>VITE_AUTH_DEV_BYPASS=false</code> and use a development instance key to test real sign-in.",
-    "backToApp": "Back to the app"
+    "backToApp": "Back to the app",
+    "setPassword": {
+      "title": "Set a password",
+      "body": "You signed up with Google. Set a password for {{email}} so you can also sign in with email, for example in OneStock Studio",
+      "password": "Password",
+      "confirm": "Confirm password",
+      "hint": "At least {{min}} characters",
+      "show": "Show password",
+      "hide": "Hide password",
+      "submit": "Save password",
+      "signOut": "Sign out",
+      "tooShort": "Password must be at least {{min}} characters",
+      "mismatch": "Passwords don't match",
+      "failed": "Couldn't set the password. Please try again"
+    },
+    "signupBlocked": {
+      "title": "This device has reached its account limit",
+      "body": "This device already has the maximum number of accounts, so a new account can't be created. Sign in with the account you already use on this device, or contact the administrator",
+      "signIn": "Go to sign in"
+    },
+    "forgot": {
+      "link": "Forgot password?",
+      "title": "Forgot password",
+      "emailHint": "Enter your account email. We'll email you a 6-digit code to set a new password",
+      "email": "Email",
+      "send": "Send code",
+      "sent": "We sent a code to {{email}}. Enter it and set a new password (check your spam folder if you don't see it)",
+      "code": "6-digit code",
+      "newPassword": "New password",
+      "reset": "Set new password and sign in",
+      "resend": "Resend code",
+      "back": "Back to sign in",
+      "sendFailed": "Couldn't send the code. Check the email and try again",
+      "resetFailed": "Couldn't set the password. Check the code and try again",
+      "changedSignIn": "Password changed. Sign in with your new password"
+    }
   },
   "notFound": {
     "title": "Page not found",

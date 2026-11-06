@@ -99,6 +99,12 @@ api.interceptors.request.use(async (config) => {
  */
 export const MAINTENANCE_CODE = 'OS-MAINTENANCE'
 
+/**
+ * รหัสของ 403 จาก /auth/me เมื่อสมัครบัญชีใหม่บนเครื่องที่มีบัญชีครบเพดานแล้ว เซิร์ฟเวอร์ลบบัญชีที่เพิ่งสร้างทิ้ง
+ * ต้องตรงกับ auth.CodeSignupDeviceLimit ฝั่ง Go
+ */
+export const SIGNUP_DEVICE_LIMIT_CODE = 'OS-SIGNUP-DEVICE-LIMIT'
+
 /** error ที่มีทั้ง HTTP status และรหัสจากเซิร์ฟเวอร์ติดมาด้วย */
 export class ApiError extends Error {
   status: number
